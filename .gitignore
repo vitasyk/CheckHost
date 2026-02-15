@@ -43,3 +43,9 @@ next-env.d.ts
 .claude
 .agent
 .brain
+
+# Data & Database
+data/
+*.mmdb
+ipinfo_lite.json
+*.sql.gz
