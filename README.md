@@ -1,4 +1,4 @@
-# CheckHost Clone - Quick Start Guide
+# Checking Your Host - Quick Start Guide
 
 ## 🚀 Getting Started
 
