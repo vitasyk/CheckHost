@@ -4,6 +4,7 @@ export interface ParsedRdap {
     registrationDate?: string;
     expirationDate?: string;
     lastChangedDate?: string;
+    transferDate?: string;
     status?: string[];
     nameservers?: string[];
     abuseContact?: {
@@ -29,6 +30,7 @@ export function parseRdapData(data: any): ParsedRdap {
             if (action === 'registration') result.registrationDate = date;
             if (action === 'expiration') result.expirationDate = date;
             if (action === 'last changed') result.lastChangedDate = date;
+            if (action === 'transfer') result.transferDate = date;
         });
     }
 

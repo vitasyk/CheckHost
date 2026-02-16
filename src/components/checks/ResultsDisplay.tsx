@@ -25,9 +25,10 @@ interface ResultsDisplayProps {
     nodes?: Record<string, Node>;
     activeNodes?: Record<string, any>;
     onPingIp?: (ip: string) => void;
+    dnsType?: string;
 }
 
-export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {}, onPingIp }: ResultsDisplayProps) {
+export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {}, onPingIp, dnsType }: ResultsDisplayProps) {
     const [groupBy, setGroupBy] = useState<'none' | 'region'>('none');
     const [searchQuery, setSearchQuery] = useState('');
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -710,6 +711,7 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
                         <DnsDashboard
                             result={entries[0][1]}
                             nodeCity={entries[0][0] ? getLocationInfo(entries[0][0]).city : undefined}
+                            filterType={dnsType}
                         />
                     ) : (
                         <div className="text-center p-12 text-muted-foreground">

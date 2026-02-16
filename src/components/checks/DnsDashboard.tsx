@@ -15,6 +15,7 @@ interface DnsRecord {
 interface DnsLookupResult {
     domain: string;
     ip: string | null;
+    ipInfo?: any;
     records: DnsRecord[];
     timestamp: number;
 }
@@ -22,9 +23,10 @@ interface DnsLookupResult {
 interface DnsDashboardProps {
     result: any;
     nodeCity?: string;
+    filterType?: string;
 }
 
-export function DnsDashboard({ result, nodeCity }: DnsDashboardProps) {
+export function DnsDashboard({ result, nodeCity, filterType = 'all' }: DnsDashboardProps) {
     const [copied, setCopied] = useState(false);
 
     // Extract the DNS lookup result
@@ -43,7 +45,10 @@ export function DnsDashboard({ result, nodeCity }: DnsDashboardProps) {
         );
     }
 
-    const records = data.records;
+    // Filter records based on selected type
+    const records = filterType === 'all'
+        ? data.records
+        : data.records.filter(r => r.type.toUpperCase() === filterType.toUpperCase());
 
     const handleCopy = () => {
         if (!data) return;
@@ -125,11 +130,13 @@ export function DnsDashboard({ result, nodeCity }: DnsDashboardProps) {
 
         return (
             <div className={cn("border-l-[3px] pl-5 py-1", borderColors[variant])}>
-                <div className="flex items-center gap-2.5 mb-3">
-                    <div className="text-muted-foreground">{icon}</div>
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="p-1.5 bg-slate-200/60 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400 border border-slate-300/50 dark:border-white/5 shadow-sm">
+                        {icon}
+                    </div>
                     <div>
-                        <h4 className="text-sm font-bold tracking-tight">{title}</h4>
-                        {subtitle && <p className="text-[11px] text-muted-foreground">{subtitle}</p>}
+                        <h4 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-slate-100 uppercase">{title}</h4>
+                        {subtitle && <p className="text-[10px] text-slate-500 dark:text-muted-foreground font-bold">{subtitle}</p>}
                     </div>
                 </div>
                 <div className="space-y-1.5">
@@ -211,40 +218,71 @@ export function DnsDashboard({ result, nodeCity }: DnsDashboardProps) {
 
     return (
         <div className="rounded-2xl border border-slate-200/60 dark:border-white/5 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
-            {/* Summary Header */}
-            <div className="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 px-6 py-5 text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvZz48L3N2Zz4=')] opacity-50" />
+            {/* Summary Header - Balanced Professional Look */}
+            <div className="bg-slate-100/50 dark:bg-slate-950/30 border-b border-slate-200 dark:border-white/5 px-6 py-5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 dark:bg-indigo-400/5 blur-3xl -mr-20 -mt-20 rounded-full" />
                 <div className="relative flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-white/20 backdrop-blur-sm p-2.5 rounded-xl">
-                            <Globe className="h-5 w-5" />
+                    <div className="flex items-center gap-4">
+                        <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl shadow-md border border-slate-200 dark:border-white/5">
+                            <Globe className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-lg tracking-tight">
+                            <h3 className="font-bold text-lg tracking-tight text-slate-900 dark:text-slate-100">
                                 {data.domain ? `DNS Records — ${data.domain}` : 'DNS Records'}
                             </h3>
-                            <div className="flex items-center gap-3 mt-0.5">
-                                {data.ip && <span className="text-white/80 text-sm font-mono">{data.ip}</span>}
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                                {data.ip && (
+                                    <span className="text-slate-600 dark:text-slate-400 text-xs font-mono bg-slate-200/50 dark:bg-white/5 px-2 py-0.5 rounded border border-slate-200/50 dark:border-transparent flex items-center gap-1.5">
+                                        {data.ip}
+                                        {data.ipInfo?.providers?.ipapi?.countryCode && (
+                                            <span className="opacity-80 grayscale-[0.3]">
+                                                {(() => {
+                                                    const code = data.ipInfo.providers.ipapi.countryCode;
+                                                    const codePoints = code.toUpperCase().split('').map((char: string) => 127397 + char.charCodeAt(0));
+                                                    return String.fromCodePoint(...codePoints);
+                                                })()}
+                                            </span>
+                                        )}
+                                    </span>
+                                )}
+                                {data.ipInfo?.providers?.ipapi?.isp && (
+                                    <span className="text-[10px] bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full font-bold border border-indigo-100 dark:border-indigo-800/30">
+                                        Hosted by: {data.ipInfo.providers.ipapi.isp}
+                                    </span>
+                                )}
+                                <span className="text-[10px] text-slate-500 dark:text-muted-foreground uppercase tracking-widest font-bold">
+                                    {data.records.length} total records
+                                </span>
                             </div>
                         </div>
                     </div>
 
                     <Button
-                        variant="ghost"
-                        size="icon"
+                        variant="outline"
+                        size="sm"
                         onClick={handleCopy}
-                        className="bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-sm border-white/10 transition-all active:scale-95"
-                        title="Copy to clipboard"
+                        className="bg-white dark:bg-slate-900/50 border-slate-300 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl shadow-sm transition-all active:scale-95 h-9 px-3 gap-2"
                     >
-                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        {copied ? (
+                            <>
+                                <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-500" />
+                                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-500">Copied</span>
+                            </>
+                        ) : (
+                            <>
+                                <Copy className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Copy View</span>
+                            </>
+                        )}
                     </Button>
                 </div>
 
-                {/* Quick stats */}
-                <div className="flex flex-wrap gap-2 mt-4">
+                {/* Quick stats - Modern pill style */}
+                <div className="flex flex-wrap gap-2 mt-5 relative z-10">
                     {Object.entries(typeCounts).map(([type, count]) => (
-                        <div key={type} className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-1.5 text-xs">
-                            <span className="font-bold">{count}</span> <span className="text-white/70">{type}</span>
+                        <div key={type} className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/5 rounded-full px-3 py-1 flex items-center gap-2 shadow-sm hover:border-slate-300 dark:hover:border-white/10 transition-colors">
+                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tighter">{type}</span>
+                            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{count}</span>
                         </div>
                     ))}
                 </div>

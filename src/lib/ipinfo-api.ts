@@ -17,6 +17,9 @@ export interface IpInfoLiteResponse {
     postal?: string;
     latitude?: number;
     longitude?: number;
+    loc?: string;
+    timezone?: string;
+    anycast?: boolean;
     accuracy_radius?: number;
 }
 
@@ -199,19 +202,39 @@ export async function fetchIpInfo(ip: string): Promise<IpInfoLiteResponse | null
 }
 
 export async function resolveHostToIp(host: string): Promise<string> {
+    // Basic sanitization: remove http://, https://, and trailing paths
+    let cleanedHost = host
+        .replace(/^https?:\/\//i, '') // Remove protocol
+        .split('/')[0]                // Remove path/query
+        .split(':')[0]                // Remove port if present
+        .trim();
+
     // Try to detect if it's already an IP
     const ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}$/;
-    if (ipRegex.test(host)) {
-        return host;
+    if (ipRegex.test(cleanedHost)) {
+        return cleanedHost;
     }
 
     // For hostnames, we'll use a simple DNS-over-HTTPS service
     try {
-        const response = await fetch(`https://dns.google/resolve?name=${host}&type=A`);
+        const response = await fetch(`https://dns.google/resolve?name=${cleanedHost}&type=A`);
         const data = await response.json();
 
         if (data.Answer && data.Answer.length > 0) {
-            return data.Answer[0].data;
+            // Find the first actual IP address in the answer chain
+            // Type 1 is A record (IPv4)
+            const aRecord = data.Answer.find((ans: any) => ans.type === 1);
+            if (aRecord) {
+                return aRecord.data;
+            }
+
+            // If no A record but we have answers, return the last one (might be another CNAME or specialized record)
+            // But usually we want an IP for the providers to work correctly.
+            const lastRecord = data.Answer[data.Answer.length - 1];
+            if (lastRecord && lastRecord.data) {
+                // Strip trailing dot if present
+                return lastRecord.data.replace(/\.$/, '');
+            }
         }
     } catch (error) {
         console.error('Failed to resolve hostname:', error);
@@ -219,6 +242,39 @@ export async function resolveHostToIp(host: string): Promise<string> {
 
     // Fallback: return the original host
     return host;
+}
+
+/**
+ * Resolve an IP address to its hostname using Reverse DNS (PTR)
+ */
+export async function resolveIpToHost(ip: string): Promise<string | null> {
+    const ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}$/;
+    if (!ipRegex.test(ip)) return null;
+
+    // Convert IP to in-addr.arpa format (e.g., 1.2.3.4 -> 4.3.2.1.in-addr.arpa)
+    const arpaHost = ip.split('.').reverse().join('.') + '.in-addr.arpa';
+
+    try {
+        const response = await fetch(`https://dns.google/resolve?name=${arpaHost}&type=PTR`, {
+            signal: AbortSignal.timeout(3000)
+        });
+
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        if (data.Answer && data.Answer.length > 0) {
+            // PTR record is type 12
+            const ptrRecord = data.Answer.find((ans: any) => ans.type === 12);
+            if (ptrRecord && ptrRecord.data) {
+                // Remove trailing dot
+                return ptrRecord.data.replace(/\.$/, '');
+            }
+        }
+    } catch (error) {
+        console.error(`Reverse DNS lookup failed for ${ip}:`, error);
+    }
+
+    return null;
 }
 
 /**

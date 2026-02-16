@@ -266,8 +266,10 @@ export default function ChecksPage() {
             return;
         }
         setErrorMessage(null);
-        // Defer check until tab is fully active
-        setPendingCheck({ type, host });
+        // Defer check until tab is fully active (except for MTR)
+        if (type !== 'mtr') {
+            setPendingCheck({ type, host });
+        }
     };
 
     const onHostChange = (newHost: string) => {
@@ -548,7 +550,7 @@ export default function ChecksPage() {
                                             nodes={nodes}
                                         />
                                         {(dnsResults || Object.keys(dnsNodes).length > 0) && (
-                                            <ResultsDisplay results={dnsResults || {}} checkType="dns" nodes={nodes} activeNodes={dnsNodes} />
+                                            <ResultsDisplay results={dnsResults || {}} checkType="dns" nodes={nodes} activeNodes={dnsNodes} dnsType={dnsType} />
                                         )}
                                     </div>
                                 </TabsContent>
@@ -573,7 +575,7 @@ export default function ChecksPage() {
                                             onDnsTypeChange={setDnsType}
                                         />
                                         {(dnsInfoResults || Object.keys(dnsInfoNodes).length > 0) && (
-                                            <ResultsDisplay results={dnsInfoResults || {}} checkType="dns-all" nodes={nodes} activeNodes={dnsInfoNodes} />
+                                            <ResultsDisplay results={dnsInfoResults || {}} checkType="dns-all" nodes={nodes} activeNodes={dnsInfoNodes} dnsType={dnsType} />
                                         )}
                                     </div>
                                 </TabsContent>

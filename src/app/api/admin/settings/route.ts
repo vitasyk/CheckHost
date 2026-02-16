@@ -7,13 +7,19 @@ import { getSiteSetting, saveSiteSetting } from '@/lib/site-settings';
  * Handle GET request for site settings (Admin only)
  */
 export async function GET(request: Request) {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const key = searchParams.get('key') || 'adsense';
+
+    // Publicly accessible keys (non-sensitive UI configs)
+    const publicKeys = ['ip_info_display', 'adsense'];
+    const isPublic = publicKeys.includes(key);
+
+    if (!isPublic) {
+        const session = await getServerSession(authOptions);
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+    }
 
     try {
         const value = await getSiteSetting(key);

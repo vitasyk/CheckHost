@@ -1,14 +1,15 @@
 import { IpInfoResponse } from '@/types/ip-info';
-import { fetchIpInfo, resolveHostToIp, fetchFromIpGeolocation, fetchFromMaxMind, fetchRdapInfo } from './ipinfo-api';
+import { fetchIpInfo, resolveHostToIp, fetchFromIpGeolocation, fetchFromMaxMind, fetchRdapInfo, resolveIpToHost } from './ipinfo-api';
 import { fetchIpApiData } from './ipapi-api';
 import { lookupLocalIpInfo } from './ipinfo-local';
 
 export async function getMockIpInfo(host: string): Promise<IpInfoResponse> {
     // Resolve hostname to IP
     const ip = await resolveHostToIp(host);
+    const isIpInput = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host);
 
     // Fetch data from multiple sources in parallel
-    const [realIpInfo, ipApiData, ipGeoData, maxmindData, localMmdbData, rdapData] = await Promise.all([
+    const [realIpInfo, ipApiData, ipGeoData, maxmindData, localMmdbData, rdapData, ptrHost] = await Promise.all([
         fetchIpInfo(ip).catch(err => {
             console.warn('IPInfo data skipped:', err.message);
             return null;
@@ -32,33 +33,41 @@ export async function getMockIpInfo(host: string): Promise<IpInfoResponse> {
         fetchRdapInfo(host).catch(err => {
             console.warn('RDAP data skipped:', err.message);
             return null;
-        })
+        }),
+        // Always try to resolve PTR for the IP address
+        resolveIpToHost(ip).catch(() => null)
     ]);
 
     const isGoogle = host.toLowerCase().includes('google') || ip === '8.8.8.8';
+    const isCloudflare = host.includes('cloudflare') || ip === '1.1.1.1';
+
+    // Priority: PTR record > API hostname > Input host (if domain) > IP
+    const resolvedHostname = ptrHost || realIpInfo?.as_domain || (isIpInput ? null : host);
 
     return {
         ip: ip,
-        hostname: realIpInfo?.as_domain || (isGoogle ? 'dns.google' : 'one.one.one.one'),
+        hostname: resolvedHostname || (isGoogle ? 'dns.google' : (isCloudflare ? 'one.one.one.one' : ip)),
         providers: {
             // Real IPInfo.io data (from lite API)
             ipinfo: realIpInfo ? {
                 ip: realIpInfo.ip,
                 hostname: realIpInfo.as_domain || '',
-                city: 'N/A',
-                region: 'N/A',
+                city: realIpInfo.city || 'N/A',
+                region: realIpInfo.region || 'N/A',
                 country: realIpInfo.country_code,
                 country_name: realIpInfo.country,
                 continent: realIpInfo.continent,
                 continent_code: realIpInfo.continent_code,
-                loc: '0,0',
+                loc: realIpInfo.latitude && realIpInfo.longitude
+                    ? `${realIpInfo.latitude},${realIpInfo.longitude}`
+                    : realIpInfo.loc || '0,0',
                 org: `${realIpInfo.asn} ${realIpInfo.as_name}`,
                 asn: realIpInfo.asn,
                 as_name: realIpInfo.as_name,
                 as_domain: realIpInfo.as_domain,
-                postal: '',
-                timezone: '',
-                anycast: false
+                postal: realIpInfo.postal || '',
+                timezone: realIpInfo.timezone || '',
+                anycast: realIpInfo.anycast || false
             } : undefined,
             // Real IP-API.com data
             ipapi: ipApiData ? {

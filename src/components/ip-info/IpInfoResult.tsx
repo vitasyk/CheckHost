@@ -1,7 +1,7 @@
 import { IpInfoResponse } from '@/types/ip-info';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Globe, ChevronDown, Database, Calendar, ShieldCheck, Mail, Phone, ExternalLink } from 'lucide-react';
+import { MapPin, Globe, ChevronDown, Database, Calendar, ShieldCheck, Mail, Phone, ExternalLink, Server, Network } from 'lucide-react';
 import MapWrapper from '@/components/ip-info/MapWrapper';
 import { getCountryCoords } from '@/lib/country-coords';
 import { parseRdapData } from '@/lib/rdap-parser';
@@ -16,10 +16,11 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
     const [expandedProvider, setExpandedProvider] = useState<string | null>('maxmind');
     const [expandedRaw, setExpandedRaw] = useState(false);
     const [displaySettings, setDisplaySettings] = useState({
-        showFeaturedMap: true,
-        showRdapData: true,
-        showProviderCards: true
+        showFeaturedMap: false,
+        showRdapData: false,
+        showProviderCards: false
     });
+    const [settingsLoaded, setSettingsLoaded] = useState(false);
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -28,10 +29,27 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
                 const res = await fetch(`/api/admin/settings?key=ip_info_display&t=${Date.now()}`);
                 if (res.ok) {
                     const settings = await res.json();
-                    if (settings) setDisplaySettings(settings);
+                    if (settings) {
+                        setDisplaySettings(settings);
+                    } else {
+                        // Fallback to defaults if no settings in DB
+                        setDisplaySettings({
+                            showFeaturedMap: true,
+                            showRdapData: true,
+                            showProviderCards: true
+                        });
+                    }
                 }
             } catch (err) {
                 console.warn('Failed to fetch IP Info display settings:', err);
+                // Fallback on error
+                setDisplaySettings({
+                    showFeaturedMap: true,
+                    showRdapData: true,
+                    showProviderCards: true
+                });
+            } finally {
+                setSettingsLoaded(true);
             }
         };
         fetchSettings();
@@ -186,6 +204,15 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
         return <div className="text-center p-8 text-muted-foreground">No IP information found.</div>;
     }
 
+    if (!settingsLoaded) {
+        return (
+            <div className="space-y-4">
+                <div className="h-24 w-full bg-slate-100 dark:bg-slate-800/50 animate-pulse rounded-2xl" />
+                <div className="h-[350px] w-full bg-slate-100 dark:bg-slate-800/50 animate-pulse rounded-2xl" />
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Unified Summary Header Bar - Premium UI/UX */}
@@ -269,8 +296,10 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
 
                 // Priority 1: IPInfo.io real coordinates (as requested)
                 if (providers.ipinfo?.loc) {
-                    const [lat, lng] = providers.ipinfo.loc.split(',').map(parseFloat);
-                    if (lat && lng) {
+                    const parts = providers.ipinfo.loc.split(',');
+                    const lat = parseFloat(parts[0]);
+                    const lng = parseFloat(parts[1]);
+                    if (!isNaN(lat) && !isNaN(lng) && (lat !== 0 || lng !== 0)) {
                         featuredLat = lat;
                         featuredLng = lng;
                         sourceName = 'IPInfo.io';
@@ -399,13 +428,13 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
                         </div>
 
                         <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                            {/* Registrar & Status */}
-                            <div className="space-y-4">
+                            {/* Column 1: Registrar & Status */}
+                            <div className="space-y-6">
                                 <div>
                                     <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                                         <ExternalLink className="h-3 w-3" /> Registrar
                                     </div>
-                                    <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                    <div className="text-sm text-slate-900 dark:text-slate-100">
                                         {rdap.registrar || 'Protected / Hidden'}
                                     </div>
                                 </div>
@@ -432,13 +461,31 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
                                 </div>
                             </div>
 
-                            {/* Important Dates */}
-                            <div className="space-y-4">
+                            {/* Column 2: Hosting / ISP & Important Dates */}
+                            <div className="space-y-6">
+                                <div>
+                                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                        <Server className="h-3 w-3" /> Hosting / ISP
+                                    </div>
+                                    <div className="text-sm text-indigo-600 dark:text-indigo-400">
+                                        {providers.ipapi?.isp || providers.ipinfo?.org || 'N/A'}
+                                    </div>
+                                    {(providers.ipinfo?.asn || providers.ipapi?.as) && (
+                                        <div className="mt-2 flex items-center gap-2">
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 leading-none">
+                                                <Network className="h-2.5 w-2.5" /> ASN
+                                            </div>
+                                            <div className="text-xs font-mono font-medium text-slate-500 dark:text-slate-400 leading-none">
+                                                {providers.ipinfo?.asn || providers.ipapi?.as?.split(' ')[0]}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                                 <div>
                                     <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                                         <Calendar className="h-3 w-3" /> Important Dates
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-1">
                                         <div className="flex justify-between text-sm">
                                             <span className="text-muted-foreground">Registered:</span>
                                             <span className="font-medium">{rdap.registrationDate ? new Date(rdap.registrationDate).toLocaleDateString() : 'N/A'}</span>
@@ -447,6 +494,12 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
                                             <span className="text-muted-foreground">Expires:</span>
                                             <span className="font-medium text-amber-600 dark:text-amber-400">{rdap.expirationDate ? new Date(rdap.expirationDate).toLocaleDateString() : 'N/A'}</span>
                                         </div>
+                                        {rdap.transferDate && (
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-muted-foreground">Transfer:</span>
+                                                <span className="font-medium text-blue-500">{new Date(rdap.transferDate).toLocaleDateString()}</span>
+                                            </div>
+                                        )}
                                         <div className="flex justify-between text-sm">
                                             <span className="text-muted-foreground">Last Update:</span>
                                             <span className="font-medium text-slate-500">{rdap.lastChangedDate ? new Date(rdap.lastChangedDate).toLocaleDateString() : 'N/A'}</span>
@@ -455,8 +508,8 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
                                 </div>
                             </div>
 
-                            {/* Contact & Nameservers */}
-                            <div className="space-y-4">
+                            {/* Column 3: Contact & Nameservers */}
+                            <div className="space-y-6">
                                 {rdap.abuseContact && (
                                     <div>
                                         <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
@@ -469,7 +522,7 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
                                                 </div>
                                             )}
                                             {rdap.abuseContact.phone && (
-                                                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                                                <div className="flex items-center gap-2 text-xs font-mono font-medium text-slate-500 dark:text-slate-400">
                                                     <Phone className="h-3 w-3" /> {rdap.abuseContact.phone}
                                                 </div>
                                             )}
@@ -477,10 +530,12 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
                                     </div>
                                 )}
                                 <div>
-                                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Nameservers</div>
+                                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                        <Database className="h-3 w-3" /> Nameservers
+                                    </div>
                                     <div className="space-y-1">
                                         {rdap.nameservers && rdap.nameservers.length > 0 ? rdap.nameservers.map((ns, i) => (
-                                            <div key={i} className="text-xs font-mono text-slate-500 dark:text-slate-400">{ns}</div>
+                                            <div key={i} className="text-sm font-mono text-slate-500 dark:text-slate-400">{ns}</div>
                                         )) : <span className="text-sm">N/A</span>}
                                     </div>
                                 </div>

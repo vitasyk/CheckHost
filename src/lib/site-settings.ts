@@ -10,7 +10,13 @@ const SETTINGS_FILE = path.join(process.cwd(), 'site-settings.json');
 const isSupabaseConfigured = () => {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    return url && url !== 'https://your-project.supabase.co' && key && key !== 'your-anon-key';
+
+    if (!url || !key) return false;
+
+    const isPlaceholderUrl = url.includes('your-project') || url.includes('your-project-id');
+    const isPlaceholderKey = key.includes('your-anon-key');
+
+    return !isPlaceholderUrl && !isPlaceholderKey;
 };
 
 /**

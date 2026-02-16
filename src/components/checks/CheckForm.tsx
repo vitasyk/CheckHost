@@ -59,7 +59,7 @@ export function CheckForm({
     }, [type]);
 
     const checkMutation = useMutation({
-        mutationFn: async () => {
+        mutationFn: async (targetHost: string) => {
             const checkOptions: any = { maxNodes: type === 'dns-all' ? 1 : maxNodes };
             if (type === 'dns' && dnsType && dnsType !== 'all') {
                 checkOptions.dnsType = dnsType;
@@ -67,7 +67,7 @@ export function CheckForm({
 
             // For dns-all, use the direct DNS lookup API
             if (type === 'dns-all') {
-                const dnsData = await checkHostAPI.performDnsLookup(host);
+                const dnsData = await checkHostAPI.performDnsLookup(targetHost);
                 // Wrap in the expected format for ResultsDisplay
                 const fakeNodeId = 'dns-lookup';
                 const results: any = { [fakeNodeId]: dnsData };
@@ -83,7 +83,7 @@ export function CheckForm({
 
             return checkHostAPI.performCheck(
                 type,
-                host,
+                targetHost,
                 checkOptions,
                 (results) => {
                     if (onProgress) {
@@ -114,10 +114,6 @@ export function CheckForm({
         if (!host.trim() || isLoading) return;
 
         const cleanHost = sanitizeInput(host);
-        if (cleanHost !== host) {
-            onHostChange(cleanHost);
-        }
-
         if (cleanHost) {
             // For 'info' type, don't use CheckHost API - parent handles it
             if (type === 'info') {
@@ -126,7 +122,7 @@ export function CheckForm({
                 return;
             }
 
-            checkMutation.mutate();
+            checkMutation.mutate(cleanHost);
         }
     };
 
@@ -155,34 +151,12 @@ export function CheckForm({
             <CardContent className="p-4">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        {type === 'dns-all' && (
-                            <div className="mb-4">
-                                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 block">Record Type</Label>
-                                <Select value={dnsType || 'all'} onValueChange={onDnsTypeChange}>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select Record Type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All (Standard)</SelectItem>
-                                        <SelectItem value="A">A (IPv4)</SelectItem>
-                                        <SelectItem value="AAAA">AAAA (IPv6)</SelectItem>
-                                        <SelectItem value="CNAME">CNAME</SelectItem>
-                                        <SelectItem value="MX">MX (Mail)</SelectItem>
-                                        <SelectItem value="NS">NS (Nameserver)</SelectItem>
-                                        <SelectItem value="TXT">TXT</SelectItem>
-                                        <SelectItem value="SOA">SOA</SelectItem>
-                                        <SelectItem value="ptr">PTR</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
                         <div className="relative group">
                             <Input
                                 id="host"
                                 type="text"
                                 value={host}
                                 onChange={(e) => onHostChange(e.target.value)}
-                                onBlur={() => onHostChange(sanitizeInput(host))}
                                 placeholder={getPlaceholder()}
                                 className={`text-lg h-14 pl-6 pr-32 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-slate-950/60 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/40 transition-all duration-300 ${errorMessage ? 'border-destructive ring-destructive' : ''}`}
                                 autoFocus
@@ -241,6 +215,28 @@ export function CheckForm({
                                 </Button>
                             </div>
                         </div>
+
+                        {type === 'dns-all' && (
+                            <div className="flex items-center gap-4 bg-slate-50/50 dark:bg-slate-950/20 p-2.5 px-4 rounded-xl border border-slate-200/50 dark:border-white/5 mt-2 transition-all">
+                                <Label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest shrink-0">Records Filter:</Label>
+                                <Select value={dnsType || 'all'} onValueChange={onDnsTypeChange}>
+                                    <SelectTrigger className="h-9 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-xs font-bold rounded-lg shadow-sm w-full md:w-[180px]">
+                                        <SelectValue placeholder="Select Record Type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All (Standard)</SelectItem>
+                                        <SelectItem value="A">A (IPv4)</SelectItem>
+                                        <SelectItem value="AAAA">AAAA (IPv6)</SelectItem>
+                                        <SelectItem value="CNAME">CNAME</SelectItem>
+                                        <SelectItem value="MX">MX (Mail)</SelectItem>
+                                        <SelectItem value="NS">NS (Nameserver)</SelectItem>
+                                        <SelectItem value="TXT">TXT</SelectItem>
+                                        <SelectItem value="SOA">SOA</SelectItem>
+                                        <SelectItem value="ptr">PTR</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
 
                         {errorMessage && (
                             <p className="text-sm text-destructive font-medium animate-pulse pl-2">

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import dns from 'dns';
+import { getMockIpInfo } from '@/lib/mock-data';
 
 // Create a custom resolver with fixed reliable public DNS servers
 // to bypass potentially broken local resolvers (like 127.0.0.1)
@@ -42,10 +43,29 @@ export async function GET(request: Request) {
     // Clean domain
     const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim();
 
+    // Detect if input is already an IP address
+    const ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}$/;
+    const isIP = ipRegex.test(cleanDomain);
+
     const records: DnsRecord[] = [];
 
+    if (isIP) {
+        // For IP inputs, primarily do reverse DNS (PTR)
+        const ptr = await safeResolve(() => resolver.reverse(cleanDomain));
+        if (ptr) {
+            ptr.forEach(p => records.push({ type: 'PTR', value: p }));
+        }
+
+        return NextResponse.json({
+            domain: cleanDomain,
+            ip: cleanDomain,
+            records,
+            timestamp: Date.now(),
+        });
+    }
+
     // Run all DNS lookups in parallel
-    const [a, aaaa, mx, ns, cname, txt, soa, ptr, dmarc, dkim_mail, dkim_sign, mail_a, mail_mx, www_a, www_cname] = await Promise.all([
+    const [a, aaaa, mx, ns, cname, txt, soa, dmarc, dkim_mail, dkim_sign, mail_a, mail_mx, www_a, www_cname] = await Promise.all([
         safeResolve(() => resolve4(cleanDomain)),
         safeResolve(() => resolve6(cleanDomain)),
         safeResolve(() => resolveMx(cleanDomain)),
@@ -53,7 +73,6 @@ export async function GET(request: Request) {
         safeResolve(() => resolveCname(cleanDomain)),
         safeResolve(() => resolveTxt(cleanDomain)),
         safeResolve(() => resolveSoa(cleanDomain)),
-        safeResolve(() => resolvePtr(cleanDomain)),
         // Service records
         safeResolve(() => resolveTxt(`_dmarc.${cleanDomain}`)),
         safeResolve(() => resolveTxt(`mail._domainkey.${cleanDomain}`)),
@@ -137,15 +156,25 @@ export async function GET(request: Request) {
         www_cname.forEach(cn => records.push({ type: 'CNAME', value: cn, auxiliary: 'www.@' }));
     }
 
-    // PTR records
-    if (ptr) {
-        ptr.forEach(p => records.push({ type: 'PTR', value: p }));
+    // PTR records for the primary A record
+    const primaryIP = a && a.length > 0 ? a[0] : (aaaa && aaaa.length > 0 ? aaaa[0] : null);
+    if (primaryIP) {
+        const ptrResults = await safeResolve(() => resolver.reverse(primaryIP));
+        if (ptrResults) {
+            ptrResults.forEach(p => records.push({ type: 'PTR', value: p, auxiliary: `for ${primaryIP}` }));
+        }
+    }
+
+    // Enhance with IP info (ISP, Location)
+    let ipMetadata = null;
+    if (primaryIP) {
+        ipMetadata = await safeResolve(() => getMockIpInfo(primaryIP));
     }
 
     // Also try to resolve mail A record (like quer.monster does) for primary MX records
     if (mx && mx.length > 0) {
         for (const mxRecord of mx) {
-            const mailA = await safeResolve(() => resolve4(mxRecord.exchange));
+            const mailA = await safeResolve(() => resolver.resolve4(mxRecord.exchange));
             if (mailA) {
                 mailA.forEach(ip => records.push({
                     type: 'A',
@@ -156,12 +185,10 @@ export async function GET(request: Request) {
         }
     }
 
-    // Determine primary IP
-    const primaryIP = a && a.length > 0 ? a[0] : (aaaa && aaaa.length > 0 ? aaaa[0] : null);
-
     return NextResponse.json({
         domain: cleanDomain,
         ip: primaryIP,
+        ipInfo: ipMetadata,
         records,
         timestamp: Date.now(),
     });
