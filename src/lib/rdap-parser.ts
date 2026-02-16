@@ -1,5 +1,10 @@
 export interface ParsedRdap {
     domain?: string;
+    handle?: string;
+    name?: string;
+    startAddress?: string;
+    endAddress?: string;
+    ipVersion?: string;
     registrar?: string;
     registrationDate?: string;
     expirationDate?: string;
@@ -11,6 +16,7 @@ export interface ParsedRdap {
         email?: string;
         phone?: string;
     };
+    objectClassName?: string;
 }
 
 export function parseRdapData(data: any): ParsedRdap {
@@ -18,8 +24,14 @@ export function parseRdapData(data: any): ParsedRdap {
 
     const result: ParsedRdap = {
         domain: data.ldhName || data.unicodeName,
+        handle: data.handle,
+        name: data.name,
+        startAddress: data.startAddress,
+        endAddress: data.endAddress,
+        ipVersion: data.ipVersion,
         status: data.status || [],
-        nameservers: data.nameservers?.map((ns: any) => ns.ldhName) || [],
+        nameservers: data.nameservers?.map((ns: any) => typeof ns === 'string' ? ns : ns.ldhName) || [],
+        objectClassName: data.objectClassName
     };
 
     // Parse Events (Dates)
@@ -29,7 +41,7 @@ export function parseRdapData(data: any): ParsedRdap {
             const date = event.eventDate;
             if (action === 'registration') result.registrationDate = date;
             if (action === 'expiration') result.expirationDate = date;
-            if (action === 'last changed') result.lastChangedDate = date;
+            if (action === 'last changed' || action === 'last-changed') result.lastChangedDate = date;
             if (action === 'transfer') result.transferDate = date;
         });
     }
@@ -37,19 +49,21 @@ export function parseRdapData(data: any): ParsedRdap {
     // Parse Entities (Registrar & Contacts)
     if (data.entities && Array.isArray(data.entities)) {
         data.entities.forEach((entity: any) => {
-            if (entity.roles?.includes('registrar')) {
-                // Get Registrar Name from vcard
+            // Match registrar for domains or administrative/registrant for IPs
+            if (entity.roles?.some((r: string) => ['registrar', 'administrative', 'registrant'].includes(r.toLowerCase()))) {
+                // Get Name from vcard
                 const fn = extractVCardField(entity.vcardArray, 'fn');
-                if (fn) result.registrar = fn;
+                if (fn && !result.registrar) result.registrar = fn;
 
-                // Look for abuse contact inside registrar entities
+                // Look for abuse contact inside entities
                 if (entity.entities && Array.isArray(entity.entities)) {
                     entity.entities.forEach((subEntity: any) => {
                         if (subEntity.roles?.includes('abuse')) {
-                            result.abuseContact = {
-                                email: extractVCardField(subEntity.vcardArray, 'email'),
-                                phone: extractVCardField(subEntity.vcardArray, 'tel')
-                            };
+                            const email = extractVCardField(subEntity.vcardArray, 'email');
+                            const phone = extractVCardField(subEntity.vcardArray, 'tel');
+                            if (email || phone) {
+                                result.abuseContact = { email, phone };
+                            }
                         }
                     });
                 }

@@ -278,6 +278,31 @@ export async function resolveIpToHost(ip: string): Promise<string | null> {
 }
 
 /**
+ * Fetch Name Servers for a domain using DNS-over-HTTPS
+ */
+export async function resolveNameservers(domain: string): Promise<string[]> {
+    try {
+        const response = await fetch(`https://dns.google/resolve?name=${domain}&type=NS`, {
+            signal: AbortSignal.timeout(3000)
+        });
+
+        if (!response.ok) return [];
+
+        const data = await response.json();
+        if (data.Answer && data.Answer.length > 0) {
+            // NS record is type 2
+            return data.Answer
+                .filter((ans: any) => ans.type === 2)
+                .map((ans: any) => ans.data.replace(/\.$/, ''));
+        }
+    } catch (error) {
+        console.error(`Nameserver resolution failed for ${domain}:`, error);
+    }
+
+    return [];
+}
+
+/**
  * Fetch RDAP information from rdap.org (WHOIS JSON)
  */
 export async function fetchRdapInfo(query: string): Promise<any> {

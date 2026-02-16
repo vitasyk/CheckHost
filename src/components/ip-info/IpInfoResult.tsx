@@ -1,7 +1,7 @@
 import { IpInfoResponse } from '@/types/ip-info';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Globe, ChevronDown, Database, Calendar, ShieldCheck, Mail, Phone, ExternalLink, Server, Network } from 'lucide-react';
+import { MapPin, Globe, ChevronDown, Database, Calendar, ShieldCheck, Mail, Phone, ExternalLink, Server, Network, Maximize2 } from 'lucide-react';
 import MapWrapper from '@/components/ip-info/MapWrapper';
 import { getCountryCoords } from '@/lib/country-coords';
 import { parseRdapData } from '@/lib/rdap-parser';
@@ -435,7 +435,7 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
                                         <ExternalLink className="h-3 w-3" /> Registrar
                                     </div>
                                     <div className="text-sm text-slate-900 dark:text-slate-100">
-                                        {rdap.registrar || 'Protected / Hidden'}
+                                        {rdap.registrar || (rdap.objectClassName === 'ip network' ? rdap.name : 'Protected / Hidden')}
                                     </div>
                                 </div>
                                 <div>
@@ -468,15 +468,27 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
                                         <Server className="h-3 w-3" /> Hosting / ISP
                                     </div>
                                     <div className="text-sm text-indigo-600 dark:text-indigo-400">
-                                        {providers.ipapi?.isp || providers.ipinfo?.org || 'N/A'}
+                                        {providers.ipapi?.isp || providers.ipinfo?.org || rdap.name || 'N/A'}
                                     </div>
-                                    {(providers.ipinfo?.asn || providers.ipapi?.as) && (
+                                    {/* ASN / Handle */}
+                                    {(providers.ipinfo?.asn || providers.ipapi?.as || rdap.handle) && (
                                         <div className="mt-2 flex items-center gap-2">
                                             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 leading-none">
-                                                <Network className="h-2.5 w-2.5" /> ASN
+                                                <Network className="h-2.5 w-2.5" /> {rdap.objectClassName === 'ip network' ? 'Handle' : 'ASN'}
                                             </div>
                                             <div className="text-xs font-mono font-medium text-slate-500 dark:text-slate-400 leading-none">
-                                                {providers.ipinfo?.asn || providers.ipapi?.as?.split(' ')[0]}
+                                                {rdap.handle || providers.ipinfo?.asn || providers.ipapi?.as?.split(' ')[0]}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {/* IP Range (for Network objects) */}
+                                    {rdap.objectClassName === 'ip network' && rdap.startAddress && (
+                                        <div className="mt-2 flex items-center gap-2">
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 leading-none">
+                                                <Maximize2 className="h-2.5 w-2.5" /> Range
+                                            </div>
+                                            <div className="text-xs font-mono font-medium text-slate-500 dark:text-slate-400 leading-none">
+                                                {rdap.startAddress} - {rdap.endAddress}
                                             </div>
                                         </div>
                                     )}

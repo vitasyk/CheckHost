@@ -1,5 +1,5 @@
 import { IpInfoResponse } from '@/types/ip-info';
-import { fetchIpInfo, resolveHostToIp, fetchFromIpGeolocation, fetchFromMaxMind, fetchRdapInfo, resolveIpToHost } from './ipinfo-api';
+import { fetchIpInfo, resolveHostToIp, fetchFromIpGeolocation, fetchFromMaxMind, fetchRdapInfo, resolveIpToHost, resolveNameservers } from './ipinfo-api';
 import { fetchIpApiData } from './ipapi-api';
 import { lookupLocalIpInfo } from './ipinfo-local';
 
@@ -9,7 +9,7 @@ export async function getMockIpInfo(host: string): Promise<IpInfoResponse> {
     const isIpInput = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host);
 
     // Fetch data from multiple sources in parallel
-    const [realIpInfo, ipApiData, ipGeoData, maxmindData, localMmdbData, rdapData, ptrHost] = await Promise.all([
+    const [realIpInfo, ipApiData, ipGeoData, maxmindData, localMmdbData, ptrHost] = await Promise.all([
         fetchIpInfo(ip).catch(err => {
             console.warn('IPInfo data skipped:', err.message);
             return null;
@@ -30,13 +30,37 @@ export async function getMockIpInfo(host: string): Promise<IpInfoResponse> {
             console.warn('Local MMDB lookup skipped:', err.message);
             return null;
         }),
-        fetchRdapInfo(host).catch(err => {
-            console.warn('RDAP data skipped:', err.message);
-            return null;
-        }),
         // Always try to resolve PTR for the IP address
         resolveIpToHost(ip).catch(() => null)
     ]);
+
+    // Intelligent RDAP Fetch: Try host first, then IP if needed
+    let rdapData = null;
+    const [dnsNameservers] = await Promise.all([
+        (!isIpInput ? resolveNameservers(host) : Promise.resolve([]))
+    ]);
+
+    try {
+        rdapData = await fetchRdapInfo(host);
+
+        // If domain lookup returned nothing and it wasn't an IP input, fallback to IP RDAP
+        if (!rdapData && !isIpInput && ip) {
+            console.log(`[Diagnostic] Domain RDAP for ${host} unavailable/unsupported, falling back to IP RDAP for ${ip}`);
+            rdapData = await fetchRdapInfo(ip).catch(() => null);
+
+            // Enrich fallback data with original domain
+            if (rdapData) {
+                rdapData.ldhName = host;
+            }
+        }
+
+        // If RDAP is missing nameservers but we found them via DNS, inject them
+        if (rdapData && (!rdapData.nameservers || rdapData.nameservers.length === 0) && dnsNameservers.length > 0) {
+            rdapData.nameservers = dnsNameservers;
+        }
+    } catch (err) {
+        console.warn('RDAP lookup chain failed:', err);
+    }
 
     const isGoogle = host.toLowerCase().includes('google') || ip === '8.8.8.8';
     const isCloudflare = host.includes('cloudflare') || ip === '1.1.1.1';
