@@ -5,10 +5,11 @@ import type { ResultsResponse, CheckType, Node } from '@/types/checkhost';
 import { checkHostAPI } from '@/lib/checkhost-api';
 import { CheckForm } from '@/components/checks/CheckForm';
 import { ResultsDisplay } from '@/components/checks/ResultsDisplay';
+import { ReverseMtrButton } from '@/components/checks/ReverseMtrButton';
 import { Header } from '@/components/Header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Activity, Wifi, Database, Network, Loader2, CheckCircle2, Info } from 'lucide-react';
+import { Activity, Wifi, Database, Network, Loader2, CheckCircle2, Info, ArrowLeftRight } from 'lucide-react';
 import { IpInfoResponse } from '@/types/ip-info';
 import IpInfoResult from '@/components/ip-info/IpInfoResult';
 import { AdSlot } from '@/components/AdSlot';
@@ -94,6 +95,69 @@ export default function ChecksPage() {
     const [completedChecks, setCompletedChecks] = useState<Set<CheckType>>(new Set());
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [dnsType, setDnsType] = useState<string>('all');
+    const [isReverseMtr, setIsReverseMtr] = useState(false);
+    const [globalCheckEnabled, setGlobalCheckEnabled] = useState(true);
+
+    const handleReverseMtrToggle = async (checked: boolean) => {
+        if (checked) {
+            setErrorMessage(null);
+            try {
+                const res = await fetch('/api/ip-info');
+                const data = await res.json();
+                if (data.ip) {
+                    setHost(data.ip);
+                    setIsReverseMtr(true);
+
+                    // If we use fallback, show it in the UI
+                    if (data.isFallback) {
+                        setErrorMessage('Local IP detected. Using 1.1.1.1 for demo.');
+                    }
+                }
+            } catch (e) {
+                console.error('IP detection failed:', e);
+                setErrorMessage('Failed to detect your public IP address.');
+            }
+        } else {
+            setIsReverseMtr(false);
+            // Optionally clear host if it was just our detected IP
+            // setHost(''); 
+        }
+    };
+
+    // Check URL parameters for reverse MTR
+    useEffect(() => {
+        const fetchFeatures = async () => {
+            try {
+                const res = await fetch('/api/admin/settings?key=feature_flags');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && typeof data.globalCheckEnabled === 'boolean') {
+                        setGlobalCheckEnabled(data.globalCheckEnabled);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to fetch feature flags:', e);
+            }
+        };
+        fetchFeatures();
+
+        if (typeof window !== 'undefined') {
+            const params = new URLSearchParams(window.location.search);
+            const reverse = params.get('reverse');
+            const tab = params.get('tab');
+            const hostParam = params.get('host');
+
+            if (reverse === 'true' && tab === 'mtr' && hostParam) {
+                setIsReverseMtr(true);
+                setHost(hostParam);
+                setActiveTab('mtr');
+                // Auto-start MTR check after a brief delay
+                setTimeout(() => {
+                    runCheck('mtr', hostParam);
+                }, 500);
+            }
+        }
+    }, []);
 
     const handleCheckStart = (type: CheckType, checkNodes: Record<string, any>, setNodesFn: (nodes: Record<string, any>) => void, setResultsFn: (res: ResultsResponse | null) => void) => {
         setActiveChecks(prev => new Set(prev).add(type));
@@ -274,6 +338,7 @@ export default function ChecksPage() {
 
     const onHostChange = (newHost: string) => {
         setHost(newHost);
+        setIsReverseMtr(false); // Reset reverse mode on manual change
         if (newHost.trim()) {
             setErrorMessage(null);
         }
@@ -327,85 +392,91 @@ export default function ChecksPage() {
                                         <Info className="h-4 w-4" />
                                         <span>Info</span>
                                         {activeChecks.has('info') ? (
-                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 -right-1 text-primary" />
+                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 right-0 z-10 text-primary" />
                                         ) : completedChecks.has('info') ? (
-                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 -right-1 text-green-500" />
+                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
                                     <TabsTrigger value="ping" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('ping')}>
                                         <Wifi className="h-4 w-4" />
                                         <span>Ping</span>
                                         {activeChecks.has('ping') ? (
-                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 -right-1 text-primary" />
+                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 right-0 z-10 text-primary" />
                                         ) : completedChecks.has('ping') ? (
-                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 -right-1 text-green-500" />
+                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
                                     <TabsTrigger value="http" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('http')}>
                                         <Activity className="h-4 w-4" />
                                         <span>HTTP</span>
                                         {activeChecks.has('http') ? (
-                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 -right-1 text-primary" />
+                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 right-0 z-10 text-primary" />
                                         ) : completedChecks.has('http') ? (
-                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 -right-1 text-green-500" />
+                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
                                     <TabsTrigger value="tcp" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('tcp')}>
                                         <Network className="h-4 w-4" />
                                         <span>TCP</span>
                                         {activeChecks.has('tcp') ? (
-                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 -right-1 text-primary" />
+                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 right-0 z-10 text-primary" />
                                         ) : completedChecks.has('tcp') ? (
-                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 -right-1 text-green-500" />
+                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
                                     <TabsTrigger value="udp" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('udp')}>
                                         <Database className="h-4 w-4" />
                                         <span>UDP</span>
                                         {activeChecks.has('udp') ? (
-                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 -right-1 text-primary" />
+                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 right-0 z-10 text-primary" />
                                         ) : completedChecks.has('udp') ? (
-                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 -right-1 text-green-500" />
+                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
                                     <TabsTrigger value="dns" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('dns')}>
                                         <Activity className="h-4 w-4" />
                                         <span>DNS</span>
                                         {activeChecks.has('dns') ? (
-                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 -right-1 text-primary" />
+                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 right-0 z-10 text-primary" />
                                         ) : completedChecks.has('dns') ? (
-                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 -right-1 text-green-500" />
+                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
                                     <TabsTrigger value="mtr" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('mtr')}>
                                         <Activity className="h-4 w-4" />
                                         <span>MTR</span>
                                         {activeChecks.has('mtr') ? (
-                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 -right-1 text-primary" />
+                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 right-0 z-10 text-primary" />
                                         ) : completedChecks.has('mtr') ? (
-                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 -right-1 text-green-500" />
+                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
                                     <TabsTrigger value="dns-all" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('dns-all')}>
                                         <Database className="h-4 w-4" />
                                         <span>DNS Info</span>
                                         {activeChecks.has('dns-all') ? (
-                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 -right-1 text-primary" />
+                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 right-0 z-10 text-primary" />
                                         ) : completedChecks.has('dns-all') ? (
-                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 -right-1 text-green-500" />
+                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
                                 </TabsList>
 
-                                <Button
-                                    variant="outline"
-                                    className="group h-12 gap-3 px-6 bg-white dark:bg-slate-900 border-slate-200/60 dark:border-white/5 text-slate-900 dark:text-slate-100 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-300 rounded-xl whitespace-nowrap"
-                                    onClick={handleCheckAll}
-                                    disabled={!host.trim()}
-                                >
-                                    <Activity className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                                    <span className="font-bold">Check All</span>
-                                </Button>
+                                <div className="flex gap-2">
+                                    {globalCheckEnabled && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-12 px-5 opacity-60 hover:opacity-100 bg-white dark:bg-slate-900 border-slate-200/60 dark:border-white/5 text-slate-900 dark:text-slate-100 shadow-sm transition-all duration-300 rounded-xl whitespace-nowrap hidden md:flex items-center gap-2 group"
+                                            onClick={handleCheckAll}
+                                            disabled={!host.trim()}
+                                            title="Initiate check across all types"
+                                        >
+                                            <Activity className="h-4 w-4 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+                                            <span className="font-bold text-xs">Global Check</span>
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="mt-0">
@@ -428,6 +499,8 @@ export default function ChecksPage() {
                                             errorMessage={errorMessage}
                                             isLoading={activeChecks.has('info')}
                                             nodes={nodes}
+                                            isReverseMtr={isReverseMtr}
+                                            onReverseMtrToggle={handleReverseMtrToggle}
                                         />
                                         {activeChecks.has('info') ? (
                                             <div className="flex flex-col items-center justify-center p-12 text-muted-foreground animate-pulse gap-4">
@@ -456,9 +529,11 @@ export default function ChecksPage() {
                                             isLoading={activeChecks.has('ping')}
                                             onProgress={setPingResults}
                                             nodes={nodes}
+                                            isReverseMtr={isReverseMtr}
+                                            onReverseMtrToggle={handleReverseMtrToggle}
                                         />
-                                        {(pingResults || Object.keys(pingNodes).length > 0) && (
-                                            <ResultsDisplay results={pingResults || {}} checkType="ping" nodes={nodes} activeNodes={pingNodes} />
+                                        {(pingResults || Object.keys(pingNodes).length > 0 || activeChecks.has('ping')) && (
+                                            <ResultsDisplay results={pingResults || {}} checkType="ping" nodes={nodes} activeNodes={pingNodes} targetHost={host} isLoading={activeChecks.has('ping')} />
                                         )}
                                     </div>
                                 </TabsContent>
@@ -479,9 +554,11 @@ export default function ChecksPage() {
                                             isLoading={activeChecks.has('http')}
                                             onProgress={setHttpResults}
                                             nodes={nodes}
+                                            isReverseMtr={isReverseMtr}
+                                            onReverseMtrToggle={handleReverseMtrToggle}
                                         />
-                                        {(httpResults || Object.keys(httpNodes).length > 0) && (
-                                            <ResultsDisplay results={httpResults || {}} checkType="http" nodes={nodes} activeNodes={httpNodes} />
+                                        {(httpResults || Object.keys(httpNodes).length > 0 || activeChecks.has('http')) && (
+                                            <ResultsDisplay results={httpResults || {}} checkType="http" nodes={nodes} activeNodes={httpNodes} targetHost={host} isLoading={activeChecks.has('http')} />
                                         )}
                                     </div>
                                 </TabsContent>
@@ -502,9 +579,11 @@ export default function ChecksPage() {
                                             isLoading={activeChecks.has('tcp')}
                                             onProgress={setTcpResults}
                                             nodes={nodes}
+                                            isReverseMtr={isReverseMtr}
+                                            onReverseMtrToggle={handleReverseMtrToggle}
                                         />
-                                        {(tcpResults || Object.keys(tcpNodes).length > 0) && (
-                                            <ResultsDisplay results={tcpResults || {}} checkType="tcp" nodes={nodes} activeNodes={tcpNodes} />
+                                        {(tcpResults || Object.keys(tcpNodes).length > 0 || activeChecks.has('tcp')) && (
+                                            <ResultsDisplay results={tcpResults || {}} checkType="tcp" nodes={nodes} activeNodes={tcpNodes} targetHost={host} isLoading={activeChecks.has('tcp')} />
                                         )}
                                     </div>
                                 </TabsContent>
@@ -525,9 +604,11 @@ export default function ChecksPage() {
                                             isLoading={activeChecks.has('udp')}
                                             onProgress={setUdpResults}
                                             nodes={nodes}
+                                            isReverseMtr={isReverseMtr}
+                                            onReverseMtrToggle={handleReverseMtrToggle}
                                         />
-                                        {(udpResults || Object.keys(udpNodes).length > 0) && (
-                                            <ResultsDisplay results={udpResults || {}} checkType="udp" nodes={nodes} activeNodes={udpNodes} />
+                                        {(udpResults || Object.keys(udpNodes).length > 0 || activeChecks.has('udp')) && (
+                                            <ResultsDisplay results={udpResults || {}} checkType="udp" nodes={nodes} activeNodes={udpNodes} targetHost={host} isLoading={activeChecks.has('udp')} />
                                         )}
                                     </div>
                                 </TabsContent>
@@ -548,9 +629,47 @@ export default function ChecksPage() {
                                             isLoading={activeChecks.has('dns')}
                                             onProgress={setDnsResults}
                                             nodes={nodes}
+                                            isReverseMtr={isReverseMtr}
+                                            onReverseMtrToggle={handleReverseMtrToggle}
                                         />
-                                        {(dnsResults || Object.keys(dnsNodes).length > 0) && (
-                                            <ResultsDisplay results={dnsResults || {}} checkType="dns" nodes={nodes} activeNodes={dnsNodes} dnsType={dnsType} />
+                                        {(dnsResults || Object.keys(dnsNodes).length > 0 || activeChecks.has('dns')) && (
+                                            <ResultsDisplay results={dnsResults || {}} checkType="dns" nodes={nodes} activeNodes={dnsNodes} dnsType={dnsType} targetHost={host} isLoading={activeChecks.has('dns')} />
+                                        )}
+                                    </div>
+                                </TabsContent>
+
+                                {/* MTR Tab */}
+                                <TabsContent value="mtr" className="space-y-4">
+                                    <div className="space-y-4">
+                                        <CheckForm
+                                            type="mtr"
+                                            host={host}
+                                            maxNodes={maxNodes}
+                                            onMaxNodesChange={setMaxNodes}
+                                            onHostChange={onHostChange}
+                                            onResults={handleMtrResults}
+                                            onCheckStart={(nodes) => handleCheckStart('mtr', nodes, setMtrNodes, setMtrResults)}
+                                            onCheckComplete={() => handleCheckComplete('mtr')}
+                                            errorMessage={errorMessage}
+                                            isLoading={activeChecks.has('mtr')}
+                                            onProgress={setMtrResults}
+                                            nodes={nodes}
+                                            isReverseMtr={isReverseMtr}
+                                            onReverseMtrToggle={handleReverseMtrToggle}
+                                        />
+                                        {(mtrResults || Object.keys(mtrNodes).length > 0 || activeChecks.has('mtr')) && (
+                                            <>
+
+                                                <ResultsDisplay
+                                                    results={mtrResults || {}}
+                                                    checkType="mtr"
+                                                    nodes={nodes}
+                                                    activeNodes={mtrNodes}
+                                                    targetHost={host}
+                                                    onPingIp={handlePingIp}
+                                                    isLoading={activeChecks.has('mtr')}
+                                                />
+                                            </>
                                         )}
                                     </div>
                                 </TabsContent>
@@ -573,38 +692,11 @@ export default function ChecksPage() {
                                             nodes={nodes}
                                             dnsType={dnsType}
                                             onDnsTypeChange={setDnsType}
+                                            isReverseMtr={isReverseMtr}
+                                            onReverseMtrToggle={handleReverseMtrToggle}
                                         />
-                                        {(dnsInfoResults || Object.keys(dnsInfoNodes).length > 0) && (
-                                            <ResultsDisplay results={dnsInfoResults || {}} checkType="dns-all" nodes={nodes} activeNodes={dnsInfoNodes} dnsType={dnsType} />
-                                        )}
-                                    </div>
-                                </TabsContent>
-
-                                {/* MTR Tab */}
-                                <TabsContent value="mtr" className="space-y-4">
-                                    <div className="space-y-4">
-                                        <CheckForm
-                                            type="mtr"
-                                            host={host}
-                                            maxNodes={maxNodes}
-                                            onMaxNodesChange={setMaxNodes}
-                                            onHostChange={onHostChange}
-                                            onResults={handleMtrResults}
-                                            onCheckStart={(nodes) => handleCheckStart('mtr', nodes, setMtrNodes, setMtrResults)}
-                                            onCheckComplete={() => handleCheckComplete('mtr')}
-                                            errorMessage={errorMessage}
-                                            isLoading={activeChecks.has('mtr')}
-                                            onProgress={setMtrResults}
-                                            nodes={nodes}
-                                        />
-                                        {(mtrResults || Object.keys(mtrNodes).length > 0) && (
-                                            <ResultsDisplay
-                                                results={mtrResults || {}}
-                                                checkType="mtr"
-                                                nodes={nodes}
-                                                activeNodes={mtrNodes}
-                                                onPingIp={handlePingIp}
-                                            />
+                                        {(dnsInfoResults || Object.keys(dnsInfoNodes).length > 0 || activeChecks.has('dns-all')) && (
+                                            <ResultsDisplay results={dnsInfoResults || {}} checkType="dns-all" nodes={nodes} activeNodes={dnsInfoNodes} dnsType={dnsType} targetHost={host} isLoading={activeChecks.has('dns-all')} />
                                         )}
                                     </div>
                                 </TabsContent>

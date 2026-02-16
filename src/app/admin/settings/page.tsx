@@ -29,6 +29,10 @@ interface IpInfoDisplayConfig {
     showProviderCards: boolean;
 }
 
+interface FeatureFlagsConfig {
+    globalCheckEnabled: boolean;
+}
+
 interface AdSlotConfig {
     id: string;
     enabled: boolean;
@@ -47,6 +51,9 @@ export default function AdminSettings() {
         showFeaturedMap: true,
         showRdapData: true,
         showProviderCards: true
+    });
+    const [featureConfig, setFeatureConfig] = useState<FeatureFlagsConfig>({
+        globalCheckEnabled: true
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -67,6 +74,13 @@ export default function AdminSettings() {
                 if (ipRes.ok) {
                     const data = await ipRes.json();
                     if (data) setIpConfig(data);
+                }
+
+                // Fetch Feature Flags
+                const featureRes = await fetch('/api/admin/settings?key=feature_flags');
+                if (featureRes.ok) {
+                    const data = await featureRes.json();
+                    if (data) setFeatureConfig(data);
                 }
             } catch (error) {
                 console.error('Failed to fetch configs:', error);
@@ -94,7 +108,14 @@ export default function AdminSettings() {
                 body: JSON.stringify(ipConfig),
             });
 
-            await Promise.all([p1, p2]);
+            // Save Feature Flags
+            const p3 = fetch('/api/admin/settings?key=feature_flags', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(featureConfig),
+            });
+
+            await Promise.all([p1, p2, p3]);
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
         } catch (error) {
@@ -194,6 +215,32 @@ export default function AdminSettings() {
                                             />
                                         </div>
                                         <p className="text-xs text-slate-400">List of detailed results from individual geolocation providers.</p>
+                                    </Card>
+                                </div>
+                            </Card>
+
+                            {/* Features Section */}
+                            <Card className="p-8 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm relative overflow-hidden group">
+                                <SwitchCamera className="absolute -right-4 -bottom-4 h-24 w-24 text-indigo-500/5 group-hover:text-indigo-500/10 transition-colors" />
+
+                                <div className="space-y-1 mb-6">
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="text-xl font-bold font-display">System Features</h3>
+                                        <Badge variant="outline" className="text-[10px] py-0 border-slate-200 text-slate-500 bg-slate-50 dark:bg-slate-800/50">Functionality</Badge>
+                                    </div>
+                                    <p className="text-sm text-slate-400">Control core features and diagnostic tools available to users.</p>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <Card className="p-4 border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20 flex flex-col gap-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-sm font-bold">Global Check (Check All)</div>
+                                            <Switch
+                                                checked={featureConfig.globalCheckEnabled}
+                                                onCheckedChange={(val) => setFeatureConfig({ ...featureConfig, globalCheckEnabled: val })}
+                                            />
+                                        </div>
+                                        <p className="text-xs text-slate-400">Allows users to trigger all checks (Ping, HTTP, DNS, etc.) simultaneously with one button.</p>
                                     </Card>
                                 </div>
                             </Card>

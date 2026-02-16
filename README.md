@@ -118,7 +118,7 @@ Copy `.env.example` to `.env.local` and configure:
 NEXT_PUBLIC_ADSENSE_CLIENT="ca-pub-XXXXXXXXXXXXXXXX"
 
 # CheckHost API
-CHECKHOST_API_URL="https://check-host.net"
+CHECKHOST_API_URL="https://XXXXXXXX.XXX"
 ```
 
 ---

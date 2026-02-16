@@ -9,7 +9,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Play } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Loader2, Play, ArrowLeftRight } from 'lucide-react';
 
 interface CheckFormProps {
     type: CheckType;
@@ -26,6 +27,8 @@ interface CheckFormProps {
     onProgress?: (results: ResultsResponse) => void;
     dnsType?: string;
     onDnsTypeChange?: (value: string) => void;
+    isReverseMtr?: boolean;
+    onReverseMtrToggle?: (checked: boolean) => void;
 }
 
 export function CheckForm({
@@ -42,13 +45,15 @@ export function CheckForm({
     maxNodes,
     onMaxNodesChange,
     dnsType,
-    onDnsTypeChange
+    onDnsTypeChange,
+    isReverseMtr = false,
+    onReverseMtrToggle
 }: CheckFormProps) {
     // Smart parsing logic
     const sanitizeInput = useCallback((input: string) => {
         let sanitized = input.trim();
 
-        if (type === 'info' || type === 'ping' || type === 'dns' || type === 'dns-all' || type === 'tcp' || type === 'udp') {
+        if (type === 'info' || type === 'ping' || type === 'dns' || type === 'dns-all' || type === 'tcp' || type === 'udp' || type === 'mtr') {
             // Remove protocol
             sanitized = sanitized.replace(/^https?:\/\//, '');
             // Remove path/query
@@ -59,6 +64,11 @@ export function CheckForm({
     }, [type]);
 
     const checkMutation = useMutation({
+        onMutate: () => {
+            if (onCheckStart) {
+                onCheckStart({});
+            }
+        },
         mutationFn: async (targetHost: string) => {
             const checkOptions: any = { maxNodes: type === 'dns-all' ? 1 : maxNodes };
             if (type === 'dns' && dnsType && dnsType !== 'all') {
@@ -151,6 +161,26 @@ export function CheckForm({
             <CardContent className="p-4">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
+                        {type === 'mtr' && (
+                            <div className="flex items-center justify-between px-1 mb-2">
+                                <Label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    <ArrowLeftRight className={`h-3 w-3 ${isReverseMtr ? 'text-indigo-500 animate-pulse' : 'text-slate-400'}`} />
+                                    Diagnostic Target
+                                </Label>
+                                <div className="flex items-center gap-2 bg-slate-100/50 dark:bg-slate-800/50 p-1 px-2 rounded-lg border border-slate-200/50 dark:border-white/5 transition-all">
+                                    <span className={`text-[10px] font-bold uppercase tracking-wider ${isReverseMtr ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
+                                        {isReverseMtr ? 'Using My IP' : 'Manual Input'}
+                                    </span>
+                                    <Switch
+                                        id="reverse-mtr-toggle"
+                                        checked={isReverseMtr}
+                                        onCheckedChange={onReverseMtrToggle}
+                                        className="scale-75 origin-right data-[state=checked]:bg-indigo-500"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         <div className="relative group">
                             <Input
                                 id="host"
@@ -158,7 +188,7 @@ export function CheckForm({
                                 value={host}
                                 onChange={(e) => onHostChange(e.target.value)}
                                 placeholder={getPlaceholder()}
-                                className={`text-lg h-14 pl-6 pr-32 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-slate-950/60 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/40 transition-all duration-300 ${errorMessage ? 'border-destructive ring-destructive' : ''}`}
+                                className={`text-lg h-14 pl-6 pr-32 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-slate-950/60 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/40 transition-all duration-300 ${errorMessage && !errorMessage.includes('Using 1.1.1.1') ? 'border-destructive ring-destructive' : ''} ${isReverseMtr ? 'border-indigo-500/30' : ''}`}
                                 autoFocus
                                 required
                             />
@@ -239,7 +269,7 @@ export function CheckForm({
                         )}
 
                         {errorMessage && (
-                            <p className="text-sm text-destructive font-medium animate-pulse pl-2">
+                            <p className={`text-[10px] font-bold uppercase tracking-wider pl-2 pt-1 ${errorMessage.includes('Using 1.1.1.1') ? 'text-indigo-500/70 animate-pulse' : 'text-destructive animate-bounce'}`}>
                                 {errorMessage}
                             </p>
                         )}

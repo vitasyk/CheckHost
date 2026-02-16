@@ -26,9 +26,11 @@ interface ResultsDisplayProps {
     activeNodes?: Record<string, any>;
     onPingIp?: (ip: string) => void;
     dnsType?: string;
+    targetHost?: string;
+    isLoading?: boolean;
 }
 
-export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {}, onPingIp, dnsType }: ResultsDisplayProps) {
+export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {}, onPingIp, dnsType, targetHost, isLoading }: ResultsDisplayProps) {
     const [groupBy, setGroupBy] = useState<'none' | 'region'>('none');
     const [searchQuery, setSearchQuery] = useState('');
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -136,64 +138,57 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
     }, [filteredEntries, groupBy, nodes, activeNodes]);
 
     const getStatus = (result: any): 'success' | 'error' | 'loading' => {
+        // Special handling for MTR to allow immediate "PROBING/RESOLVING" states
+        if (checkType === 'mtr') {
+            if (result === null) return 'success';
+            if (Array.isArray(result)) {
+                if (result.length > 1 && result[0] === null && typeof result[1] === 'object' && result[1] !== null) {
+                    return 'error';
+                }
+                return 'success';
+            }
+        }
+
         if (result === null) return 'loading';
 
         // Check if it's an empty array (often happens during initial ping/http setup)
         if (Array.isArray(result) && result.length === 0) return 'loading';
 
+        // Extract firstResult safely
+        const firstResult = Array.isArray(result) && result.length > 0 ? result[0] : result;
+
+        if (firstResult === null) return 'loading';
+
         if (Array.isArray(result) && result.length > 0) {
-            const firstResult = result[0];
-
-            if (firstResult === null) return 'loading';
-
             // CheckHost API returns strings for some errors
             if (typeof firstResult === 'string') {
                 if (firstResult.toUpperCase().includes('ERROR')) return 'error';
                 return 'success';
             }
 
-            // MTR results (can be nested [[[...]]])
-            if (checkType === 'mtr') {
-                const hops = processMtrData(result);
-                if (hops.length > 0) return 'success';
-
-                // Detailed check for placeholder or error in MTR result
-                if (Array.isArray(result)) {
-                    // Check for [null, {message: "..."}] which is commonly an error or timeout
-                    if (result.length > 1 && result[0] === null && typeof result[1] === 'object' && result[1] !== null) {
-                        return 'error';
-                    }
-
-                    // Recursive check for all-null structure
-                    const isAllNull = (arr: any[]): boolean => arr.every(v => v === null || (Array.isArray(v) && isAllNull(v)));
-                    if (isAllNull(result)) return 'loading';
-                }
-
-                return 'success'; // Fallback to success to allow row expansion
-            }
-
             // Ping results - last check to avoid catching MTR partials
             if (Array.isArray(firstResult) && checkType === 'ping') {
                 return 'success';
             }
-
-            // HTTP/TCP/UDP results
-            if (typeof firstResult === 'object' && firstResult !== null) {
-                // If it's an array (Ping style results) but checkType isn't ping, handle as success
-                if (Array.isArray(firstResult)) return 'success';
-
-                // If it has error property
-                if ('error' in firstResult && firstResult.error) return 'error';
-
-                // For DNS, if it has any record type it's a success
-                if (checkType === 'dns') {
-                    const dnsKeys = ['A', 'AAAA', 'MX', 'CNAME', 'NS', 'TXT', 'PTR'];
-                    const hasRecord = dnsKeys.some(key => key in firstResult);
-                    return hasRecord ? 'success' : 'error';
-                }
-                return 'success';
-            }
         }
+
+        // HTTP/TCP/UDP results
+        if (typeof firstResult === 'object' && firstResult !== null) {
+            // If it's an array (Ping style results) but checkType isn't ping, handle as success
+            if (Array.isArray(firstResult)) return 'success';
+
+            // If it has error property
+            if ('error' in firstResult && (firstResult as any).error) return 'error';
+
+            // For DNS, if it has any record type it's a success
+            if (checkType === 'dns') {
+                const dnsKeys = ['A', 'AAAA', 'MX', 'CNAME', 'NS', 'TXT', 'PTR'];
+                const hasRecord = dnsKeys.some(key => (key as any) in firstResult);
+                return hasRecord ? 'success' : 'error';
+            }
+            return 'success';
+        }
+
         // Handle error cases in result object itself
         if (result && typeof result === 'object' && 'error' in result) return 'error';
 
@@ -369,8 +364,21 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
     };
 
     const getMtrSummary = (result: any) => {
+        if (!result) {
+            return {
+                count: 0,
+                loss: 0,
+                avgText: '-'
+            };
+        }
         const hops = processMtrData(result);
-        if (hops.length === 0) return null;
+        if (hops.length === 0) {
+            return {
+                count: 0,
+                loss: 0,
+                avgText: '-'
+            };
+        }
 
         const lastHop = hops[hops.length - 1];
         return {
@@ -408,21 +416,21 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
             <div className="p-4 bg-slate-50/50 dark:bg-slate-900/30 rounded-lg border border-slate-200/50 dark:border-white/5 my-2">
                 <Table>
                     <TableHeader>
-                        <TableRow className="h-8 hover:bg-transparent border-0">
-                            <TableHead className="h-8 text-[10px] uppercase font-bold">Hop</TableHead>
-                            <TableHead className="h-8 text-[10px] uppercase font-bold">Host / IP</TableHead>
-                            <TableHead className="h-8 text-[10px] uppercase font-bold text-center">Loss %</TableHead>
-                            <TableHead className="h-8 text-[10px] uppercase font-bold text-right">Last</TableHead>
-                            <TableHead className="h-8 text-[10px] uppercase font-bold text-right">Avg</TableHead>
-                            <TableHead className="h-8 text-[10px] uppercase font-bold text-right">Best</TableHead>
-                            <TableHead className="h-8 text-[10px] uppercase font-bold text-right">Worst</TableHead>
+                        <TableRow className="h-7 hover:bg-transparent border-0">
+                            <TableHead className="h-7 text-[10px] uppercase font-bold">Hop</TableHead>
+                            <TableHead className="h-7 text-[10px] uppercase font-bold">Host / IP</TableHead>
+                            <TableHead className="h-7 text-[10px] uppercase font-bold text-center">Loss %</TableHead>
+                            <TableHead className="h-7 text-[10px] uppercase font-bold text-right">Last</TableHead>
+                            <TableHead className="h-7 text-[10px] uppercase font-bold text-right">Avg</TableHead>
+                            <TableHead className="h-7 text-[10px] uppercase font-bold text-right">Best</TableHead>
+                            <TableHead className="h-7 text-[10px] uppercase font-bold text-right">Worst</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {hops.map((hop: any, i: number) => (
-                            <TableRow key={i} className="h-8 hover:bg-slate-100/50 dark:hover:bg-white/[0.02] border-0">
-                                <TableCell className="py-1 text-xs font-mono text-muted-foreground">{i + 1}</TableCell>
-                                <TableCell className="py-1 text-xs font-mono">
+                            <TableRow key={i} className="h-7 hover:bg-slate-100/50 dark:hover:bg-white/[0.02] border-0">
+                                <TableCell className="py-0.5 text-xs font-mono text-muted-foreground">{i + 1}</TableCell>
+                                <TableCell className="py-0.5 text-xs font-mono">
                                     <div className="flex flex-col">
                                         <span
                                             className={cn(
@@ -458,15 +466,15 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
                                         )}
                                     </div>
                                 </TableCell>
-                                <TableCell className="py-1 text-xs text-center">
+                                <TableCell className="py-0.5 text-xs text-center">
                                     <Badge variant={hop.loss > 0 ? "error" : "outline"} className="h-5 px-1.5 text-[10px]">
                                         {hop.loss.toFixed(1)}%
                                     </Badge>
                                 </TableCell>
-                                <TableCell className="py-1 text-xs text-right font-mono">{hop.last.toFixed(1)}</TableCell>
-                                <TableCell className="py-1 text-xs text-right font-mono font-bold text-indigo-600 dark:text-indigo-400">{hop.avg.toFixed(1)}</TableCell>
-                                <TableCell className="py-1 text-xs text-right font-mono text-muted-foreground">{hop.best.toFixed(1)}</TableCell>
-                                <TableCell className="py-1 text-xs text-right font-mono text-muted-foreground">{hop.worst.toFixed(1)}</TableCell>
+                                <TableCell className="py-0.5 text-xs text-right font-mono">{hop.last.toFixed(1)}</TableCell>
+                                <TableCell className="py-0.5 text-xs text-right font-mono font-bold text-indigo-600 dark:text-indigo-400">{hop.avg.toFixed(1)}</TableCell>
+                                <TableCell className="py-0.5 text-xs text-right font-mono text-muted-foreground">{hop.best.toFixed(1)}</TableCell>
+                                <TableCell className="py-0.5 text-xs text-right font-mono text-muted-foreground">{hop.worst.toFixed(1)}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -778,7 +786,7 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
                                                 if (checkType === 'ping') {
                                                     const stats = getPingStats(result);
                                                     return (
-                                                        <TableRow key={nodeId} className="h-[38px] hover:bg-blue-50/50 dark:hover:bg-blue-900/10 even:bg-slate-100/70 dark:even:bg-white/[0.05] transition-colors border-b border-slate-100/50 dark:border-white/5 last:border-0 group">
+                                                        <TableRow key={nodeId} className="h-[34px] hover:bg-blue-50/50 dark:hover:bg-blue-900/10 even:bg-slate-100/70 dark:even:bg-white/[0.05] transition-colors border-b border-slate-100/50 dark:border-white/5 last:border-0 group">
                                                             <TableCell className="w-[50px] text-center">
                                                                 <div className="flex items-center justify-center h-5">
                                                                     {isLoading ? (
@@ -836,7 +844,7 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
 
                                                 return (
                                                     <Fragment key={nodeId}>
-                                                        <TableRow key={nodeId} className="h-[38px] hover:bg-blue-50/50 dark:hover:bg-blue-900/10 even:bg-slate-100/70 dark:even:bg-white/[0.05] transition-colors border-b border-slate-100/50 dark:border-white/5 last:border-0 group cursor-pointer" onClick={() => checkType === 'mtr' && toggleRow(nodeId)}>
+                                                        <TableRow key={nodeId} className="h-[34px] hover:bg-blue-50/50 dark:hover:bg-blue-900/10 even:bg-slate-100/70 dark:even:bg-white/[0.05] transition-colors border-b border-slate-100/50 dark:border-white/5 last:border-0 group cursor-pointer" onClick={() => checkType === 'mtr' && toggleRow(nodeId)}>
                                                             <TableCell className="w-[50px] text-center">
                                                                 <div className="flex items-center justify-center h-5">
                                                                     {isLoading ? (
@@ -859,7 +867,13 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
                                                                 {isLoading ? (
                                                                     <span className="text-muted-foreground animate-pulse">Checking...</span>
                                                                 ) : checkType === 'mtr' ? (
-                                                                    <span className="text-sm font-medium">{getMtrSummary(result)?.count} hops</span>
+                                                                    result === null || processMtrData(result).length === 0 ? (
+                                                                        <span className="text-[10px] font-bold text-indigo-500/60 animate-pulse tracking-tight">
+                                                                            {targetHost && /^[0-9.]+$/.test(targetHost) ? 'PROBING...' : 'RESOLVING...'}
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="text-sm font-medium">{getMtrSummary(result)?.count} hops</span>
+                                                                    )
                                                                 ) : (
                                                                     renderResult(result)
                                                                 )}
@@ -903,7 +917,14 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
 
                     {filteredEntries.length === 0 && (
                         <div className="text-center py-12 text-muted-foreground bg-card rounded-lg border border-dashed">
-                            No locations found matching "{searchQuery}"
+                            {isLoading ? (
+                                <div className="flex flex-col items-center gap-3">
+                                    <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+                                    <span className="text-sm font-bold uppercase tracking-widest text-indigo-500/60">Connecting to global network...</span>
+                                </div>
+                            ) : (
+                                `No locations found matching "${searchQuery}"`
+                            )}
                         </div>
                     )}
                 </div>

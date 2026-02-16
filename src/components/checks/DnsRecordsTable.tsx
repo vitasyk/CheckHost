@@ -113,18 +113,18 @@ export function DnsRecordsTable({ result, className }: DnsRecordsTableProps) {
                 <TableBody>
                     {records.map((record, index) => (
                         <TableRow key={index} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02]">
-                            <TableCell className="py-2 font-medium">
+                            <TableCell className="py-1 font-medium">
                                 <Badge variant="outline" className="font-bold text-[10px] min-w-[40px] justify-center">
                                     {record.type}
                                 </Badge>
                             </TableCell>
-                            <TableCell className="py-2 font-mono text-xs break-all">
+                            <TableCell className="py-1 font-mono text-xs break-all">
                                 {record.value}
                             </TableCell>
-                            <TableCell className="py-2 text-xs text-muted-foreground hidden sm:table-cell">
+                            <TableCell className="py-1 text-xs text-muted-foreground hidden sm:table-cell">
                                 {record.auxiliary || '-'}
                             </TableCell>
-                            <TableCell className="py-2 text-xs text-right font-mono text-muted-foreground">
+                            <TableCell className="py-1 text-xs text-right font-mono text-muted-foreground">
                                 {record.ttl}
                             </TableCell>
                         </TableRow>
