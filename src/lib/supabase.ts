@@ -1,10 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn('Supabase credentials are missing. Analytics logging will be disabled.');
+const isConfigured = supabaseUrl &&
+    supabaseUrl !== 'https://your-project.supabase.co' &&
+    supabaseAnonKey &&
+    supabaseAnonKey !== 'your-anon-key';
+
+if (!isConfigured) {
+    console.warn('Supabase credentials are missing or placeholders. Analytics logging will be disabled.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = isConfigured
+    ? createClient(supabaseUrl, supabaseAnonKey)
+    : (null as any);

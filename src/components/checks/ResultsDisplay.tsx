@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { DnsRecordsTable } from './DnsRecordsTable';
+import { DnsDashboard } from './DnsDashboard';
 
 interface ResultsDisplayProps {
     results: ResultsResponse;
@@ -519,50 +521,34 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
                 );
             }
 
-            // DNS results
-            if (checkType === 'dns' && typeof firstResult === 'object' && firstResult !== null) {
-                const renderEntries = (items: string[], type: string) => (
-                    <div key={type} className="flex flex-col gap-1">
-                        {items.map((item, i) => {
-                            // Check if item is an IP and if it's IPv6
-                            const isIpv6 = item.includes(':');
+            // DNS-All results (Advanced Table)
+            if (checkType === 'dns-all' && typeof firstResult === 'object' && firstResult !== null) {
+                return <DnsRecordsTable result={firstResult} />;
+            }
 
-                            return (
-                                <span key={i} className="flex items-center gap-2">
-                                    <Badge variant="outline" className="h-5 px-1.5 text-[10px] uppercase font-bold text-muted-foreground w-10 justify-center">
-                                        {type}
-                                    </Badge>
-                                    <span className={cn(
-                                        "font-mono",
-                                        isIpv6 ? "text-indigo-600 dark:text-indigo-400 font-medium" : ""
-                                    )}>
-                                        {item}
-                                    </span>
-                                </span>
-                            );
-                        })}
+            // Standard DNS results (Simple List)
+            if (checkType === 'dns' && typeof firstResult === 'object' && firstResult !== null) {
+                const records: string[] = [];
+                // Prioritize common records
+                if (firstResult.A) firstResult.A.forEach((r: any) => records.push(`A: ${r}`));
+                if (firstResult.AAAA) firstResult.AAAA.forEach((r: any) => records.push(`AAAA: ${r}`));
+                if (firstResult.MX) firstResult.MX.forEach((r: any) => records.push(`MX: ${Array.isArray(r) ? r[1] : r}`));
+                if (firstResult.CNAME) firstResult.CNAME.forEach((r: any) => records.push(`CNAME: ${r}`));
+                if (firstResult.NS) firstResult.NS.forEach((r: any) => records.push(`NS: ${r}`));
+                if (firstResult.TXT) firstResult.TXT.forEach((r: any) => records.push(`TXT: ${r}`));
+                if (firstResult.PTR) firstResult.PTR.forEach((r: any) => records.push(`PTR: ${r}`));
+
+                if (records.length === 0) return <span className="text-muted-foreground italic">No records</span>;
+
+                return (
+                    <div className="flex flex-col gap-1 text-xs">
+                        {records.map((r, i) => (
+                            <div key={i} className="font-mono text-slate-600 dark:text-slate-300">
+                                {r}
+                            </div>
+                        ))}
                     </div>
                 );
-
-                const parts: any[] = [];
-
-                if (firstResult.PTR && firstResult.PTR.length > 0) parts.push(renderEntries(firstResult.PTR, 'PTR'));
-                if (firstResult.CNAME && firstResult.CNAME.length > 0) parts.push(renderEntries(firstResult.CNAME, 'CNAME'));
-                if (firstResult.A && firstResult.A.length > 0) parts.push(renderEntries(firstResult.A, 'A'));
-                if (firstResult.AAAA && firstResult.AAAA.length > 0) parts.push(renderEntries(firstResult.AAAA, 'AAAA'));
-
-                if (firstResult.MX && firstResult.MX.length > 0) {
-                    parts.push(renderEntries(firstResult.MX.map((mx: any[]) => mx[1]), 'MX'));
-                }
-
-                if (firstResult.NS && firstResult.NS.length > 0) parts.push(renderEntries(firstResult.NS, 'NS'));
-                if (firstResult.TXT && firstResult.TXT.length > 0) parts.push(renderEntries(firstResult.TXT, 'TXT'));
-
-                if (parts.length > 0) {
-                    return <div className="flex flex-col gap-2 py-1">{parts}</div>;
-                }
-
-                return <span className="text-muted-foreground italic">No records found</span>;
             }
         }
 
@@ -670,232 +656,256 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
 
     return (
         <div className="space-y-4 mt-8">
-            {/* Controls Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-white/5 shadow-sm">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">Results</h3>
-                        <Badge variant="secondary" className="px-2 py-0.5 text-xs">
-                            {successCount} / {totalCount}
-                        </Badge>
+            {/* Controls Header (hidden for dns-all single-block view) */}
+            {checkType !== 'dns-all' && (
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-white/5 shadow-sm">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-semibold">Results</h3>
+                            <Badge variant="secondary" className="px-2 py-0.5 text-xs">
+                                {successCount} / {totalCount}
+                            </Badge>
+                        </div>
+
+                        <div className="h-4 w-px bg-border" />
+
+                        <Tabs value={groupBy} onValueChange={(v) => setGroupBy(v as 'none' | 'region')}>
+                            <TabsList className="h-10 p-1 bg-slate-200/40 dark:bg-slate-900/60 rounded-xl border border-slate-200/50 dark:border-white/5">
+                                <TabsTrigger
+                                    value="none"
+                                    className="h-8 px-4 rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200"
+                                >
+                                    <ListIcon className="h-3.5 w-3.5 mr-2" />
+                                    <span className="font-semibold text-xs">List</span>
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="region"
+                                    className="h-8 px-4 rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200"
+                                >
+                                    <Grip className="h-3.5 w-3.5 mr-2" />
+                                    <span className="font-semibold text-xs">Region</span>
+                                </TabsTrigger>
+                            </TabsList>
+                        </Tabs>
                     </div>
 
-                    <div className="h-4 w-px bg-border" />
-
-                    <Tabs value={groupBy} onValueChange={(v) => setGroupBy(v as 'none' | 'region')}>
-                        <TabsList className="h-10 p-1 bg-slate-200/40 dark:bg-slate-900/60 rounded-xl border border-slate-200/50 dark:border-white/5">
-                            <TabsTrigger
-                                value="none"
-                                className="h-8 px-4 rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200"
-                            >
-                                <ListIcon className="h-3.5 w-3.5 mr-2" />
-                                <span className="font-semibold text-xs">List</span>
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="region"
-                                className="h-8 px-4 rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200"
-                            >
-                                <Grip className="h-3.5 w-3.5 mr-2" />
-                                <span className="font-semibold text-xs">Region</span>
-                            </TabsTrigger>
-                        </TabsList>
-                    </Tabs>
+                    <div className="flex items-center gap-4">
+                        <div className="relative w-full md:w-64">
+                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Filter locations..."
+                                className="pl-8 h-9"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                    </div>
                 </div>
+            )}
 
-                <div className="flex items-center gap-4">
-                    <div className="relative w-full md:w-64">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Filter locations..."
-                            className="pl-8 h-9"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+            {/* Special Display for DNS Info (Single Block) */}
+            {checkType === 'dns-all' ? (
+                <div className="space-y-4">
+                    {entries.length > 0 && entries[0][1] ? (
+                        <DnsDashboard
+                            result={entries[0][1]}
+                            nodeCity={entries[0][0] ? getLocationInfo(entries[0][0]).city : undefined}
                         />
-                    </div>
-                </div>
-            </div>
-
-            {/* Results Table(s) */}
-            <div className="space-y-8">
-                {Object.entries(groupedEntries).map(([groupName, groupEntries]) => (
-                    groupEntries.length > 0 && (
-                        <div key={groupName} className="space-y-3">
-                            {groupBy === 'region' && (
-                                <h4 className="text-xs font-bold text-slate-500 dark:text-muted-foreground uppercase tracking-[0.2em] pl-2 flex items-center gap-2">
-                                    <div className="h-1 w-1 rounded-full bg-blue-500" />
-                                    {groupName} <span className="text-[10px] opacity-70 font-medium">({groupEntries.length})</span>
-                                </h4>
+                    ) : (
+                        <div className="text-center p-12 text-muted-foreground">
+                            {entries.length > 0 ? (
+                                <div className="flex flex-col items-center gap-2">
+                                    <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+                                    <span>Fetching records...</span>
+                                </div>
+                            ) : (
+                                <span>Waiting for results...</span>
                             )}
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="space-y-8">
+                    {Object.entries(groupedEntries).map(([groupName, groupEntries]) => (
+                        groupEntries.length > 0 && (
+                            <div key={groupName} className="space-y-3">
+                                {groupBy === 'region' && (
+                                    <h4 className="text-xs font-bold text-slate-500 dark:text-muted-foreground uppercase tracking-[0.2em] pl-2 flex items-center gap-2">
+                                        <div className="h-1 w-1 rounded-full bg-blue-500" />
+                                        {groupName} <span className="text-[10px] opacity-70 font-medium">({groupEntries.length})</span>
+                                    </h4>
+                                )}
 
-                            <div className="rounded-xl border border-slate-200/60 dark:border-white/5 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-200/60 dark:border-white/5">
-                                            <TableHead className="w-[50px]"></TableHead>
-                                            <TableHead className="w-[250px]">Location</TableHead>
-                                            {checkType === 'ping' && (
-                                                <Fragment>
-                                                    <TableHead>Result</TableHead>
-                                                    <TableHead>RTT (min/avg/max)</TableHead>
-                                                    <TableHead className="text-right">IP Address</TableHead>
-                                                </Fragment>
-                                            )}
-                                            {checkType === 'mtr' && (
-                                                <Fragment>
-                                                    <TableHead>Hops</TableHead>
-                                                    <TableHead>Avg Latency</TableHead>
-                                                    <TableHead className="text-right">Loss</TableHead>
-                                                    <TableHead className="w-10"></TableHead>
-                                                </Fragment>
-                                            )}
-                                            {checkType !== 'ping' && checkType !== 'mtr' && (
-                                                <Fragment>
-                                                    <TableHead>Result</TableHead>
-                                                    <TableHead className="text-right w-[140px]">
-                                                        {checkType === 'dns' ? 'TTL' : 'Time'}
-                                                    </TableHead>
-                                                </Fragment>
-                                            )}
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {groupEntries.map(([nodeId, result]) => {
-                                            const status = getStatus(result);
-                                            const location = getLocationInfo(nodeId);
-                                            const isLoading = status === 'loading';
+                                <div className="rounded-xl border border-slate-200/60 dark:border-white/5 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-200/60 dark:border-white/5">
+                                                <TableHead className="w-[50px]"></TableHead>
+                                                <TableHead className="w-[250px]">Location</TableHead>
+                                                {checkType === 'ping' && (
+                                                    <Fragment>
+                                                        <TableHead>Result</TableHead>
+                                                        <TableHead>RTT (min/avg/max)</TableHead>
+                                                        <TableHead className="text-right">IP Address</TableHead>
+                                                    </Fragment>
+                                                )}
+                                                {checkType === 'mtr' && (
+                                                    <Fragment>
+                                                        <TableHead>Hops</TableHead>
+                                                        <TableHead>Avg Latency</TableHead>
+                                                        <TableHead className="text-right">Loss</TableHead>
+                                                        <TableHead className="w-10"></TableHead>
+                                                    </Fragment>
+                                                )}
+                                                {checkType !== 'ping' && checkType !== 'mtr' && (
+                                                    <Fragment>
+                                                        <TableHead>Result</TableHead>
+                                                        <TableHead className="text-right w-[140px]">
+                                                            {checkType === 'dns' ? 'TTL' : 'Time'}
+                                                        </TableHead>
+                                                    </Fragment>
+                                                )}
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {groupEntries.map(([nodeId, result]) => {
+                                                const status = getStatus(result);
+                                                const location = getLocationInfo(nodeId);
+                                                const isLoading = status === 'loading';
 
-                                            if (checkType === 'ping') {
-                                                const stats = getPingStats(result);
-                                                return (
-                                                    <TableRow key={nodeId} className="h-[38px] hover:bg-blue-50/50 dark:hover:bg-blue-900/10 even:bg-slate-100/70 dark:even:bg-white/[0.05] transition-colors border-b border-slate-100/50 dark:border-white/5 last:border-0 group">
-                                                        <TableCell className="w-[50px] text-center">
-                                                            <div className="flex items-center justify-center h-5">
-                                                                {isLoading ? (
-                                                                    <div className="relative flex h-3 w-3">
-                                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-                                                                    </div>
-                                                                ) : getStatusIcon(status)}
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="flex items-center gap-3">
-                                                                <span className="text-lg leading-none">{location.flag}</span>
-                                                                <div className="flex flex-col">
-                                                                    <span className="font-medium text-sm">{location.country}, {location.city}</span>
+                                                if (checkType === 'ping') {
+                                                    const stats = getPingStats(result);
+                                                    return (
+                                                        <TableRow key={nodeId} className="h-[38px] hover:bg-blue-50/50 dark:hover:bg-blue-900/10 even:bg-slate-100/70 dark:even:bg-white/[0.05] transition-colors border-b border-slate-100/50 dark:border-white/5 last:border-0 group">
+                                                            <TableCell className="w-[50px] text-center">
+                                                                <div className="flex items-center justify-center h-5">
+                                                                    {isLoading ? (
+                                                                        <div className="relative flex h-3 w-3">
+                                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                                                                        </div>
+                                                                    ) : getStatusIcon(status)}
                                                                 </div>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="flex items-center h-5">
-                                                                {isLoading ? (
-                                                                    <div className="h-1.5 w-24 bg-primary/20 rounded-full overflow-hidden">
-                                                                        <div className="h-full bg-primary/50 animate-progress"></div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <span className="text-sm font-medium">
-                                                                        {stats ? `${stats.received} / ${stats.sent}` : '0 / 4'}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="font-mono text-xs text-slate-500 dark:text-slate-400">
-                                                                {stats && stats.min !== null ? (
-                                                                    <span>
-                                                                        {stats.min} / {stats.avg} / {stats.max} ms
-                                                                    </span>
-                                                                ) : '-'}
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell className="text-right font-mono text-xs text-slate-500 dark:text-slate-400">
-                                                            {stats?.ip ? (
-                                                                stats.ip.includes(':') ? (
-                                                                    <span className="text-indigo-600 dark:text-indigo-400 font-medium">{stats.ip}</span>
-                                                                ) : stats.ip
-                                                            ) : '-'}
-                                                        </TableCell>
-                                                    </TableRow>
-                                                );
-                                            }
-
-                                            // Non-ping results
-                                            // const resultText = getResultText(result); // Old text-only way
-                                            const ttl = getTTL(result);
-
-                                            return (
-                                                <Fragment key={nodeId}>
-                                                    <TableRow key={nodeId} className="h-[38px] hover:bg-blue-50/50 dark:hover:bg-blue-900/10 even:bg-slate-100/70 dark:even:bg-white/[0.05] transition-colors border-b border-slate-100/50 dark:border-white/5 last:border-0 group cursor-pointer" onClick={() => checkType === 'mtr' && toggleRow(nodeId)}>
-                                                        <TableCell className="w-[50px] text-center">
-                                                            <div className="flex items-center justify-center h-5">
-                                                                {isLoading ? (
-                                                                    <div className="relative flex h-3 w-3">
-                                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-                                                                    </div>
-                                                                ) : getStatusIcon(status)}
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="flex items-center gap-3">
-                                                                <span className="text-lg leading-none">{location.flag}</span>
-                                                                <div className="flex flex-col">
-                                                                    <span className="font-medium text-sm">{location.country}, {location.city}</span>
-                                                                </div>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell className="font-mono text-sm">
-                                                            {isLoading ? (
-                                                                <span className="text-muted-foreground animate-pulse">Checking...</span>
-                                                            ) : checkType === 'mtr' ? (
-                                                                <span className="text-sm font-medium">{getMtrSummary(result)?.count} hops</span>
-                                                            ) : (
-                                                                renderResult(result)
-                                                            )}
-                                                        </TableCell>
-                                                        {checkType === 'mtr' ? (
-                                                            <Fragment>
-                                                                <TableCell className="font-mono text-xs text-slate-500 dark:text-slate-400">
-                                                                    {getMtrSummary(result)?.avgText}
-                                                                </TableCell>
-                                                                <TableCell className="text-right">
-                                                                    <Badge variant={getMtrSummary(result)?.loss ? "error" : "outline"} className="h-5 px-1.5 text-[10px]">
-                                                                        {getMtrSummary(result) ? `${getMtrSummary(result)!.loss.toFixed(1)}%` : '0.0%'}
-                                                                    </Badge>
-                                                                </TableCell>
-                                                                <TableCell className="p-0 text-center">
-                                                                    {expandedRows.has(nodeId) ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-                                                                </TableCell>
-                                                            </Fragment>
-                                                        ) : (
-                                                            <TableCell className="text-right text-muted-foreground whitespace-nowrap">
-                                                                {ttl}
                                                             </TableCell>
-                                                        )}
-                                                    </TableRow>
-                                                    {checkType === 'mtr' && expandedRows.has(nodeId) && (
-                                                        <TableRow className="bg-slate-50/30 dark:bg-white/[0.01] hover:bg-slate-50/30 dark:hover:bg-white/[0.01]">
-                                                            <TableCell colSpan={6} className="p-0">
-                                                                {renderMtrResult(result)}
+                                                            <TableCell>
+                                                                <div className="flex items-center gap-3">
+                                                                    <span className="text-lg leading-none">{location.flag}</span>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="font-medium text-sm">{location.country}, {location.city}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <div className="flex items-center h-5">
+                                                                    {isLoading ? (
+                                                                        <div className="h-1.5 w-24 bg-primary/20 rounded-full overflow-hidden">
+                                                                            <div className="h-full bg-primary/50 animate-progress"></div>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="text-sm font-medium">
+                                                                            {stats ? `${stats.received} / ${stats.sent}` : '0 / 4'}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <div className="font-mono text-xs text-slate-500 dark:text-slate-400">
+                                                                    {stats && stats.min !== null ? (
+                                                                        <span>
+                                                                            {stats.min} / {stats.avg} / {stats.max} ms
+                                                                        </span>
+                                                                    ) : '-'}
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell className="text-right font-mono text-xs text-slate-500 dark:text-slate-400">
+                                                                {stats?.ip ? (
+                                                                    stats.ip.includes(':') ? (
+                                                                        <span className="text-indigo-600 dark:text-indigo-400 font-medium">{stats.ip}</span>
+                                                                    ) : stats.ip
+                                                                ) : '-'}
                                                             </TableCell>
                                                         </TableRow>
-                                                    )}
-                                                </Fragment>
-                                            );
-                                        })}
-                                    </TableBody>
-                                </Table>
-                            </div>
-                        </div>
-                    )
-                ))}
+                                                    );
+                                                }
 
-                {filteredEntries.length === 0 && (
-                    <div className="text-center py-12 text-muted-foreground bg-card rounded-lg border border-dashed">
-                        No locations found matching "{searchQuery}"
-                    </div>
-                )}
-            </div>
+                                                // Non-ping results
+                                                // const resultText = getResultText(result); // Old text-only way
+                                                const ttl = getTTL(result);
+
+                                                return (
+                                                    <Fragment key={nodeId}>
+                                                        <TableRow key={nodeId} className="h-[38px] hover:bg-blue-50/50 dark:hover:bg-blue-900/10 even:bg-slate-100/70 dark:even:bg-white/[0.05] transition-colors border-b border-slate-100/50 dark:border-white/5 last:border-0 group cursor-pointer" onClick={() => checkType === 'mtr' && toggleRow(nodeId)}>
+                                                            <TableCell className="w-[50px] text-center">
+                                                                <div className="flex items-center justify-center h-5">
+                                                                    {isLoading ? (
+                                                                        <div className="relative flex h-3 w-3">
+                                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                                                                        </div>
+                                                                    ) : getStatusIcon(status)}
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <div className="flex items-center gap-3">
+                                                                    <span className="text-lg leading-none">{location.flag}</span>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="font-medium text-sm">{location.country}, {location.city}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell className="font-mono text-sm">
+                                                                {isLoading ? (
+                                                                    <span className="text-muted-foreground animate-pulse">Checking...</span>
+                                                                ) : checkType === 'mtr' ? (
+                                                                    <span className="text-sm font-medium">{getMtrSummary(result)?.count} hops</span>
+                                                                ) : (
+                                                                    renderResult(result)
+                                                                )}
+                                                            </TableCell>
+                                                            {checkType === 'mtr' ? (
+                                                                <Fragment>
+                                                                    <TableCell className="font-mono text-xs text-slate-500 dark:text-slate-400">
+                                                                        {getMtrSummary(result)?.avgText}
+                                                                    </TableCell>
+                                                                    <TableCell className="text-right">
+                                                                        <Badge variant={getMtrSummary(result)?.loss ? "error" : "outline"} className="h-5 px-1.5 text-[10px]">
+                                                                            {getMtrSummary(result) ? `${getMtrSummary(result)!.loss.toFixed(1)}%` : '0.0%'}
+                                                                        </Badge>
+                                                                    </TableCell>
+                                                                    <TableCell className="p-0 text-center">
+                                                                        {expandedRows.has(nodeId) ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                                                                    </TableCell>
+                                                                </Fragment>
+                                                            ) : (
+                                                                <TableCell className="text-right text-muted-foreground whitespace-nowrap">
+                                                                    {ttl}
+                                                                </TableCell>
+                                                            )}
+                                                        </TableRow>
+                                                        {checkType === 'mtr' && expandedRows.has(nodeId) && (
+                                                            <TableRow className="bg-slate-50/30 dark:bg-white/[0.01] hover:bg-slate-50/30 dark:hover:bg-white/[0.01]">
+                                                                <TableCell colSpan={6} className="p-0">
+                                                                    {renderMtrResult(result)}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        )}
+                                                    </Fragment>
+                                                );
+                                            })}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </div>
+                        )
+                    ))}
+
+                    {filteredEntries.length === 0 && (
+                        <div className="text-center py-12 text-muted-foreground bg-card rounded-lg border border-dashed">
+                            No locations found matching "{searchQuery}"
+                        </div>
+                    )}
+                </div>
+            )}
 
             <style jsx global>{`
                 @keyframes progress {

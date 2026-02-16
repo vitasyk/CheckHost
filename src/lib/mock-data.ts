@@ -10,27 +10,27 @@ export async function getMockIpInfo(host: string): Promise<IpInfoResponse> {
     // Fetch data from multiple sources in parallel
     const [realIpInfo, ipApiData, ipGeoData, maxmindData, localMmdbData, rdapData] = await Promise.all([
         fetchIpInfo(ip).catch(err => {
-            console.error('Failed to fetch IPInfo data:', err);
+            console.warn('IPInfo data skipped:', err.message);
             return null;
         }),
         fetchIpApiData(ip).catch(err => {
-            console.error('Failed to fetch IP-API data:', err);
+            console.warn('IP-API data skipped:', err.message);
             return null;
         }),
         fetchFromIpGeolocation(ip).catch(err => {
-            console.error('Failed to fetch IPGeolocation data:', err);
+            console.warn('IPGeolocation data skipped:', err.message);
             return null;
         }),
         fetchFromMaxMind(ip).catch(err => {
-            console.error('Failed to fetch MaxMind data:', err);
+            console.warn('MaxMind data skipped:', err.message);
             return null;
         }),
         lookupLocalIpInfo(ip).catch(err => {
-            console.error('Failed to lookup local MMDB:', err);
+            console.warn('Local MMDB lookup skipped:', err.message);
             return null;
         }),
         fetchRdapInfo(host).catch(err => {
-            console.error('Failed to fetch RDAP data:', err);
+            console.warn('RDAP data skipped:', err.message);
             return null;
         })
     ]);

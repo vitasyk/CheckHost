@@ -23,6 +23,12 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 
+interface IpInfoDisplayConfig {
+    showFeaturedMap: boolean;
+    showRdapData: boolean;
+    showProviderCards: boolean;
+}
+
 interface AdSlotConfig {
     id: string;
     enabled: boolean;
@@ -37,42 +43,62 @@ interface AdSenseConfig {
 export default function AdminSettings() {
     const { data: session } = useSession();
     const [config, setConfig] = useState<AdSenseConfig | null>(null);
+    const [ipConfig, setIpConfig] = useState<IpInfoDisplayConfig>({
+        showFeaturedMap: true,
+        showRdapData: true,
+        showProviderCards: true
+    });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
 
     useEffect(() => {
-        const fetchConfig = async () => {
+        const fetchConfigs = async () => {
             try {
-                const res = await fetch('/api/admin/settings');
-                if (res.ok) {
-                    const data = await res.json();
-                    setConfig(data);
+                // Fetch AdSense
+                const adsenseRes = await fetch('/api/admin/settings?key=adsense');
+                if (adsenseRes.ok) {
+                    const data = await adsenseRes.json();
+                    if (data) setConfig(data);
+                }
+
+                // Fetch IP Info Display
+                const ipRes = await fetch('/api/admin/settings?key=ip_info_display');
+                if (ipRes.ok) {
+                    const data = await ipRes.json();
+                    if (data) setIpConfig(data);
                 }
             } catch (error) {
-                console.error('Failed to fetch AdSense config:', error);
+                console.error('Failed to fetch configs:', error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchConfig();
+        fetchConfigs();
     }, []);
 
     const handleSave = async () => {
-        if (!config) return;
         setSaving(true);
         try {
-            const res = await fetch('/api/admin/settings', {
+            // Save AdSense
+            const p1 = fetch('/api/admin/settings?key=adsense', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(config),
             });
-            if (res.ok) {
-                setSaved(true);
-                setTimeout(() => setSaved(false), 3000);
-            }
+
+            // Save IP Info Display
+            const p2 = fetch('/api/admin/settings?key=ip_info_display', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(ipConfig),
+            });
+
+            await Promise.all([p1, p2]);
+            setSaved(true);
+            setTimeout(() => setSaved(false), 3000);
         } catch (error) {
-            console.error('Failed to save AdSense config:', error);
+            console.error('Failed to save config:', error);
         } finally {
             setSaving(false);
         }
@@ -123,6 +149,56 @@ export default function AdminSettings() {
                             </Button>
                         </div>
 
+                        {/* IP Info Display Section */}
+                        <div className="space-y-6">
+                            <Card className="p-8 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm relative overflow-hidden group">
+                                <Database className="absolute -right-4 -bottom-4 h-24 w-24 text-indigo-500/5 group-hover:text-indigo-500/10 transition-colors" />
+
+                                <div className="space-y-1 mb-6">
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="text-xl font-bold font-display">IP Info Dashboard</h3>
+                                        <Badge variant="outline" className="text-[10px] py-0 border-slate-200 text-slate-500 bg-slate-50 dark:bg-slate-800/50">UI Blocks</Badge>
+                                    </div>
+                                    <p className="text-sm text-slate-400">Enable or disable specific sections of the IP information report.</p>
+                                </div>
+
+                                <div className="grid md:grid-cols-3 gap-6">
+                                    <Card className="p-4 border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20 flex flex-col gap-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-sm font-bold">Featured Map</div>
+                                            <Switch
+                                                checked={ipConfig.showFeaturedMap}
+                                                onCheckedChange={(val) => setIpConfig({ ...ipConfig, showFeaturedMap: val })}
+                                            />
+                                        </div>
+                                        <p className="text-xs text-slate-400">Shows the prominent map and coordinates at the top of results.</p>
+                                    </Card>
+
+                                    <Card className="p-4 border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20 flex flex-col gap-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-sm font-bold">RDAP / WHOIS</div>
+                                            <Switch
+                                                checked={ipConfig.showRdapData}
+                                                onCheckedChange={(val) => setIpConfig({ ...ipConfig, showRdapData: val })}
+                                            />
+                                        </div>
+                                        <p className="text-xs text-slate-400">Displays domain registration and public WHOIS information.</p>
+                                    </Card>
+
+                                    <Card className="p-4 border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20 flex flex-col gap-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-sm font-bold">Provider Cards</div>
+                                            <Switch
+                                                checked={ipConfig.showProviderCards}
+                                                onCheckedChange={(val) => setIpConfig({ ...ipConfig, showProviderCards: val })}
+                                            />
+                                        </div>
+                                        <p className="text-xs text-slate-400">List of detailed results from individual geolocation providers.</p>
+                                    </Card>
+                                </div>
+                            </Card>
+                        </div>
+
                         {/* AdSense Section */}
                         <div className="space-y-6">
                             <Card className="p-8 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm relative overflow-hidden group">
@@ -131,7 +207,7 @@ export default function AdminSettings() {
                                 <div className="flex items-center justify-between gap-4 mb-8">
                                     <div className="space-y-1">
                                         <div className="flex items-center gap-2">
-                                            <h3 className="text-xl font-bold">Google AdSense</h3>
+                                            <h3 className="text-xl font-bold font-display">Google AdSense</h3>
                                             <Badge variant="outline" className="text-[10px] py-0 border-slate-200 text-slate-500 bg-slate-50 dark:bg-slate-800/50">Global Toggle</Badge>
                                         </div>
                                         <p className="text-sm text-slate-400">Master switch to enable or disable all advertisements across the platform.</p>

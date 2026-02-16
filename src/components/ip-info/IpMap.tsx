@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { useTheme } from 'next-themes';
 
 // Fix Leaflet default icon issue in Next.js
 const icon = L.icon({
@@ -42,6 +43,7 @@ function MapUpdater({ lat, lng }: { lat: number, lng: number }) {
 }
 
 export default function IpMap({ lat, lng, city, country }: IpMapProps) {
+    const { theme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -50,17 +52,25 @@ export default function IpMap({ lat, lng, city, country }: IpMapProps) {
 
     if (!mounted) return <div className="h-full w-full bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl" />;
 
+    const isDark = theme === 'dark';
+    const tileUrl = isDark
+        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
     return (
         <MapContainer
             center={[lat, lng]}
             zoom={13}
             scrollWheelZoom={false}
-            className="h-full w-full z-0"
+            className="h-full w-full z-0 transition-all duration-500"
             style={{ minHeight: '300px', height: '100%', borderRadius: '0.75rem' }}
         >
             <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                key={theme} // Force re-render when theme changes to update tiles
+                attribution={isDark
+                    ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                    : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}
+                url={tileUrl}
                 className="map-tiles"
             />
             <Marker position={[lat, lng]} icon={customIcon}>

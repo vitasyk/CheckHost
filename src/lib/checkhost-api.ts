@@ -49,7 +49,28 @@ export class CheckHostAPI {
 
         try {
             // Check-host.net uses /check-traceroute for traceroute/mtr
-            const apiType = type === 'mtr' ? 'traceroute' : type;
+            // For DNS, check-host supports specific types via the URL path or query param?
+            // Actually check-host uses /check-dns for generic, but we want specific records.
+            // Documentation or reverse engineering suggests: /check-dns?host=...&type=mx
+
+            let apiType = type === 'mtr' ? 'traceroute' : type;
+
+            // Handle specific DNS types if passed in options (we'll add this to options interface momentarily)
+            // But for now, let's assume the 'type' argument might be a specific DNS type if we change the CheckType definition,
+            // OR we add a subtype. 
+            // The cleanest way with current architecture is to treat 'dns' as generic, but allow a custom 'resource' param for DNS.
+
+            // The standard check-host API for DNS is: /check-dns?host=...&type=A|MX|etc
+            if ((type === 'dns' || type === 'dns-all') && options.dnsType && options.dnsType !== 'all') {
+                params.append('type', options.dnsType);
+            }
+
+            // For dns-all, we want standard DNS check which returns A, AAAA, MX, etc.
+            // We just use 'dns' execution type but without specific type param (or with specific if needed later)
+            if (type === 'dns-all') {
+                apiType = 'dns';
+            }
+
             const response = await this.client.get<CheckResponse>(
                 `/check/${apiType}?${params.toString()}`
             );
@@ -108,13 +129,13 @@ export class CheckHostAPI {
     async getNodes(): Promise<Record<string, Node>> {
         try {
             // Fetch from our own API route to avoid CORS issues
-            const response = await axios.get<{
+            const response = await this.client.get<{
                 nodes: Record<string, {
                     asn: string;
                     ip: string;
                     location: [string, string, string];
                 }>;
-            }>('/api/nodes');
+            }>('/nodes');
 
             // Transform to our Node type
             const nodes: Record<string, Node> = {};
@@ -216,7 +237,28 @@ export class CheckHostAPI {
             checkNodes: checkResponse.nodes
         };
     }
+
+    /**
+     * Perform a comprehensive DNS lookup using the server-side DNS resolver.
+     * This bypasses check-host.net and uses Node.js dns module for all record types.
+     */
+    async performDnsLookup(
+        host: string
+    ): Promise<any> {
+        try {
+            const response = await this.client.get(`/dns-lookup?domain=${encodeURIComponent(host)}`);
+            return response.data;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                throw new Error(
+                    `DNS lookup failed: ${error.response?.data?.error || error.message}`
+                );
+            }
+            throw error;
+        }
+    }
 }
 
 // Export singleton instance
 export const checkHostAPI = new CheckHostAPI();
+

@@ -9,6 +9,21 @@ import Link from 'next/link';
 export default function HttpPage() {
     const [results, setResults] = useState<ResultsResponse | null>(null);
 
+    const [host, setHost] = useState('');
+    const [maxNodes, setMaxNodes] = useState(20);
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const handleCheckStart = () => {
+        setIsLoading(true);
+        setResults(null);
+        setErrorMessage(null);
+    };
+
+    const handleCheckComplete = () => {
+        setIsLoading(false);
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
             {/* Header */}
@@ -46,7 +61,18 @@ export default function HttpPage() {
                             </p>
                         </div>
 
-                        <CheckForm type="http" onResults={setResults} />
+                        <CheckForm
+                            type="http"
+                            host={host}
+                            onHostChange={setHost}
+                            maxNodes={maxNodes}
+                            onMaxNodesChange={setMaxNodes}
+                            onResults={setResults}
+                            onCheckStart={handleCheckStart}
+                            onCheckComplete={handleCheckComplete}
+                            errorMessage={errorMessage}
+                            isLoading={isLoading}
+                        />
 
                         {results && <ResultsDisplay results={results} checkType="http" />}
                     </div>

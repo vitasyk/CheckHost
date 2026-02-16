@@ -45,19 +45,19 @@ export interface IpInfoConfig {
  * TODO: Add admin panel toggle to switch between sources
  */
 export const defaultConfig: IpInfoConfig = {
-    dataSource: 'api',
-    apiToken: '6ff9d482149980',
-    ipGeolocationApiKey: 'e66a3d460fd6479b82cf352ceee6d708',
-    maxMindAccountId: '', // User to provide
-    maxMindLicenseKey: '', // User to provide
-    localDbPath: './data/ipinfo_lite.json',
+    dataSource: (process.env.IP_INFO_DATA_SOURCE as IpInfoDataSource) || 'api',
+    apiToken: process.env.IPINFO_TOKEN || '',
+    ipGeolocationApiKey: process.env.IPGEOLOCATION_API_KEY || '',
+    maxMindAccountId: process.env.MAXMIND_ACCOUNT_ID || '',
+    maxMindLicenseKey: process.env.MAXMIND_LICENSE_KEY || '',
+    localDbPath: process.env.IPINFO_LOCAL_DB_PATH || './data/ipinfo_lite.json',
     mmdbPaths: {
-        city: './data/GeoLite2-City.mmdb',
-        country: './data/GeoLite2-Country.mmdb',
-        asn: './data/GeoLite2-ASN.mmdb',
+        city: process.env.MMDB_PATH_CITY || './data/GeoLite2-City.mmdb',
+        country: process.env.MMDB_PATH_COUNTRY || './data/GeoLite2-Country.mmdb',
+        asn: process.env.MMDB_PATH_ASN || './data/GeoLite2-ASN.mmdb',
     },
-    enableApiFallback: true,
-    enableLocalFallback: true,
+    enableApiFallback: process.env.IP_INFO_ENABLE_API_FALLBACK !== 'false',
+    enableLocalFallback: process.env.IP_INFO_ENABLE_LOCAL_FALLBACK !== 'false',
 };
 
 /**

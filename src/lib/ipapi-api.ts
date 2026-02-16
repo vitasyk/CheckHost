@@ -36,6 +36,11 @@ export interface IpApiResponse {
  * Fetch geolocation data from ip-api.com
  */
 export async function fetchIpApiData(ip: string): Promise<IpApiResponse | null> {
+    // Skip local/reserved IPs
+    if (!ip || ip === '::1' || ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.')) {
+        return null;
+    }
+
     try {
         const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,continent,continentCode,country,countryCode,region,regionName,city,zip,lat,lon,timezone,offset,currency,isp,org,as,asname,reverse,mobile,proxy,hosting,query`, {
             signal: AbortSignal.timeout(3000)

@@ -1,7 +1,7 @@
 import { getIpInfoConfig } from './ipinfo-config';
 import { lookupLocalIpInfo, isLocalDbAvailable } from './ipinfo-local';
 
-const IPINFO_API_BASE = 'https://api.ipinfo.io/lite';
+const IPINFO_API_BASE = 'https://ipinfo.io';
 
 export interface IpInfoLiteResponse {
     ip: string;
@@ -23,18 +23,27 @@ export interface IpInfoLiteResponse {
 /**
  * Fetch IP information from IPInfo.io API
  */
-async function fetchFromApi(ip: string, token: string): Promise<IpInfoLiteResponse> {
-    const url = `${IPINFO_API_BASE}/${ip}?token=${token}`;
+async function fetchFromApi(ip: string, token: string): Promise<IpInfoLiteResponse | null> {
+    if (!token) return null;
+    const url = `${IPINFO_API_BASE}/${ip}/json?token=${token}`;
+    console.log(`[Diagnostic] IPInfo Fetch: ${url.replace(token, 'REDACTED')}`);
 
-    const response = await fetch(url, {
-        signal: AbortSignal.timeout(3000)
-    });
+    try {
+        const response = await fetch(url, {
+            signal: AbortSignal.timeout(5000)
+        });
 
-    if (!response.ok) {
-        throw new Error(`IPInfo API error: ${response.status} ${response.statusText}`);
+        if (!response.ok) {
+            const errorBody = await response.text().catch(() => 'no body');
+            console.warn(`[Diagnostic] IPInfo skipped (${response.status} ${response.statusText}): ${errorBody}`);
+            return null;
+        }
+
+        return response.json();
+    } catch (error) {
+        console.warn('[Diagnostic] IPInfo fetch failed:', error);
+        return null;
     }
-
-    return response.json();
 }
 
 /**
@@ -42,17 +51,27 @@ async function fetchFromApi(ip: string, token: string): Promise<IpInfoLiteRespon
  */
 export async function fetchFromIpGeolocation(ip: string): Promise<any> {
     const config = getIpInfoConfig();
+    if (!config.ipGeolocationApiKey) return null;
+
     const url = `https://api.ipgeolocation.io/ipgeo?apiKey=${config.ipGeolocationApiKey}&ip=${ip}`;
+    console.log(`[Diagnostic] IPGeolocation Fetch: ${url.replace(config.ipGeolocationApiKey, 'REDACTED')}`);
 
-    const response = await fetch(url, {
-        signal: AbortSignal.timeout(3000)
-    });
+    try {
+        const response = await fetch(url, {
+            signal: AbortSignal.timeout(5000)
+        });
 
-    if (!response.ok) {
-        throw new Error(`IPGeolocation API error: ${response.status} ${response.statusText}`);
+        if (!response.ok) {
+            const errorBody = await response.text().catch(() => 'no body');
+            console.warn(`[Diagnostic] IPGeolocation skipped (${response.status} ${response.statusText}): ${errorBody}`);
+            return null;
+        }
+
+        return response.json();
+    } catch (error) {
+        console.warn('[Diagnostic] IPGeolocation fetch failed:', error);
+        return null;
     }
-
-    return response.json();
 }
 
 /**
@@ -114,7 +133,7 @@ export async function fetchFromMaxMind(ip: string): Promise<any> {
  * Main function to fetch IP information
  * Supports multiple data sources based on configuration
  */
-export async function fetchIpInfo(ip: string): Promise<IpInfoLiteResponse> {
+export async function fetchIpInfo(ip: string): Promise<IpInfoLiteResponse | null> {
     const config = getIpInfoConfig();
 
     // Strategy based on configured data source
@@ -129,10 +148,12 @@ export async function fetchIpInfo(ip: string): Promise<IpInfoLiteResponse> {
             // Fallback to API if enabled
             if (config.enableApiFallback) {
                 console.log('Local lookup failed, falling back to API');
-                return fetchFromApi(ip, config.apiToken);
+                const apiResult = await fetchFromApi(ip, config.apiToken);
+                if (apiResult) return apiResult;
             }
 
-            throw new Error('Local DB lookup failed and API fallback is disabled');
+            console.warn('Local DB lookup failed and API fallback is disabled');
+            return null;
 
         case 'hybrid':
             // Try local first, then API
@@ -145,21 +166,34 @@ export async function fetchIpInfo(ip: string): Promise<IpInfoLiteResponse> {
                 }
             }
 
-            return fetchFromApi(ip, config.apiToken);
+            const hybridResult = await fetchFromApi(ip, config.apiToken);
+            if (hybridResult) return hybridResult;
+            console.warn('Hybrid lookup failed: both local DB and API failed');
+            return null;
 
         case 'api':
         default:
             // Use API directly (current default)
             try {
-                return await fetchFromApi(ip, config.apiToken);
-            } catch (err) {
-                // Try local DB as fallback if enabled
+                const result = await fetchFromApi(ip, config.apiToken);
+                if (result) return result;
+
+                // If API failed/empty, try local DB as fallback if enabled
                 if (config.enableLocalFallback && isLocalDbAvailable()) {
-                    console.log('API failed, falling back to local DB');
+                    console.log('API failed or missing token, falling back to local DB');
                     const localResult = await lookupLocalIpInfo(ip);
                     if (localResult) return localResult;
                 }
-                throw err;
+
+                return null;
+            } catch (err) {
+                // Try local DB as fallback if enabled
+                if (config.enableLocalFallback && isLocalDbAvailable()) {
+                    console.warn('API fetch error, falling back to local DB:', err);
+                    const localResult = await lookupLocalIpInfo(ip);
+                    if (localResult) return localResult;
+                }
+                return null;
             }
     }
 }

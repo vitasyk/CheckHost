@@ -13,7 +13,7 @@ import { IpInfoResponse } from '@/types/ip-info';
 import IpInfoResult from '@/components/ip-info/IpInfoResult';
 import { AdSlot } from '@/components/AdSlot';
 
-const tabs: CheckType[] = ['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'mtr'];
+const tabs: CheckType[] = ['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'dns-all', 'mtr'];
 
 export default function ChecksPage() {
     const [nodes, setNodes] = useState<Record<string, Node>>({});
@@ -31,6 +31,9 @@ export default function ChecksPage() {
 
     const [dnsResults, setDnsResults] = useState<ResultsResponse | null>(null);
     const [dnsNodes, setDnsNodes] = useState<Record<string, any>>({});
+
+    const [dnsInfoResults, setDnsInfoResults] = useState<ResultsResponse | null>(null);
+    const [dnsInfoNodes, setDnsInfoNodes] = useState<Record<string, any>>({});
 
     const [mtrResults, setMtrResults] = useState<ResultsResponse | null>(null);
     const [mtrNodes, setMtrNodes] = useState<Record<string, any>>({});
@@ -75,6 +78,11 @@ export default function ChecksPage() {
         setDnsNodes(checkNodes);
     };
 
+    const handleDnsInfoResults = (results: ResultsResponse, checkNodes: Record<string, any>) => {
+        setDnsInfoResults(results);
+        setDnsInfoNodes(checkNodes);
+    };
+
     const handleMtrResults = (results: ResultsResponse, checkNodes: Record<string, any>) => {
         setMtrResults(results);
         setMtrNodes(checkNodes);
@@ -85,6 +93,7 @@ export default function ChecksPage() {
     const [activeChecks, setActiveChecks] = useState<Set<CheckType>>(new Set());
     const [completedChecks, setCompletedChecks] = useState<Set<CheckType>>(new Set());
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [dnsType, setDnsType] = useState<string>('all');
 
     const handleCheckStart = (type: CheckType, checkNodes: Record<string, any>, setNodesFn: (nodes: Record<string, any>) => void, setResultsFn: (res: ResultsResponse | null) => void) => {
         setActiveChecks(prev => new Set(prev).add(type));
@@ -133,6 +142,7 @@ export default function ChecksPage() {
                     case 'tcp': setTcpNodes(nodes); break;
                     case 'udp': setUdpNodes(nodes); break;
                     case 'dns': setDnsNodes(nodes); break;
+                    case 'dns-all': setDnsInfoNodes(nodes); break;
                     case 'mtr': setMtrNodes(nodes); break;
                 }
             },
@@ -143,6 +153,7 @@ export default function ChecksPage() {
                     case 'tcp': setTcpResults(results); break;
                     case 'udp': setUdpResults(results); break;
                     case 'dns': setDnsResults(results); break;
+                    case 'dns-all': setDnsInfoResults(results); break;
                     case 'mtr': setMtrResults(results); break;
                 }
             }
@@ -164,6 +175,25 @@ export default function ChecksPage() {
                 })
                 .finally(() => {
                     handleCheckComplete('info');
+                });
+            return;
+        }
+
+        if (type === 'dns-all') {
+            console.log(`Starting specialized DNS lookup for ${sanitized}`);
+            checkHostAPI.performDnsLookup(sanitized)
+                .then(dnsData => {
+                    const fakeNodeId = 'dns-lookup';
+                    const results = { [fakeNodeId]: dnsData };
+                    const checkNodes = { [fakeNodeId]: ['', '', 'Server DNS'] };
+                    setDnsInfoNodes(checkNodes);
+                    setDnsInfoResults(results);
+                    handleCheckComplete('dns-all');
+                })
+                .catch(err => {
+                    console.error(`DNS lookup failed:`, err);
+                    setErrorMessage(err.message || "Failed to perform DNS lookup.");
+                    handleCheckComplete('dns-all');
                 });
             return;
         }
@@ -211,7 +241,7 @@ export default function ChecksPage() {
         }
         setErrorMessage(null);
 
-        const checkTypes: CheckType[] = ['info', 'ping', 'http', 'tcp', 'udp', 'dns'];
+        const checkTypes: CheckType[] = ['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'dns-all'];
 
         // Mark all as active immediately and clear completed
         setActiveChecks(new Set(checkTypes));
@@ -223,6 +253,7 @@ export default function ChecksPage() {
         setTcpResults({});
         setUdpResults({});
         setDnsResults({});
+        setDnsInfoResults({});
 
         checkTypes.forEach(type => {
             runCheck(type, host);
@@ -350,6 +381,15 @@ export default function ChecksPage() {
                                         {activeChecks.has('mtr') ? (
                                             <Loader2 className="h-3 w-3 animate-spin absolute -top-1 -right-1 text-primary" />
                                         ) : completedChecks.has('mtr') ? (
+                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 -right-1 text-green-500" />
+                                        ) : null}
+                                    </TabsTrigger>
+                                    <TabsTrigger value="dns-all" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('dns-all')}>
+                                        <Database className="h-4 w-4" />
+                                        <span>DNS Info</span>
+                                        {activeChecks.has('dns-all') ? (
+                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 -right-1 text-primary" />
+                                        ) : completedChecks.has('dns-all') ? (
                                             <CheckCircle2 className="h-3 w-3 absolute -top-1 -right-1 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
@@ -509,6 +549,31 @@ export default function ChecksPage() {
                                         />
                                         {(dnsResults || Object.keys(dnsNodes).length > 0) && (
                                             <ResultsDisplay results={dnsResults || {}} checkType="dns" nodes={nodes} activeNodes={dnsNodes} />
+                                        )}
+                                    </div>
+                                </TabsContent>
+
+                                {/* DNS Info Tab */}
+                                <TabsContent value="dns-all" className="space-y-4">
+                                    <div className="space-y-4">
+                                        <CheckForm
+                                            type="dns-all"
+                                            host={host}
+                                            maxNodes={maxNodes}
+                                            onMaxNodesChange={setMaxNodes}
+                                            onHostChange={onHostChange}
+                                            onResults={handleDnsInfoResults}
+                                            onCheckStart={(nodes) => handleCheckStart('dns-all', nodes, setDnsInfoNodes, setDnsInfoResults)}
+                                            onCheckComplete={() => handleCheckComplete('dns-all')}
+                                            errorMessage={errorMessage}
+                                            isLoading={activeChecks.has('dns-all')}
+                                            onProgress={setDnsInfoResults}
+                                            nodes={nodes}
+                                            dnsType={dnsType}
+                                            onDnsTypeChange={setDnsType}
+                                        />
+                                        {(dnsInfoResults || Object.keys(dnsInfoNodes).length > 0) && (
+                                            <ResultsDisplay results={dnsInfoResults || {}} checkType="dns-all" nodes={nodes} activeNodes={dnsInfoNodes} />
                                         )}
                                     </div>
                                 </TabsContent>

@@ -5,7 +5,7 @@ import { MapPin, Globe, ChevronDown, Database, Calendar, ShieldCheck, Mail, Phon
 import MapWrapper from '@/components/ip-info/MapWrapper';
 import { getCountryCoords } from '@/lib/country-coords';
 import { parseRdapData } from '@/lib/rdap-parser';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface IpInfoResultProps {
     data: IpInfoResponse;
@@ -15,6 +15,27 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
     const { providers } = data;
     const [expandedProvider, setExpandedProvider] = useState<string | null>('maxmind');
     const [expandedRaw, setExpandedRaw] = useState(false);
+    const [displaySettings, setDisplaySettings] = useState({
+        showFeaturedMap: true,
+        showRdapData: true,
+        showProviderCards: true
+    });
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                // Add timestamp to prevent caching
+                const res = await fetch(`/api/admin/settings?key=ip_info_display&t=${Date.now()}`);
+                if (res.ok) {
+                    const settings = await res.json();
+                    if (settings) setDisplaySettings(settings);
+                }
+            } catch (err) {
+                console.warn('Failed to fetch IP Info display settings:', err);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     const toggleProvider = (provider: string) => {
         setExpandedProvider(expandedProvider === provider ? null : provider);
@@ -240,8 +261,121 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
                 </div>
             </Card>
 
+            {/* Featured Map Section - High Visibility */}
+            {displaySettings.showFeaturedMap && (() => {
+                let featuredLat = 0;
+                let featuredLng = 0;
+                let sourceName = '';
+
+                // Priority 1: IPInfo.io real coordinates (as requested)
+                if (providers.ipinfo?.loc) {
+                    const [lat, lng] = providers.ipinfo.loc.split(',').map(parseFloat);
+                    if (lat && lng) {
+                        featuredLat = lat;
+                        featuredLng = lng;
+                        sourceName = 'IPInfo.io';
+                    }
+                }
+
+                // Priority 2: Fallback to any other provider coordinates if IPInfo is missing
+                if (featuredLat === 0) {
+                    const fallbackSource = providerConfigs.find(p => {
+                        const d = p.data as any;
+                        return d.latitude || d.lat || d.loc;
+                    });
+
+                    if (fallbackSource) {
+                        const d = fallbackSource.data as any;
+                        if (d.loc) {
+                            [featuredLat, featuredLng] = d.loc.split(',').map(parseFloat);
+                        } else {
+                            featuredLat = d.latitude || d.lat;
+                            featuredLng = d.longitude || d.lon;
+                        }
+                        sourceName = fallbackSource.name;
+                    }
+                }
+
+                if (featuredLat === 0) return null;
+
+                return (
+                    <Card className="overflow-hidden border-slate-200 dark:border-white/5 shadow-md">
+                        <div className="flex flex-col md:flex-row h-[350px]">
+                            {/* Map Side */}
+                            <div className="flex-1 relative min-h-[200px] md:min-h-0">
+                                <MapWrapper
+                                    lat={featuredLat}
+                                    lng={featuredLng}
+                                    city={providers.ipinfo?.city || providers.ipapi?.city || "Unknown Location"}
+                                    country={providers.ipinfo?.country_name || providers.ipapi?.country || ""}
+                                />
+                                <div className="absolute top-4 left-4 z-[10] flex gap-2">
+                                    <Badge className="bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-slate-100 backdrop-blur shadow-sm border-slate-200/50 dark:border-white/10 py-1.5 px-3">
+                                        <MapPin className="h-3.5 w-3.5 mr-1.5 text-indigo-500" />
+                                        {featuredLat.toFixed(4)}, {featuredLng.toFixed(4)}
+                                    </Badge>
+                                </div>
+                            </div>
+
+                            {/* Location Details Side */}
+                            <div className="w-full md:w-[300px] bg-slate-50/50 dark:bg-slate-900/50 p-6 flex flex-col justify-between border-l border-slate-200 dark:border-white/5">
+                                <div>
+                                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mb-4">Location Context</div>
+                                    <div className="space-y-5">
+                                        <div>
+                                            <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 leading-tight">
+                                                {providers.ipinfo?.city || providers.ipapi?.city || "Unknown"}
+                                            </div>
+                                            <div className="text-sm text-slate-500 font-medium">
+                                                {providers.ipinfo?.region || providers.ipapi?.regionName || ""}, {providers.ipinfo?.country_name || providers.ipapi?.country || ""}
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 gap-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-white dark:bg-white/5 shadow-sm border border-slate-100 dark:border-white/5 flex items-center justify-center text-indigo-500">
+                                                    <Globe className="h-4 w-4" />
+                                                </div>
+                                                <div className="text-xs">
+                                                    <div className="text-slate-400 font-medium uppercase tracking-wider">Source</div>
+                                                    <div className="font-bold text-slate-700 dark:text-slate-300">{sourceName} Precision</div>
+                                                </div>
+                                            </div>
+
+                                            {providers.ipinfo?.timezone && (
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-white dark:bg-white/5 shadow-sm border border-slate-100 dark:border-white/5 flex items-center justify-center text-amber-500">
+                                                        <Calendar className="h-4 w-4" />
+                                                    </div>
+                                                    <div className="text-xs">
+                                                        <div className="text-slate-400 font-medium uppercase tracking-wider">Local Time</div>
+                                                        <div className="font-bold text-slate-700 dark:text-slate-300">{providers.ipinfo.timezone}</div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 pt-6 border-t border-slate-200/60 dark:border-white/5">
+                                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Internal Tags</div>
+                                    <div className="flex flex-wrap gap-2">
+                                        <Badge variant="outline" className="text-[10px] bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400">
+                                            {providers.ipinfo?.postal || providers.ipapi?.zip || "No Zip"}
+                                        </Badge>
+                                        <Badge variant="outline" className="text-[10px] bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400">
+                                            {providers.ipinfo?.continent_code || "Global"}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+                );
+            })()}
+
             {/* RDAP / WHOIS Data Section - Moved to top per user request */}
-            {data.rdapRawData && (() => {
+            {displaySettings.showRdapData && data.rdapRawData && (() => {
                 const rdap = parseRdapData(data.rdapRawData);
                 return (
                     <Card className="border-slate-200 dark:border-white/5 overflow-hidden transition-all duration-300">
@@ -381,127 +515,129 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
             })()}
 
             {/* Provider Cards */}
-            <div className="grid gap-4">
-                {providerConfigs.map((config) => {
-                    const isExpanded = expandedProvider === config.key;
-                    let lat = 0, lng = 0;
+            {displaySettings.showProviderCards && (
+                <div className="grid gap-4">
+                    {providerConfigs.map((config) => {
+                        const isExpanded = expandedProvider === config.key;
+                        let lat = 0, lng = 0;
 
-                    // Extract coordinates based on provider
-                    if (config.key === 'maxmind' && providers.maxmind) {
-                        lat = providers.maxmind.latitude;
-                        lng = providers.maxmind.longitude;
-                    } else if (config.key === 'maxmind_local' && providers.maxmind_local) {
-                        lat = providers.maxmind_local.latitude;
-                        lng = providers.maxmind_local.longitude;
-                    } else if (config.key === 'ipinfo' && providers.ipinfo?.loc) {
-                        [lat, lng] = providers.ipinfo.loc.split(',').map(parseFloat);
-                    } else if (config.key === 'ipapi' && providers.ipapi) {
-                        lat = providers.ipapi.lat;
-                        lng = providers.ipapi.lon;
-                    } else if (config.key === 'ip2location' && providers.ip2location) {
-                        lat = providers.ip2location.latitude;
-                        lng = providers.ip2location.longitude;
-                    } else if (config.key === 'ipgeolocation' && providers.ipgeolocation) {
-                        lat = parseFloat(providers.ipgeolocation.latitude);
-                        lng = parseFloat(providers.ipgeolocation.longitude);
-                    }
-
-                    // Fallback to country coordinates if still 0
-                    if (lat === 0 || lng === 0) {
-                        const countryData = config.data as any;
-                        const countryCode =
-                            countryData.countryCode ||
-                            countryData.country_code ||
-                            countryData.country_code2 ||
-                            countryData.cntry_code ||
-                            (config.key === 'ipinfo' ? countryData.country : null);
-
-                        const coords = getCountryCoords(countryCode);
-                        if (coords) {
-                            [lat, lng] = coords;
+                        // Extract coordinates based on provider
+                        if (config.key === 'maxmind' && providers.maxmind) {
+                            lat = providers.maxmind.latitude;
+                            lng = providers.maxmind.longitude;
+                        } else if (config.key === 'maxmind_local' && providers.maxmind_local) {
+                            lat = providers.maxmind_local.latitude;
+                            lng = providers.maxmind_local.longitude;
+                        } else if (config.key === 'ipinfo' && providers.ipinfo?.loc) {
+                            [lat, lng] = providers.ipinfo.loc.split(',').map(parseFloat);
+                        } else if (config.key === 'ipapi' && providers.ipapi) {
+                            lat = providers.ipapi.lat;
+                            lng = providers.ipapi.lon;
+                        } else if (config.key === 'ip2location' && providers.ip2location) {
+                            lat = providers.ip2location.latitude;
+                            lng = providers.ip2location.longitude;
+                        } else if (config.key === 'ipgeolocation' && providers.ipgeolocation) {
+                            lat = parseFloat(providers.ipgeolocation.latitude);
+                            lng = parseFloat(providers.ipgeolocation.longitude);
                         }
-                    }
 
-                    return (
-                        <Card
-                            key={config.key}
-                            className="overflow-hidden border-slate-200 dark:border-white/5 transition-all duration-300"
-                        >
-                            {/* Provider Header */}
-                            <button
-                                onClick={() => toggleProvider(config.key)}
-                                className="w-full p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors"
+                        // Fallback to country coordinates if still 0
+                        if (lat === 0 || lng === 0) {
+                            const countryData = config.data as any;
+                            const countryCode =
+                                countryData.countryCode ||
+                                countryData.country_code ||
+                                countryData.country_code2 ||
+                                countryData.cntry_code ||
+                                (config.key === 'ipinfo' ? countryData.country : null);
+
+                            const coords = getCountryCoords(countryCode);
+                            if (coords) {
+                                [lat, lng] = coords;
+                            }
+                        }
+
+                        return (
+                            <Card
+                                key={config.key}
+                                className="overflow-hidden border-slate-200 dark:border-white/5 transition-all duration-300"
                             >
-                                <div className="flex items-center gap-3">
-                                    <Badge variant="outline" className={`${config.color} font-semibold`}>
-                                        {config.name}
-                                    </Badge>
-                                    {!config.isReal && (
-                                        <Badge variant="secondary" className="text-[10px] uppercase tracking-wider bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                                            Simulated
+                                {/* Provider Header */}
+                                <button
+                                    onClick={() => toggleProvider(config.key)}
+                                    className="w-full p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Badge variant="outline" className={`${config.color} font-semibold`}>
+                                            {config.name}
                                         </Badge>
-                                    )}
-                                    {(() => {
-                                        const d = config.data as any;
-                                        // Robust field mapping for city and country across all providers
-                                        const city = d.city || d.city_name || d.cityName;
-                                        const country = d.country_name || d.countryName || d.country || d.cntry_code || d.countryCode;
-
-                                        if (!country && (!city || city === 'N/A')) return null;
-
-                                        return (
-                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                <MapPin className="h-3.5 w-3.5" />
-                                                <span>
-                                                    {city && city !== 'N/A' ? `${city}, ` : ''}{country || 'Unknown'}
-                                                </span>
-                                            </div>
-                                        );
-                                    })()}
-                                </div>
-                                <ChevronDown
-                                    className={`h-5 w-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''
-                                        }`}
-                                />
-                            </button>
-
-                            {/* Expanded Content */}
-                            {isExpanded && (
-                                <div className="border-t border-slate-200 dark:border-border">
-                                    <div className="grid md:grid-cols-2 gap-4 p-4">
-                                        {/* Data Table */}
-                                        <div className="space-y-2">
-                                            {config.fields.map((field, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    className="grid grid-cols-2 gap-4 py-2 border-b border-slate-100 dark:border-border last:border-0"
-                                                >
-                                                    <div className="text-sm text-muted-foreground">{field.label}</div>
-                                                    <div className="text-sm font-medium text-slate-900 dark:text-slate-100 break-all">
-                                                        {field.value || 'N/A'}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {/* Map */}
-                                        {lat !== 0 && lng !== 0 && (
-                                            <div className="h-[300px] rounded-lg overflow-hidden border border-slate-200 dark:border-white/5 shadow-inner">
-                                                <MapWrapper
-                                                    lat={lat}
-                                                    lng={lng}
-                                                    city={(config.data as any).city || 'Unknown'}
-                                                    country={(config.data as any).country || (config.data as any).country_name || 'Unknown'}
-                                                />
-                                            </div>
+                                        {!config.isReal && (
+                                            <Badge variant="secondary" className="text-[10px] uppercase tracking-wider bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                                                Simulated
+                                            </Badge>
                                         )}
+                                        {(() => {
+                                            const d = config.data as any;
+                                            // Robust field mapping for city and country across all providers
+                                            const city = d.city || d.city_name || d.cityName;
+                                            const country = d.country_name || d.countryName || d.country || d.cntry_code || d.countryCode;
+
+                                            if (!country && (!city || city === 'N/A')) return null;
+
+                                            return (
+                                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                    <MapPin className="h-3.5 w-3.5" />
+                                                    <span>
+                                                        {city && city !== 'N/A' ? `${city}, ` : ''}{country || 'Unknown'}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
-                                </div>
-                            )}
-                        </Card>
-                    );
-                })}
-            </div>
+                                    <ChevronDown
+                                        className={`h-5 w-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''
+                                            }`}
+                                    />
+                                </button>
+
+                                {/* Expanded Content */}
+                                {isExpanded && (
+                                    <div className="border-t border-slate-200 dark:border-border">
+                                        <div className="grid md:grid-cols-2 gap-4 p-4">
+                                            {/* Data Table */}
+                                            <div className="space-y-2">
+                                                {config.fields.map((field, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className="grid grid-cols-2 gap-4 py-2 border-b border-slate-100 dark:border-border last:border-0"
+                                                    >
+                                                        <div className="text-sm text-muted-foreground">{field.label}</div>
+                                                        <div className="text-sm font-medium text-slate-900 dark:text-slate-100 break-all">
+                                                            {field.value || 'N/A'}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* Map */}
+                                            {lat !== 0 && lng !== 0 && (
+                                                <div className="h-[300px] rounded-lg overflow-hidden border border-slate-200 dark:border-white/5 shadow-inner">
+                                                    <MapWrapper
+                                                        lat={lat}
+                                                        lng={lng}
+                                                        city={(config.data as any).city || 'Unknown'}
+                                                        country={(config.data as any).country || (config.data as any).country_name || 'Unknown'}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </Card>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 }

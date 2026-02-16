@@ -30,7 +30,7 @@ export async function GET() {
             .gte('created_at', dayAgo);
 
         const totalRequests = apiMetrics?.length || 0;
-        const successRequests = apiMetrics?.filter(m => m.status_code >= 200 && m.status_code < 300).length || 0;
+        const successRequests = apiMetrics?.filter((m: any) => m.status_code >= 200 && m.status_code < 300)?.length || 0;
         const uptime = totalRequests > 0 ? (successRequests / totalRequests) * 100 : 99.99;
 
         // Count errors (last 24h)

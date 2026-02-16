@@ -8,7 +8,9 @@ import { Card } from '@/components/ui/card';
 import { Globe, Shield, Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { Header } from '@/components/Header';
 
-export default function SignInPage() {
+import { Suspense } from 'react';
+
+function SignInContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get('callbackUrl') || '/admin';
@@ -136,5 +138,13 @@ export default function SignInPage() {
                 </Card>
             </div>
         </div>
+    );
+}
+
+export default function SignInPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <SignInContent />
+        </Suspense>
     );
 }

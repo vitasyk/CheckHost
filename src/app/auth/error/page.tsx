@@ -7,7 +7,11 @@ import { AlertTriangle, Home, RefreshCcw } from 'lucide-react';
 import { Header } from '@/components/Header';
 import Link from 'next/link';
 
-export default function AuthErrorPage() {
+export const dynamic = 'force-dynamic';
+
+import { Suspense } from 'react';
+
+function AuthErrorContent() {
     const searchParams = useSearchParams();
     const error = searchParams.get('error');
 
@@ -52,5 +56,13 @@ export default function AuthErrorPage() {
                 </Card>
             </div>
         </div>
+    );
+}
+
+export default function AuthErrorPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <AuthErrorContent />
+        </Suspense>
     );
 }
