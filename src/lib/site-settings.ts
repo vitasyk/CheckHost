@@ -1,40 +1,32 @@
-import { supabase } from './supabase';
+import pool from './postgres';
 import fs from 'fs';
 import path from 'path';
 
 const SETTINGS_FILE = path.join(process.cwd(), 'site-settings.json');
 
 /**
- * Check if Supabase is properly configured
+ * Check if Database is properly configured
  */
-const isSupabaseConfigured = () => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!url || !key) return false;
-
-    const isPlaceholderUrl = url.includes('your-project') || url.includes('your-project-id');
-    const isPlaceholderKey = key.includes('your-anon-key');
-
-    return !isPlaceholderUrl && !isPlaceholderKey;
+const isDbConfigured = () => {
+    return !!process.env.DATABASE_URL;
 };
 
 /**
- * Get site settings from either Supabase or local file
+ * Get site settings from either PostgreSQL or local file
  */
 export async function getSiteSetting(key: string) {
-    if (isSupabaseConfigured()) {
+    if (isDbConfigured()) {
         try {
-            const { data, error } = await supabase
-                .from('site_settings')
-                .select('value')
-                .eq('key', key)
-                .single();
+            const result = await pool.query(
+                'SELECT value FROM site_settings WHERE key = $1',
+                [key]
+            );
 
-            if (error && error.code !== 'PGRST116') throw error;
-            return data?.value || null;
+            if (result.rows.length > 0) {
+                return result.rows[0].value;
+            }
         } catch (error) {
-            console.error(`[Settings] Supabase error for ${key}:`, error);
+            console.error(`[Settings] PostgreSQL error for ${key}:`, error);
         }
     }
 
@@ -53,25 +45,20 @@ export async function getSiteSetting(key: string) {
 }
 
 /**
- * Save site settings to either Supabase or local file
+ * Save site settings to either PostgreSQL or local file
  */
 export async function saveSiteSetting(key: string, value: any) {
-    if (isSupabaseConfigured()) {
+    if (isDbConfigured()) {
         try {
-            const { error } = await supabase
-                .from('site_settings')
-                .upsert({
-                    key,
-                    value,
-                    updated_at: new Date().toISOString()
-                }, {
-                    onConflict: 'key'
-                });
-
-            if (!error) return { success: true };
-            console.error(`[Settings] Supabase save error for ${key}:`, error);
+            await pool.query(
+                `INSERT INTO site_settings (key, value, updated_at)
+                 VALUES ($1, $2, NOW())
+                 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+                [key, value]
+            );
+            return { success: true };
         } catch (error) {
-            console.error(`[Settings] Supabase save exception for ${key}:`, error);
+            console.error(`[Settings] PostgreSQL save error for ${key}:`, error);
         }
     }
 

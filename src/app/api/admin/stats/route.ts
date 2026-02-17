@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
+import pool from '@/lib/postgres';
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -11,42 +11,43 @@ export async function GET() {
     }
 
     try {
-        // Fetch stats from Supabase
-        const { count: totalChecks } = await supabase
-            .from('check_logs')
-            .select('*', { count: 'exact', head: true });
+        // Fetch total checks count
+        const totalChecksRes = await pool.query('SELECT COUNT(*) FROM check_logs');
+        const totalChecks = parseInt(totalChecksRes.rows[0].count);
 
-        const { data: recentLogs } = await supabase
-            .from('check_logs')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(10);
+        // Fetch recent logs
+        const recentLogsRes = await pool.query(
+            'SELECT * FROM check_logs ORDER BY created_at DESC LIMIT 10'
+        );
+        const recentLogs = recentLogsRes.rows;
 
         // Calculate API Uptime (simplified: last 24h success rate)
         const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        const { data: apiMetrics } = await supabase
-            .from('api_usage_logs')
-            .select('status_code')
-            .gte('created_at', dayAgo);
 
-        const totalRequests = apiMetrics?.length || 0;
-        const successRequests = apiMetrics?.filter((m: any) => m.status_code >= 200 && m.status_code < 300)?.length || 0;
+        const apiMetricsRes = await pool.query(
+            'SELECT status_code FROM api_usage_logs WHERE created_at >= $1',
+            [dayAgo]
+        );
+        const apiMetrics = apiMetricsRes.rows;
+
+        const totalRequests = apiMetrics.length;
+        const successRequests = apiMetrics.filter((m: any) => m.status_code >= 200 && m.status_code < 300).length;
         const uptime = totalRequests > 0 ? (successRequests / totalRequests) * 100 : 99.99;
 
         // Count errors (last 24h)
-        const { count: errors } = await supabase
-            .from('api_usage_logs')
-            .select('*', { count: 'exact', head: true })
-            .gte('status_code', 400)
-            .gte('created_at', dayAgo);
+        const errorsRes = await pool.query(
+            'SELECT COUNT(*) FROM api_usage_logs WHERE status_code >= 400 AND created_at >= $1',
+            [dayAgo]
+        );
+        const errors = parseInt(errorsRes.rows[0].count);
 
         return NextResponse.json({
             stats: {
-                totalChecks: totalChecks || 0,
+                totalChecks,
                 uptime: uptime.toFixed(2),
-                errors: errors || 0,
+                errors,
             },
-            recentLogs: recentLogs || []
+            recentLogs
         });
     } catch (error) {
         console.error('Failed to fetch admin stats:', error);

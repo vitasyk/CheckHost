@@ -1,10 +1,6 @@
-import { supabase } from './supabase';
+import pool from './postgres';
 
-const isSupabaseConfigured = 
-    process.env.NEXT_PUBLIC_SUPABASE_URL && 
-    process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co' &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY !== 'your-anon-key';
+const isDbConfigured = !!process.env.DATABASE_URL;
 
 export interface CheckLog {
     check_type: string;
@@ -28,16 +24,16 @@ export const apiLogger = {
      * Log a user check event
      */
     async logCheck(data: CheckLog) {
-        if (!isSupabaseConfigured) return null;
+        if (!isDbConfigured) return null;
         try {
-            const { data: result, error } = await supabase
-                .from('check_logs')
-                .insert([data])
-                .select()
-                .single();
+            const result = await pool.query(
+                `INSERT INTO check_logs (check_type, target_host, user_ip, user_country_code, nodes_count, status, error_message)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7)
+                 RETURNING id`,
+                [data.check_type, data.target_host, data.user_ip, data.user_country_code, data.nodes_count, data.status || 'success', data.error_message]
+            );
 
-            if (error) throw error;
-            return result.id;
+            return result.rows[0].id;
         } catch (error) {
             console.error('Failed to log check:', error);
             return null;
@@ -48,28 +44,28 @@ export const apiLogger = {
      * Log an API request/response metric
      */
     async logApiUsage(data: ApiUsageLog) {
-        if (!isSupabaseConfigured) return;
+        if (!isDbConfigured) return;
         try {
-            const { error } = await supabase
-                .from('api_usage_logs')
-                .insert([data]);
-
-            if (error) throw error;
+            await pool.query(
+                `INSERT INTO api_usage_logs (api_endpoint, check_id, response_time_ms, status_code)
+                 VALUES ($1, $2, $3, $4)`,
+                [data.api_endpoint, data.check_id, data.response_time_ms, data.status_code]
+            );
         } catch (error) {
             console.error('Failed to log API usage:', error);
         }
     },
 
     /**
-     * Update check log status (e.g., if a long-running check fails later)
+     * Update check log status
      */
     async updateCheckStatus(id: string, status: string, errorMessage?: string) {
-        if (!isSupabaseConfigured) return;
+        if (!isDbConfigured) return;
         try {
-            await supabase
-                .from('check_logs')
-                .update({ status, error_message: errorMessage })
-                .eq('id', id);
+            await pool.query(
+                `UPDATE check_logs SET status = $1, error_message = $2 WHERE id = $3`,
+                [status, errorMessage, id]
+            );
         } catch (error) {
             console.error('Failed to update check status:', error);
         }

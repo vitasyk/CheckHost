@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
+import pool from '@/lib/postgres';
 
 /**
  * Handle GET request for all blog posts (Admin only)
@@ -13,13 +13,10 @@ export async function GET() {
     }
 
     try {
-        const { data, error } = await supabase
-            .from('posts')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        return NextResponse.json(data);
+        const result = await pool.query(
+            'SELECT * FROM posts ORDER BY created_at DESC'
+        );
+        return NextResponse.json(result.rows);
     } catch (error) {
         console.error('Failed to fetch blog posts:', error);
         return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 });
@@ -39,25 +36,25 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { title, slug, excerpt, content, cover_image, status, ad_top, ad_bottom } = body;
 
-        const { data, error } = await supabase
-            .from('posts')
-            .insert([{
+        const result = await pool.query(
+            `INSERT INTO posts (
+                title, slug, excerpt, content, cover_image, status, ad_top, ad_bottom, published_at, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+            RETURNING *`,
+            [
                 title,
                 slug,
                 excerpt,
                 content,
                 cover_image,
                 status,
-                ad_top: ad_top || false,
-                ad_bottom: ad_bottom || false,
-                published_at: status === 'published' ? new Date().toISOString() : null,
-                updated_at: new Date().toISOString()
-            }])
-            .select()
-            .single();
+                ad_top || false,
+                ad_bottom || false,
+                status === 'published' ? new Date().toISOString() : null
+            ]
+        );
 
-        if (error) throw error;
-        return NextResponse.json(data);
+        return NextResponse.json(result.rows[0]);
     } catch (error) {
         console.error('Failed to create blog post:', error);
         return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
