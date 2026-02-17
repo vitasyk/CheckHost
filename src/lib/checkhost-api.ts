@@ -37,14 +37,15 @@ export class CheckHostAPI {
 
         const params = new URLSearchParams({
             host,
-            max_nodes: maxNodes.toString(),
         });
 
-        // Add specific nodes if provided
+        // Use max_nodes ONLY if no specific nodes are provided
         if (nodes && nodes.length > 0) {
             nodes.forEach((node) => {
                 params.append('node', node);
             });
+        } else {
+            params.append('max_nodes', maxNodes.toString());
         }
 
         try {
@@ -141,7 +142,7 @@ export class CheckHostAPI {
             const nodes: Record<string, Node> = {};
             if (response.data && response.data.nodes) {
                 Object.entries(response.data.nodes).forEach(([id, nodeData]) => {
-                    const sanitizedId = id.replace('.node.check-host.net', '');
+                    const sanitizedId = id; // Keep full ID for API compatibility
                     nodes[sanitizedId] = {
                         id: sanitizedId,
                         countryCode: nodeData.location[0],
@@ -243,10 +244,11 @@ export class CheckHostAPI {
      * This bypasses check-host.net and uses Node.js dns module for all record types.
      */
     async performDnsLookup(
-        host: string
+        host: string,
+        refresh = false
     ): Promise<any> {
         try {
-            const response = await this.client.get(`/dns-lookup?domain=${encodeURIComponent(host)}`);
+            const response = await this.client.get(`/dns-lookup?domain=${encodeURIComponent(host)}${refresh ? '&refresh=true' : ''}`);
             return response.data;
         } catch (error) {
             if (axios.isAxiosError(error)) {

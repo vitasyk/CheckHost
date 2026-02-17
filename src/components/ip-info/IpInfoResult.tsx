@@ -1,7 +1,7 @@
 import { IpInfoResponse } from '@/types/ip-info';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Globe, ChevronDown, Database, Calendar, ShieldCheck, Mail, Phone, ExternalLink, Server, Network, Maximize2, Camera, Copy, Check } from 'lucide-react';
+import { MapPin, Globe, ChevronDown, Database, Calendar, ShieldCheck, Mail, Phone, ExternalLink, Server, Network, Maximize2, Camera, Copy, Check, Loader2 } from 'lucide-react';
 import MapWrapper from '@/components/ip-info/MapWrapper';
 import { getCountryCoords } from '@/lib/country-coords';
 import { parseRdapData } from '@/lib/rdap-parser';
@@ -10,9 +10,11 @@ import { toPng, toBlob } from 'html-to-image';
 
 interface IpInfoResultProps {
     data: IpInfoResponse;
+    onRefresh?: () => void;
+    isRefreshing?: boolean;
 }
 
-export default function IpInfoResult({ data }: IpInfoResultProps) {
+export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoResultProps) {
     const { providers } = data;
     const screenshotRef = useRef<HTMLDivElement>(null);
     const [expandedProvider, setExpandedProvider] = useState<string | null>('maxmind');
@@ -259,12 +261,22 @@ export default function IpInfoResult({ data }: IpInfoResultProps) {
     return (
         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Screenshot area: Target IP + Domain Registration */}
-            <div ref={screenshotRef} className="space-y-4 bg-slate-50 dark:bg-slate-900 rounded-xl p-1 relative group/screenshot">
+            <div ref={screenshotRef} className="space-y-4 bg-slate-50 dark:bg-slate-900 rounded-2xl p-5 relative group/screenshot">
                 {/* Hover-reveal floating action buttons */}
                 <div className="screenshot-hide absolute top-3 right-3 z-10 flex items-center gap-1 opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
+                    {onRefresh && (
+                        <button
+                            onClick={onRefresh}
+                            disabled={isRefreshing}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-l-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer disabled:opacity-50"
+                        >
+                            <Loader2 className={`h-3 w-3 ${isRefreshing ? 'animate-spin text-indigo-500' : ''}`} />
+                            <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+                        </button>
+                    )}
                     <button
                         onClick={handleCopyToClipboard}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-l-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 ${onRefresh ? 'border-l-0' : 'rounded-l-lg'} bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer`}
                     >
                         {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
                         <span>{copied ? 'Copied' : 'Copy Img'}</span>

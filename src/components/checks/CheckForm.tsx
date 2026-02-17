@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { cn } from '@/lib/utils';
 import { useMutation } from '@tanstack/react-query';
 import { checkHostAPI } from '@/lib/checkhost-api';
 import type { CheckType, ResultsResponse, Node } from '@/types/checkhost';
@@ -10,7 +11,8 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Play, ArrowLeftRight, Keyboard, User, MousePointerClick } from 'lucide-react';
+import { Loader2, Play, ArrowLeftRight, Keyboard, User, MousePointerClick, Map as MapIcon, Globe, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface CheckFormProps {
     type: CheckType;
@@ -24,11 +26,15 @@ interface CheckFormProps {
     errorMessage: string | null;
     isLoading: boolean;
     nodes?: Record<string, Node>;
+    selectedNodeIds?: string[];
     onProgress?: (results: ResultsResponse) => void;
     dnsType?: string;
     onDnsTypeChange?: (value: string) => void;
     isReverseMtr?: boolean;
     onReverseMtrToggle?: (checked: boolean) => void;
+    selectedNodeCount?: number;
+    onToggleMap?: () => void;
+    onClearSelection?: () => void;
 }
 
 export function CheckForm({
@@ -47,7 +53,11 @@ export function CheckForm({
     dnsType,
     onDnsTypeChange,
     isReverseMtr = false,
-    onReverseMtrToggle
+    onReverseMtrToggle,
+    selectedNodeCount = 0,
+    selectedNodeIds = [],
+    onToggleMap,
+    onClearSelection
 }: CheckFormProps) {
     // Smart parsing logic
     const sanitizeInput = useCallback((input: string) => {
@@ -70,7 +80,10 @@ export function CheckForm({
             }
         },
         mutationFn: async (targetHost: string) => {
-            const checkOptions: any = { maxNodes: type === 'dns-all' ? 1 : maxNodes };
+            const checkOptions: any = {
+                maxNodes: type === 'dns-all' ? 1 : maxNodes,
+                nodes: selectedNodeIds.length > 0 ? selectedNodeIds : undefined
+            };
             if (type === 'dns' && dnsType && dnsType !== 'all') {
                 checkOptions.dnsType = dnsType;
             }
@@ -212,38 +225,80 @@ export function CheckForm({
 
                             <div className="absolute right-2 top-2 bottom-2 flex items-center gap-1.5">
                                 {type !== 'dns-all' && type !== 'info' && type !== 'ssl' && (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-10 px-3 gap-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-200 dark:hover:border-white/10 transition-all duration-200"
-                                            >
-                                                <span className="font-bold text-xs">{maxNodes}</span>
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-64 p-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm shadow-xl" align="end">
-                                            <div className="space-y-4">
-                                                <div className="flex items-center justify-between">
-                                                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Nodes to use</h4>
-                                                    <span className="text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400">{maxNodes}</span>
+                                    selectedNodeCount > 0 ? (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={onClearSelection}
+                                            className="h-10 px-3 gap-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-500/20 transition-all duration-200"
+                                            title="Clear manual selection and use random nodes"
+                                        >
+                                            <span className="font-bold text-[10px] uppercase">{selectedNodeCount} MANUAL</span>
+                                            <X className="h-3 w-3" />
+                                        </Button>
+                                    ) : (
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-10 px-3 gap-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-200 dark:hover:border-white/10 transition-all duration-200"
+                                                >
+                                                    <span className="font-bold text-xs">{maxNodes}</span>
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-64 p-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm shadow-xl" align="end">
+                                                <div className="space-y-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Nodes to use</h4>
+                                                        <span className="text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400">{maxNodes}</span>
+                                                    </div>
+                                                    <Slider
+                                                        value={[maxNodes]}
+                                                        onValueChange={(vals) => onMaxNodesChange(vals[0])}
+                                                        min={3}
+                                                        max={60}
+                                                        step={1}
+                                                        className="py-2"
+                                                    />
+                                                    <div className="flex justify-between text-[10px] text-slate-400 font-medium">
+                                                        <span>3 NODES</span>
+                                                        <span>60 NODES</span>
+                                                    </div>
                                                 </div>
-                                                <Slider
-                                                    value={[maxNodes]}
-                                                    onValueChange={(vals) => onMaxNodesChange(vals[0])}
-                                                    min={3}
-                                                    max={60}
-                                                    step={1}
-                                                    className="py-2"
-                                                />
-                                                <div className="flex justify-between text-[10px] text-slate-400 font-medium">
-                                                    <span>3 NODES</span>
-                                                    <span>60 NODES</span>
-                                                </div>
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
+                                            </PopoverContent>
+                                        </Popover>
+                                    )
+                                )}
+
+                                {type !== 'info' && type !== 'dns-all' && type !== 'ssl' && (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={onToggleMap}
+                                        className={cn(
+                                            "h-10 px-3 gap-2 rounded-lg transition-all duration-300",
+                                            selectedNodeCount > 0
+                                                ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200/50 dark:border-indigo-500/20"
+                                                : "hover:bg-white dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 border-transparent"
+                                        )}
+                                    >
+                                        <div className="relative">
+                                            <Globe className={cn("h-4 w-4", selectedNodeCount > 0 && "animate-pulse")} />
+                                            {selectedNodeCount > 0 && (
+                                                <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                                                </span>
+                                            )}
+                                        </div>
+                                        <span className="font-bold text-[10px] uppercase hidden sm:inline">
+                                            {selectedNodeCount > 0 ? `${selectedNodeCount} Nodes` : 'Map'}
+                                        </span>
+                                    </Button>
                                 )}
 
                                 <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1" />

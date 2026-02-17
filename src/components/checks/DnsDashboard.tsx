@@ -75,25 +75,69 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all' }: DnsDashbo
         if (!data) return;
 
         let text = `DNS Records for ${data.domain}${data.ip ? ` (${data.ip})` : ''}\n`;
-        text += `Generated: ${new Date(data.timestamp).toLocaleString()}\n\n`;
+        text += `Generated: ${new Date(data.timestamp).toLocaleString()}\n`;
+        if (filterType !== 'all') {
+            text += `Filter: ${filterType}\n`;
+        }
+        text += '\n';
 
-        if (data.records.length > 0) {
-            // Group by type
-            const byType: Record<string, DnsRecord[]> = {};
-            data.records.forEach(r => {
-                if (!byType[r.type]) byType[r.type] = [];
-                byType[r.type].push(r);
-            });
+        if (records.length > 0) {
+            // Define sections to match the UI grouping
+            const spfRecords = records.filter(r => r.type === 'TXT' && r.value.includes('v=spf1'));
+            const dmarcRecords = records.filter(r => r.type === 'TXT' && (r.value.includes('v=DMARC1') || r.auxiliary === '_dmarc.@'));
+            const dkimRecords = records.filter(r => r.type === 'TXT' && (r.value.includes('v=DKIM1') || r.auxiliary?.includes('_domainkey')));
 
-            Object.entries(byType).forEach(([type, records]) => {
-                text += `--- ${type} Records ---\n`;
-                records.forEach(r => {
-                    text += `${r.value}`;
-                    if (r.priority !== undefined) text += ` (Priority: ${r.priority})`;
-                    if (r.ttl !== undefined) text += ` (TTL: ${r.ttl})`;
+            // Helper to check if a TXT record is already categorized
+            const isSpecialTxt = (r: DnsRecord) => spfRecords.includes(r) || dmarcRecords.includes(r) || dkimRecords.includes(r);
+
+            const sections = [
+                {
+                    name: 'Resolution',
+                    items: records.filter(r => ['A', 'AAAA', 'CNAME'].includes(r.type))
+                },
+                {
+                    name: 'Email Configuration',
+                    items: [
+                        ...records.filter(r => r.type === 'MX'),
+                        ...spfRecords,
+                        ...dmarcRecords,
+                        ...dkimRecords
+                    ]
+                },
+                {
+                    name: 'Authority',
+                    items: records.filter(r => ['NS', 'SOA'].includes(r.type))
+                },
+                {
+                    name: 'Verification & Other',
+                    items: [
+                        ...records.filter(r => r.type === 'PTR'),
+                        ...records.filter(r => r.type === 'TXT' && !isSpecialTxt(r))
+                    ]
+                }
+            ];
+
+            sections.forEach(section => {
+                if (section.items.length > 0) {
+                    text += `--- ${section.name} ---\n`;
+                    section.items.forEach(r => {
+                        // Format: [TYPE] [Auxiliary : ] Value (Priority: X) (TTL: Y)
+                        let line = `[${r.type}] `;
+
+                        // Add auxiliary (subdomain/selector) if present
+                        if (r.auxiliary && r.auxiliary !== '@') {
+                            line += `${r.auxiliary} : `;
+                        }
+
+                        line += r.value;
+
+                        if (r.priority !== undefined) line += ` (Priority: ${r.priority})`;
+                        if (r.ttl !== undefined) line += ` (TTL: ${r.ttl})`;
+
+                        text += line + '\n';
+                    });
                     text += '\n';
-                });
-                text += '\n';
+                }
             });
         } else {
             text += "No records found.\n";
@@ -129,36 +173,7 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all' }: DnsDashbo
         ? data.records
         : data.records.filter(r => r.type.toUpperCase() === filterType.toUpperCase());
 
-    const handleCopy = () => {
-        if (!data) return;
 
-        let text = `DNS Records for ${data.domain}${data.ip ? ` (${data.ip})` : ''}\n`;
-        text += `Generated: ${new Date(data.timestamp).toLocaleString()}\n\n`;
-
-        const sections: Record<string, DnsRecord[]> = {
-            'Resolution': records.filter(r => ['A', 'AAAA', 'CNAME'].includes(r.type)),
-            'Email': records.filter(r => ['MX'].includes(r.type) || (r.type === 'TXT' && (r.value.includes('v=spf1') || r.value.includes('v=DMARC1') || r.value.includes('v=DKIM1')))),
-            'Authority': records.filter(r => ['NS', 'SOA'].includes(r.type)),
-            'Verification & Other': records.filter(r => r.type === 'PTR' || (r.type === 'TXT' && !r.value.includes('v=spf1') && !r.value.includes('v=DMARC1') && !r.value.includes('v=DKIM1'))),
-        };
-
-        Object.entries(sections).forEach(([name, items]) => {
-            if (items.length > 0) {
-                text += `[${name}]\n`;
-                items.forEach(r => {
-                    const prefix = r.auxiliary && r.auxiliary.includes('@') ? `${r.auxiliary} : ` : '';
-                    const prio = r.priority !== undefined ? ` (pri:${r.priority})` : '';
-                    const ttl = r.ttl !== undefined ? ` [${r.ttl}s]` : '';
-                    text += `${r.type}: ${prefix}${r.value}${prio}${ttl}\n`;
-                });
-                text += '\n';
-            }
-        });
-
-        navigator.clipboard.writeText(text.trim());
-        setTextCopied(true);
-        setTimeout(() => setTextCopied(false), 2000);
-    };
 
     // Group records by category
     const aRecords = records.filter(r => r.type === 'A');
@@ -349,11 +364,22 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all' }: DnsDashbo
                                             )}
                                         </span>
                                     )}
-                                    {data.ipInfo?.providers?.ipapi?.isp && (
-                                        <span className="text-[10px] bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full font-bold border border-indigo-100 dark:border-indigo-800/30">
-                                            Hosted by: {data.ipInfo.providers.ipapi.isp}
-                                        </span>
-                                    )}
+                                    {(() => {
+                                        const providers = data.ipInfo?.providers || {};
+                                        const isp = providers.ipapi?.isp ||
+                                            providers.ipinfo?.as_name ||
+                                            providers.ipgeolocation?.isp ||
+                                            providers.maxmind?.org ||
+                                            providers.maxmind_local?.org;
+
+                                        if (!isp || isp === 'N/A') return null;
+
+                                        return (
+                                            <span className="text-[10px] bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full font-bold border border-indigo-100 dark:border-indigo-800/30">
+                                                Hosted by: {isp}
+                                            </span>
+                                        );
+                                    })()}
                                     <span className="text-[10px] text-slate-500 dark:text-muted-foreground uppercase tracking-widest font-bold">
                                         {data.records.length} total records
                                     </span>

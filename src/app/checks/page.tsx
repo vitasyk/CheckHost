@@ -1,24 +1,46 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import type { ResultsResponse, CheckType, Node } from '@/types/checkhost';
 import { checkHostAPI } from '@/lib/checkhost-api';
 import { CheckForm } from '@/components/checks/CheckForm';
 import { ResultsDisplay } from '@/components/checks/ResultsDisplay';
 import { ReverseMtrButton } from '@/components/checks/ReverseMtrButton';
 import { Header } from '@/components/Header';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { ChevronDown } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Activity, Wifi, Database, Network, Loader2, CheckCircle2, Info, ArrowLeftRight } from 'lucide-react';
+import { Activity, Wifi, Database, Network, Loader2, CheckCircle2, Info, ArrowLeftRight, ShieldCheck, Map as MapIcon, Globe2, X, MapPin } from 'lucide-react';
 import { IpInfoResponse } from '@/types/ip-info';
 import IpInfoResult from '@/components/ip-info/IpInfoResult';
 import { AdSlot } from '@/components/AdSlot';
 import { SslDashboard } from '@/components/checks/SslDashboard';
-import { ShieldCheck } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import dynamic from 'next/dynamic';
+
+const NodalMap = dynamic(() => import('@/components/checks/NodalMap'), {
+    ssr: false,
+    loading: () => (
+        <div className="h-[400px] w-full rounded-2xl bg-slate-100 dark:bg-slate-900/50 animate-pulse flex flex-col items-center justify-center gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+            <span className="text-sm font-bold uppercase tracking-widest text-indigo-500/40">Initializing Global Map...</span>
+        </div>
+    )
+});
 
 const tabs: CheckType[] = ['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'dns-all', 'ssl', 'mtr'];
 
-export default function ChecksPage() {
+function ChecksPageContent() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
     const [nodes, setNodes] = useState<Record<string, Node>>({});
     const [pingResults, setPingResults] = useState<ResultsResponse | null>(null);
     const [pingNodes, setPingNodes] = useState<Record<string, any>>({});
@@ -93,7 +115,9 @@ export default function ChecksPage() {
         setMtrNodes(checkNodes);
     };
 
-    const [host, setHost] = useState('');
+    const [host, setHost] = useState(searchParams.get('host') || '');
+    const [activeTab, setActiveTab] = useState<string>(searchParams.get('tab') || "info");
+    const [pendingCheck, setPendingCheck] = useState<{ type: CheckType, host: string } | null>(null);
     const [maxNodes, setMaxNodes] = useState(20);
     const [activeChecks, setActiveChecks] = useState<Set<CheckType>>(new Set());
     const [completedChecks, setCompletedChecks] = useState<Set<CheckType>>(new Set());
@@ -101,6 +125,20 @@ export default function ChecksPage() {
     const [dnsType, setDnsType] = useState<string>('all');
     const [isReverseMtr, setIsReverseMtr] = useState(false);
     const [globalCheckEnabled, setGlobalCheckEnabled] = useState(true);
+    const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
+    const [showMap, setShowMap] = useState(false);
+
+    const toggleNode = (nodeId: string) => {
+        setSelectedNodeIds(prev => {
+            const next = [...prev];
+            const index = next.indexOf(nodeId);
+            if (index > -1) next.splice(index, 1);
+            else next.push(nodeId);
+            return next;
+        });
+    };
+
+    const clearSelectedNodes = () => setSelectedNodeIds([]);
 
     const handleReverseMtrToggle = async (checked: boolean) => {
         if (checked) {
@@ -128,40 +166,24 @@ export default function ChecksPage() {
         }
     };
 
-    // Check URL parameters for reverse MTR
+    // URL Persistence Effect
     useEffect(() => {
-        const fetchFeatures = async () => {
-            try {
-                const res = await fetch('/api/admin/settings?key=feature_flags');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && typeof data.globalCheckEnabled === 'boolean') {
-                        setGlobalCheckEnabled(data.globalCheckEnabled);
-                    }
-                }
-            } catch (e) {
-                console.error('Failed to fetch feature flags:', e);
-            }
-        };
-        fetchFeatures();
+        const params = new URLSearchParams(searchParams.toString());
 
-        if (typeof window !== 'undefined') {
-            const params = new URLSearchParams(window.location.search);
-            const reverse = params.get('reverse');
-            const tab = params.get('tab');
-            const hostParam = params.get('host');
+        if (activeTab) params.set('tab', activeTab);
+        else params.delete('tab');
 
-            if (reverse === 'true' && tab === 'mtr' && hostParam) {
-                setIsReverseMtr(true);
-                setHost(hostParam);
-                setActiveTab('mtr');
-                // Auto-start MTR check after a brief delay
-                setTimeout(() => {
-                    runCheck('mtr', hostParam);
-                }, 500);
-            }
+        if (host.trim()) params.set('host', host.trim());
+        else params.delete('host');
+
+        // Only update if params actually changed to avoid unnecessary history entries
+        const currentQuery = searchParams.toString();
+        const newQuery = params.toString();
+
+        if (currentQuery !== newQuery) {
+            router.replace(`${pathname}?${newQuery}`, { scroll: false });
         }
-    }, []);
+    }, [activeTab, host, pathname, router, searchParams]);
 
     const handleCheckStart = (type: CheckType, checkNodes: Record<string, any>, setNodesFn: (nodes: Record<string, any>) => void, setResultsFn: (res: ResultsResponse | null) => void) => {
         setActiveChecks(prev => new Set(prev).add(type));
@@ -187,7 +209,7 @@ export default function ChecksPage() {
         setCompletedChecks(prev => new Set(prev).add(type));
     };
 
-    const runCheck = (type: CheckType, currentHost: string) => {
+    const runCheck = (type: CheckType, currentHost: string, refresh = false) => {
         // Sanitize - match CheckForm logic
         let sanitized = currentHost.trim();
 
@@ -231,7 +253,7 @@ export default function ChecksPage() {
 
         if (type === 'info') {
             setIpInfoResult(null);
-            fetch(`/api/ip-info?host=${encodeURIComponent(sanitized)}`)
+            fetch(`/api/ip-info?host=${encodeURIComponent(sanitized)}${refresh ? '&refresh=true' : ''}`)
                 .then(res => {
                     if (!res.ok) throw new Error('API failed');
                     return res.json();
@@ -250,8 +272,8 @@ export default function ChecksPage() {
         }
 
         if (type === 'dns-all') {
-            console.log(`Starting specialized DNS lookup for ${sanitized}`);
-            checkHostAPI.performDnsLookup(sanitized)
+            console.log(`Starting specialized DNS lookup for ${sanitized}${refresh ? ' (forced refresh)' : ''}`);
+            checkHostAPI.performDnsLookup(sanitized, refresh)
                 .then(dnsData => {
                     const fakeNodeId = 'dns-lookup';
                     const results = { [fakeNodeId]: dnsData };
@@ -292,7 +314,7 @@ export default function ChecksPage() {
         checkHostAPI.performCheck(
             type,
             sanitized,
-            { maxNodes },
+            { maxNodes, nodes: selectedNodeIds.length > 0 ? selectedNodeIds : undefined },
             (results) => {
                 switch (type) {
                     case 'ping': setPingResults(results); break;
@@ -351,15 +373,16 @@ export default function ChecksPage() {
     };
 
     const handleTabCheck = (type: CheckType) => {
+        // Disable auto-run for specific types as requested
+        const manualTypes = ['ping', 'http', 'tcp', 'udp', 'dns', 'mtr'];
+        if (manualTypes.includes(type)) return;
+
         if (!host.trim()) {
             setErrorMessage('Please enter a domain or IP to start check');
             return;
         }
         setErrorMessage(null);
-        // Defer check until tab is fully active (except for MTR)
-        if (type !== 'mtr') {
-            setPendingCheck({ type, host });
-        }
+        setPendingCheck({ type, host });
     };
 
     const onHostChange = (newHost: string) => {
@@ -370,8 +393,41 @@ export default function ChecksPage() {
         }
     };
 
-    const [activeTab, setActiveTab] = useState<string>("info");
-    const [pendingCheck, setPendingCheck] = useState<{ type: CheckType, host: string } | null>(null);
+    // Initial load effects
+    useEffect(() => {
+        const fetchFeatures = async () => {
+            try {
+                const res = await fetch('/api/admin/settings?key=feature_flags');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && typeof data.globalCheckEnabled === 'boolean') {
+                        setGlobalCheckEnabled(data.globalCheckEnabled);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to fetch feature flags:', e);
+            }
+        };
+        fetchFeatures();
+
+        // Check for reverse MTR or direct host checks on mount
+        const reverse = searchParams.get('reverse');
+        const tab = searchParams.get('tab') as CheckType | null;
+        const hostParam = searchParams.get('host');
+
+        if (reverse === 'true' && tab === 'mtr' && hostParam) {
+            setIsReverseMtr(true);
+            setHost(hostParam);
+            setActiveTab('mtr');
+            setTimeout(() => runCheck('mtr', hostParam), 500);
+        } else if (hostParam && tab && tab !== 'info') {
+            // Auto-trigger check if host and specific tab are provided (except info/dns-all which are mostly static or have their own logic)
+            const autoTypes: CheckType[] = ['ping', 'http', 'tcp', 'udp', 'dns', 'mtr'];
+            if (autoTypes.includes(tab)) {
+                setTimeout(() => runCheck(tab, hostParam), 500);
+            }
+        }
+    }, []);
 
     // Initial check when tab becomes active (if pending)
     useEffect(() => {
@@ -412,9 +468,126 @@ export default function ChecksPage() {
                     <div className="max-w-5xl mx-auto">
                         {/* Tabs Navigation */}
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full relative">
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-4">
-                                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 lg:w-auto lg:inline-flex h-12 p-1 bg-slate-200/40 dark:bg-slate-900/60 rounded-xl border border-slate-200/50 dark:border-white/5">
-                                    <TabsTrigger value="info" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('info')}>
+                            <div className="flex flex-col items-center justify-center gap-3 mb-4">
+                                {/* Mobile Navigation (Popover Menu) */}
+                                <div className="w-full max-w-sm md:hidden mx-auto">
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <button className="w-full h-10 px-4 flex items-center justify-center gap-2 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors">
+                                                {activeTab === 'info' && <Info className="h-4 w-4 text-indigo-500" />}
+                                                {activeTab === 'ping' && <Wifi className="h-4 w-4 text-indigo-500" />}
+                                                {(activeTab === 'http' || activeTab === 'dns' || activeTab === 'mtr') && <Activity className="h-4 w-4 text-indigo-500" />}
+                                                {activeTab === 'tcp' && <Network className="h-4 w-4 text-indigo-500" />}
+                                                {(activeTab === 'udp' || activeTab === 'dns-all') && <Database className="h-4 w-4 text-indigo-500" />}
+                                                {activeTab === 'ssl' && <ShieldCheck className="h-4 w-4 text-indigo-500" />}
+                                                <span className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+                                                    {activeTab === 'dns-all' ? 'DNS Info' : activeTab.toUpperCase()}
+                                                </span>
+                                                <ChevronDown className="h-4 w-4 text-slate-400 ml-auto" />
+                                            </button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-80 p-4" align="center">
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <button
+                                                    onClick={() => { setActiveTab('info'); handleTabCheck('info'); }}
+                                                    className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all ${activeTab === 'info'
+                                                        ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                                        : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                                        }`}
+                                                >
+                                                    <Info className="h-5 w-5" />
+                                                    <span className="text-xs font-medium">Info</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => { setActiveTab('ping'); handleTabCheck('ping'); }}
+                                                    className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all ${activeTab === 'ping'
+                                                        ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                                        : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                                        }`}
+                                                >
+                                                    <Wifi className="h-5 w-5" />
+                                                    <span className="text-xs font-medium">Ping</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => { setActiveTab('http'); handleTabCheck('http'); }}
+                                                    className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all ${activeTab === 'http'
+                                                        ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                                        : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                                        }`}
+                                                >
+                                                    <Activity className="h-5 w-5" />
+                                                    <span className="text-xs font-medium">HTTP</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => { setActiveTab('tcp'); handleTabCheck('tcp'); }}
+                                                    className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all ${activeTab === 'tcp'
+                                                        ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                                        : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                                        }`}
+                                                >
+                                                    <Network className="h-5 w-5" />
+                                                    <span className="text-xs font-medium">TCP</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => { setActiveTab('udp'); handleTabCheck('udp'); }}
+                                                    className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all ${activeTab === 'udp'
+                                                        ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                                        : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                                        }`}
+                                                >
+                                                    <Database className="h-5 w-5" />
+                                                    <span className="text-xs font-medium">UDP</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => { setActiveTab('dns'); handleTabCheck('dns'); }}
+                                                    className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all ${activeTab === 'dns'
+                                                        ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                                        : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                                        }`}
+                                                >
+                                                    <Activity className="h-5 w-5" />
+                                                    <span className="text-xs font-medium">DNS</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => { setActiveTab('mtr'); handleTabCheck('mtr'); }}
+                                                    className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all ${activeTab === 'mtr'
+                                                        ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                                        : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                                        }`}
+                                                >
+                                                    <Activity className="h-5 w-5" />
+                                                    <span className="text-xs font-medium">MTR</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => { setActiveTab('dns-all'); handleTabCheck('dns-all'); }}
+                                                    className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all ${activeTab === 'dns-all'
+                                                        ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                                        : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                                        }`}
+                                                >
+                                                    <Database className="h-5 w-5" />
+                                                    <span className="text-xs font-medium">DNS Info</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => { setActiveTab('ssl'); handleTabCheck('ssl'); }}
+                                                    className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-all ${activeTab === 'ssl'
+                                                        ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                                        : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                                        }`}
+                                                >
+                                                    <ShieldCheck className="h-5 w-5" />
+                                                    <span className="text-xs font-medium">SSL</span>
+                                                </button>
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+
+
+
+                                {/* Desktop Navigation (Tabs) */}
+                                <TabsList className="hidden md:flex w-auto h-12 p-1 bg-slate-200/40 dark:bg-slate-900/60 rounded-xl border border-slate-200/50 dark:border-white/5 items-center gap-1">
+                                    <TabsTrigger value="info" className="gap-2 px-4 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('info')}>
                                         <Info className="h-4 w-4" />
                                         <span>Info</span>
                                         {activeChecks.has('info') ? (
@@ -423,7 +596,7 @@ export default function ChecksPage() {
                                             <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
-                                    <TabsTrigger value="ping" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('ping')}>
+                                    <TabsTrigger value="ping" className="gap-2 px-4 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('ping')}>
                                         <Wifi className="h-4 w-4" />
                                         <span>Ping</span>
                                         {activeChecks.has('ping') ? (
@@ -432,7 +605,7 @@ export default function ChecksPage() {
                                             <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
-                                    <TabsTrigger value="http" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('http')}>
+                                    <TabsTrigger value="http" className="gap-2 px-4 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('http')}>
                                         <Activity className="h-4 w-4" />
                                         <span>HTTP</span>
                                         {activeChecks.has('http') ? (
@@ -441,7 +614,7 @@ export default function ChecksPage() {
                                             <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
-                                    <TabsTrigger value="tcp" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('tcp')}>
+                                    <TabsTrigger value="tcp" className="gap-2 px-4 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('tcp')}>
                                         <Network className="h-4 w-4" />
                                         <span>TCP</span>
                                         {activeChecks.has('tcp') ? (
@@ -450,7 +623,7 @@ export default function ChecksPage() {
                                             <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
-                                    <TabsTrigger value="udp" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('udp')}>
+                                    <TabsTrigger value="udp" className="gap-2 px-4 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('udp')}>
                                         <Database className="h-4 w-4" />
                                         <span>UDP</span>
                                         {activeChecks.has('udp') ? (
@@ -459,7 +632,7 @@ export default function ChecksPage() {
                                             <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
-                                    <TabsTrigger value="dns" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('dns')}>
+                                    <TabsTrigger value="dns" className="gap-2 px-4 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('dns')}>
                                         <Activity className="h-4 w-4" />
                                         <span>DNS</span>
                                         {activeChecks.has('dns') ? (
@@ -468,7 +641,7 @@ export default function ChecksPage() {
                                             <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
-                                    <TabsTrigger value="mtr" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('mtr')}>
+                                    <TabsTrigger value="mtr" className="gap-2 px-4 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('mtr')}>
                                         <Activity className="h-4 w-4" />
                                         <span>MTR</span>
                                         {activeChecks.has('mtr') ? (
@@ -477,7 +650,7 @@ export default function ChecksPage() {
                                             <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
-                                    <TabsTrigger value="dns-all" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('dns-all')}>
+                                    <TabsTrigger value="dns-all" className="gap-2 px-4 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('dns-all')}>
                                         <Database className="h-4 w-4" />
                                         <span>DNS Info</span>
                                         {activeChecks.has('dns-all') ? (
@@ -486,7 +659,7 @@ export default function ChecksPage() {
                                             <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
-                                    <TabsTrigger value="ssl" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('ssl')}>
+                                    <TabsTrigger value="ssl" className="gap-2 px-4 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('ssl')}>
                                         <ShieldCheck className="h-4 w-4" />
                                         <span>SSL</span>
                                         {activeChecks.has('ssl') ? (
@@ -536,6 +709,8 @@ export default function ChecksPage() {
                                             nodes={nodes}
                                             isReverseMtr={isReverseMtr}
                                             onReverseMtrToggle={handleReverseMtrToggle}
+                                            selectedNodeCount={selectedNodeIds.length}
+                                            selectedNodeIds={selectedNodeIds}
                                         />
                                         {activeChecks.has('info') ? (
                                             <div className="flex flex-col items-center justify-center p-12 text-muted-foreground animate-pulse gap-4">
@@ -543,8 +718,13 @@ export default function ChecksPage() {
                                                 <span>Obtaining global IP intelligence...</span>
                                             </div>
                                         ) : ipInfoResult ? (
-                                            <IpInfoResult data={ipInfoResult} />
+                                            <IpInfoResult
+                                                data={ipInfoResult}
+                                                onRefresh={() => runCheck('info', host, true)}
+                                                isRefreshing={activeChecks.has('info')}
+                                            />
                                         ) : null}
+
                                     </div>
                                 </TabsContent>
 
@@ -566,7 +746,66 @@ export default function ChecksPage() {
                                             nodes={nodes}
                                             isReverseMtr={isReverseMtr}
                                             onReverseMtrToggle={handleReverseMtrToggle}
+                                            selectedNodeCount={selectedNodeIds.length}
+                                            selectedNodeIds={selectedNodeIds}
+                                            onToggleMap={() => setShowMap(!showMap)}
+                                            onClearSelection={clearSelectedNodes}
                                         />
+
+                                        {/* Nodal Network Map (Looking Glass Phase 2) */}
+                                        {showMap && (
+                                            <div className="mb-6 space-y-3 animate-in fade-in slide-in-from-top-4 duration-500">
+                                                <div className="flex items-center justify-between px-2">
+                                                    <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <MapIcon className="h-3 w-3 text-indigo-500" />
+                                                        Nodal Selection Map
+                                                    </h3>
+                                                    <div className="flex items-center gap-2">
+                                                        {selectedNodeIds.length > 0 && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-7 text-[10px] font-bold text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5"
+                                                                onClick={clearSelectedNodes}
+                                                            >
+                                                                <X className="h-3 w-3" />
+                                                                Clear Selection
+                                                            </Button>
+                                                        )}
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 w-7 p-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                                            onClick={() => setShowMap(false)}
+                                                        >
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                                <NodalMap
+                                                    nodes={nodes}
+                                                    selectedNodeIds={selectedNodeIds}
+                                                    onToggleNode={toggleNode}
+                                                />
+                                                {selectedNodeIds.length > 0 && (
+                                                    <div className="p-3 bg-indigo-500/5 border border-indigo-500/10 rounded-xl flex items-center gap-3">
+                                                        <div className="h-6 w-6 rounded-full bg-indigo-500/10 flex items-center justify-center shrink-0">
+                                                            <MapPin className="h-3 w-3 text-indigo-500" />
+                                                        </div>
+                                                        <div className="flex-1 overflow-hidden">
+                                                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">Manual Node Filters Active:</p>
+                                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                                {selectedNodeIds.map(id => (
+                                                                    <Badge key={id} variant="secondary" className="text-[9px] px-1.5 py-0 rounded-md bg-white dark:bg-slate-800 border-slate-200 dark:border-white/5 font-mono">
+                                                                        {id}
+                                                                    </Badge>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                         {(pingResults || Object.keys(pingNodes).length > 0 || activeChecks.has('ping')) && (
                                             <ResultsDisplay results={pingResults || {}} checkType="ping" nodes={nodes} activeNodes={pingNodes} targetHost={host} isLoading={activeChecks.has('ping')} />
                                         )}
@@ -591,7 +830,48 @@ export default function ChecksPage() {
                                             nodes={nodes}
                                             isReverseMtr={isReverseMtr}
                                             onReverseMtrToggle={handleReverseMtrToggle}
+                                            selectedNodeCount={selectedNodeIds.length}
+                                            selectedNodeIds={selectedNodeIds}
+                                            onToggleMap={() => setShowMap(!showMap)}
+                                            onClearSelection={clearSelectedNodes}
                                         />
+
+                                        {/* Nodal Network Map (Looking Glass Phase 2) */}
+                                        {showMap && (
+                                            <div className="mb-6 space-y-3 animate-in fade-in slide-in-from-top-4 duration-500">
+                                                {/* Same Map Block... repeating it for simplicity in edits */}
+                                                <div className="flex items-center justify-between px-2">
+                                                    <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <MapIcon className="h-3 w-3 text-indigo-500" />
+                                                        Nodal Selection Map
+                                                    </h3>
+                                                    <div className="flex items-center gap-2">
+                                                        {selectedNodeIds.length > 0 && (
+                                                            <Button variant="ghost" size="sm" className="h-7 text-[10px] font-bold text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5" onClick={clearSelectedNodes}>
+                                                                <X className="h-3 w-3" /> Clear Selection
+                                                            </Button>
+                                                        )}
+                                                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" onClick={() => setShowMap(false)}>
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                                <NodalMap nodes={nodes} selectedNodeIds={selectedNodeIds} onToggleNode={toggleNode} />
+                                                {selectedNodeIds.length > 0 && (
+                                                    <div className="p-3 bg-indigo-500/5 border border-indigo-500/10 rounded-xl flex items-center gap-3">
+                                                        <div className="h-6 w-6 rounded-full bg-indigo-500/10 flex items-center justify-center shrink-0">
+                                                            <MapPin className="h-3 w-3 text-indigo-500" />
+                                                        </div>
+                                                        <div className="flex-1 overflow-hidden">
+                                                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">Manual Node Filters Active:</p>
+                                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                                {selectedNodeIds.map(id => (<Badge key={id} variant="secondary" className="text-[9px] px-1.5 py-0 rounded-md bg-white dark:bg-slate-800 border-slate-200 dark:border-white/5 font-mono">{id}</Badge>))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                         {(httpResults || Object.keys(httpNodes).length > 0 || activeChecks.has('http')) && (
                                             <ResultsDisplay results={httpResults || {}} checkType="http" nodes={nodes} activeNodes={httpNodes} targetHost={host} isLoading={activeChecks.has('http')} />
                                         )}
@@ -616,7 +896,33 @@ export default function ChecksPage() {
                                             nodes={nodes}
                                             isReverseMtr={isReverseMtr}
                                             onReverseMtrToggle={handleReverseMtrToggle}
+                                            selectedNodeCount={selectedNodeIds.length}
+                                            selectedNodeIds={selectedNodeIds}
+                                            onToggleMap={() => setShowMap(!showMap)}
+                                            onClearSelection={clearSelectedNodes}
                                         />
+
+                                        {showMap && (
+                                            <div className="mb-6 space-y-3 animate-in fade-in slide-in-from-top-4 duration-500 text-left">
+                                                <div className="flex items-center justify-between px-2">
+                                                    <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <MapIcon className="h-3 w-3 text-indigo-500" />
+                                                        Nodal Selection Map
+                                                    </h3>
+                                                    <div className="flex items-center gap-2">
+                                                        {selectedNodeIds.length > 0 && (
+                                                            <Button variant="ghost" size="sm" className="h-7 text-[10px] font-bold text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5" onClick={clearSelectedNodes}>
+                                                                <X className="h-3 w-3" /> Clear Selection
+                                                            </Button>
+                                                        )}
+                                                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" onClick={() => setShowMap(false)}>
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                                <NodalMap nodes={nodes} selectedNodeIds={selectedNodeIds} onToggleNode={toggleNode} />
+                                            </div>
+                                        )}
                                         {(tcpResults || Object.keys(tcpNodes).length > 0 || activeChecks.has('tcp')) && (
                                             <ResultsDisplay results={tcpResults || {}} checkType="tcp" nodes={nodes} activeNodes={tcpNodes} targetHost={host} isLoading={activeChecks.has('tcp')} />
                                         )}
@@ -641,7 +947,33 @@ export default function ChecksPage() {
                                             nodes={nodes}
                                             isReverseMtr={isReverseMtr}
                                             onReverseMtrToggle={handleReverseMtrToggle}
+                                            selectedNodeCount={selectedNodeIds.length}
+                                            selectedNodeIds={selectedNodeIds}
+                                            onToggleMap={() => setShowMap(!showMap)}
+                                            onClearSelection={clearSelectedNodes}
                                         />
+
+                                        {showMap && (
+                                            <div className="mb-6 space-y-3 animate-in fade-in slide-in-from-top-4 duration-500 text-left">
+                                                <div className="flex items-center justify-between px-2">
+                                                    <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <MapIcon className="h-3 w-3 text-indigo-500" />
+                                                        Nodal Selection Map
+                                                    </h3>
+                                                    <div className="flex items-center gap-2">
+                                                        {selectedNodeIds.length > 0 && (
+                                                            <Button variant="ghost" size="sm" className="h-7 text-[10px] font-bold text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5" onClick={clearSelectedNodes}>
+                                                                <X className="h-3 w-3" /> Clear Selection
+                                                            </Button>
+                                                        )}
+                                                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" onClick={() => setShowMap(false)}>
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                                <NodalMap nodes={nodes} selectedNodeIds={selectedNodeIds} onToggleNode={toggleNode} />
+                                            </div>
+                                        )}
                                         {(udpResults || Object.keys(udpNodes).length > 0 || activeChecks.has('udp')) && (
                                             <ResultsDisplay results={udpResults || {}} checkType="udp" nodes={nodes} activeNodes={udpNodes} targetHost={host} isLoading={activeChecks.has('udp')} />
                                         )}
@@ -666,7 +998,33 @@ export default function ChecksPage() {
                                             nodes={nodes}
                                             isReverseMtr={isReverseMtr}
                                             onReverseMtrToggle={handleReverseMtrToggle}
+                                            selectedNodeCount={selectedNodeIds.length}
+                                            selectedNodeIds={selectedNodeIds}
+                                            onToggleMap={() => setShowMap(!showMap)}
+                                            onClearSelection={clearSelectedNodes}
                                         />
+
+                                        {showMap && (
+                                            <div className="mb-6 space-y-3 animate-in fade-in slide-in-from-top-4 duration-500 text-left">
+                                                <div className="flex items-center justify-between px-2">
+                                                    <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <MapIcon className="h-3 w-3 text-indigo-500" />
+                                                        Nodal Selection Map
+                                                    </h3>
+                                                    <div className="flex items-center gap-2">
+                                                        {selectedNodeIds.length > 0 && (
+                                                            <Button variant="ghost" size="sm" className="h-7 text-[10px] font-bold text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5" onClick={clearSelectedNodes}>
+                                                                <X className="h-3 w-3" /> Clear Selection
+                                                            </Button>
+                                                        )}
+                                                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" onClick={() => setShowMap(false)}>
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                                <NodalMap nodes={nodes} selectedNodeIds={selectedNodeIds} onToggleNode={toggleNode} />
+                                            </div>
+                                        )}
                                         {(dnsResults || Object.keys(dnsNodes).length > 0 || activeChecks.has('dns')) && (
                                             <ResultsDisplay results={dnsResults || {}} checkType="dns" nodes={nodes} activeNodes={dnsNodes} dnsType={dnsType} targetHost={host} isLoading={activeChecks.has('dns')} />
                                         )}
@@ -691,7 +1049,33 @@ export default function ChecksPage() {
                                             nodes={nodes}
                                             isReverseMtr={isReverseMtr}
                                             onReverseMtrToggle={handleReverseMtrToggle}
+                                            selectedNodeCount={selectedNodeIds.length}
+                                            selectedNodeIds={selectedNodeIds}
+                                            onToggleMap={() => setShowMap(!showMap)}
+                                            onClearSelection={clearSelectedNodes}
                                         />
+
+                                        {showMap && (
+                                            <div className="mb-6 space-y-3 animate-in fade-in slide-in-from-top-4 duration-500 text-left">
+                                                <div className="flex items-center justify-between px-2">
+                                                    <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <MapIcon className="h-3 w-3 text-indigo-500" />
+                                                        Nodal Selection Map
+                                                    </h3>
+                                                    <div className="flex items-center gap-2">
+                                                        {selectedNodeIds.length > 0 && (
+                                                            <Button variant="ghost" size="sm" className="h-7 text-[10px] font-bold text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5" onClick={clearSelectedNodes}>
+                                                                <X className="h-3 w-3" /> Clear Selection
+                                                            </Button>
+                                                        )}
+                                                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" onClick={() => setShowMap(false)}>
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                                <NodalMap nodes={nodes} selectedNodeIds={selectedNodeIds} onToggleNode={toggleNode} />
+                                            </div>
+                                        )}
                                         {(mtrResults || Object.keys(mtrNodes).length > 0 || activeChecks.has('mtr')) && (
                                             <>
 
@@ -729,9 +1113,27 @@ export default function ChecksPage() {
                                             onDnsTypeChange={setDnsType}
                                             isReverseMtr={isReverseMtr}
                                             onReverseMtrToggle={handleReverseMtrToggle}
+                                            selectedNodeCount={selectedNodeIds.length}
+                                            selectedNodeIds={selectedNodeIds}
                                         />
                                         {(dnsInfoResults || Object.keys(dnsInfoNodes).length > 0 || activeChecks.has('dns-all')) && (
-                                            <ResultsDisplay results={dnsInfoResults || {}} checkType="dns-all" nodes={nodes} activeNodes={dnsInfoNodes} dnsType={dnsType} targetHost={host} isLoading={activeChecks.has('dns-all')} />
+                                            <div className="space-y-4">
+                                                {dnsInfoResults && dnsInfoResults['dns-lookup'] && (
+                                                    <div className="flex justify-end px-2">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 text-[10px] font-bold text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 gap-2 uppercase tracking-tight"
+                                                            onClick={() => runCheck('dns-all', host, true)}
+                                                            disabled={activeChecks.has('dns-all')}
+                                                        >
+                                                            <Loader2 className={`h-3 w-3 ${activeChecks.has('dns-all') ? 'animate-spin text-indigo-500' : ''}`} />
+                                                            Refresh DNS Info
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                                <ResultsDisplay results={dnsInfoResults || {}} checkType="dns-all" nodes={nodes} activeNodes={dnsInfoNodes} dnsType={dnsType} targetHost={host} isLoading={activeChecks.has('dns-all')} />
+                                            </div>
                                         )}
                                     </div>
                                 </TabsContent>
@@ -760,6 +1162,8 @@ export default function ChecksPage() {
                                             nodes={nodes}
                                             isReverseMtr={isReverseMtr}
                                             onReverseMtrToggle={handleReverseMtrToggle}
+                                            selectedNodeCount={selectedNodeIds.length}
+                                            selectedNodeIds={selectedNodeIds}
                                         />
                                         {activeChecks.has('ssl') ? (
                                             <div className="flex flex-col items-center justify-center p-12 text-muted-foreground animate-pulse gap-4">
@@ -782,7 +1186,22 @@ export default function ChecksPage() {
                 <footer className="container mx-auto px-4 py-12 mt-auto text-center text-slate-400 dark:text-slate-500 border-t border-slate-200/50 dark:border-white/5">
                     <p className="text-sm font-medium">© 2026 CheckHost.net — Website Monitoring Made Simple</p>
                 </footer>
+            </div >
+        </div >
+    );
+}
+
+export default function ChecksPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F1A] flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="h-12 w-12 animate-spin text-indigo-500" />
+                    <p className="text-slate-500 animate-pulse font-medium">Loading Diagnostic Tools...</p>
+                </div>
             </div>
-        </div>
+        }>
+            <ChecksPageContent />
+        </Suspense>
     );
 }

@@ -1,6 +1,7 @@
+
 import { NextRequest, NextResponse } from 'next/server';
-import { IpInfoResponse } from '@/types/ip-info';
 import { getMockIpInfo } from '@/lib/mock-data';
+import { memoryCache } from '@/lib/cache';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
@@ -37,10 +38,36 @@ export async function GET(request: NextRequest) {
         host = clientIp || '1.1.1.1'; // Fallback to Cloudflare DNS for demo
     }
 
-    // Mock delay to simulate real API aggregation
-    // await new Promise(resolve => setTimeout(resolve, 800)); 
+    // Normalized cache key (ignoring technical params like 't')
+    const cacheKey = `ip-info:${host}`;
+    const forceRefresh = searchParams.get('refresh') === 'true';
 
-    const mockData = await getMockIpInfo(host);
+    // 1. Check cache (TTL 1 hour), skip if forceRefresh is true
+    if (!forceRefresh) {
+        const cachedData = memoryCache.get(cacheKey);
+        if (cachedData) {
+            return NextResponse.json(cachedData, {
+                headers: { 'X-Cache': 'HIT' }
+            });
+        }
+    }
 
-    return NextResponse.json(mockData);
+    // 2. Deduplicate concurrent requests
+    try {
+        const mockData = await memoryCache.deduplicate(cacheKey, async () => {
+            const data = await getMockIpInfo(host!);
+
+            // Cache successful response (TTL 3600s = 1h)
+            memoryCache.set(cacheKey, data, 3600);
+
+            return data;
+        });
+
+        return NextResponse.json(mockData, {
+            headers: { 'X-Cache': 'MISS' }
+        });
+    } catch (error) {
+        console.error('IP Info error:', error);
+        return NextResponse.json({ error: 'Failed to fetch IP info' }, { status: 500 });
+    }
 }

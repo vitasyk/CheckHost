@@ -41,9 +41,9 @@ export async function GET(
 
         // Extended response has nested results
         const data = response.data;
-        if (data && data.results) {
-            data.results = sanitizeKeys(data.results);
-        }
+        // if (data && data.results) {
+        //     data.results = sanitizeKeys(data.results);
+        // }
 
         return NextResponse.json(data);
     } catch (error) {

@@ -183,7 +183,6 @@ export async function fetchIpInfo(ip: string): Promise<IpInfoLiteResponse | null
 
                 // If API failed/empty, try local DB as fallback if enabled
                 if (config.enableLocalFallback && isLocalDbAvailable()) {
-                    console.log('API failed or missing token, falling back to local DB');
                     const localResult = await lookupLocalIpInfo(ip);
                     if (localResult) return localResult;
                 }

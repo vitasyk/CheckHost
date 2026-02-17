@@ -2,27 +2,26 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 import { apiLogger } from '@/lib/api-logger';
-
-function sanitizeId(id: string): string {
-    return id.replace('.node.check-host.net', '');
-}
-
-function sanitizeKeys(obj: Record<string, any>): Record<string, any> {
-    if (!obj) return obj;
-    return Object.keys(obj).reduce((acc, key) => {
-        acc[sanitizeId(key)] = obj[key];
-        return acc;
-    }, {} as Record<string, any>);
-}
+import { memoryCache } from '@/lib/cache';
 
 export async function GET(
     request: Request,
     context: { params: Promise<{ requestId: string }> }
 ) {
     const { requestId } = await context.params;
-    const url = `https://check-host.net/check-result/${requestId}`;
 
+    // 1. Check cache first (TTL 5 minutes for finalized results)
+    // DISABLED: Diagnostics should be real-time. We only use memoryCache for de-duplication.
+    // const cacheKey = `result:${requestId}`;
+    // const cachedData = memoryCache.get(cacheKey);
+    // if (cachedData) {
+    //     return NextResponse.json(cachedData, { headers: { 'X-Cache': 'HIT' } });
+    // }
+    const cacheKey = `result:${requestId}`;
+
+    const url = `https://check-host.net/check-result/${requestId}`;
     const startTime = Date.now();
+
     try {
         const response = await axios.get(url, {
             headers: {
@@ -32,17 +31,27 @@ export async function GET(
             timeout: 10000
         });
 
+        const data = response.data;
         const duration = Date.now() - startTime;
+
         await apiLogger.logApiUsage({
             api_endpoint: '/result',
             response_time_ms: duration,
             status_code: 200
         });
 
-        // Sanitize keys (node IDs)
-        const data = sanitizeKeys(response.data);
+        const resultValues = Object.values(data || {});
+        const hasResults = resultValues.length > 0;
 
-        return NextResponse.json(data);
+        // We no longer cache "complete" results for long periods (300s) to allow real-time diagnostics.
+        // We only keep very short-term cache (2s) to handle polling concurrency.
+        if (hasResults) {
+            memoryCache.set(cacheKey, data, 2);
+        }
+
+        return NextResponse.json(data, {
+            headers: { 'X-Cache': 'MISS' }
+        });
     } catch (error) {
         const duration = Date.now() - startTime;
         let statusCode = 500;

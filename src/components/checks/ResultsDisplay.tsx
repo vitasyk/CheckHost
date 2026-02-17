@@ -18,6 +18,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { DnsRecordsTable } from './DnsRecordsTable';
 import { DnsDashboard } from './DnsDashboard';
+import { MtrDashboard } from './MtrDashboard';
 
 interface ResultsDisplayProps {
     results: ResultsResponse;
@@ -388,98 +389,15 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
         };
     };
 
-    const renderMtrResult = (result: any) => {
-        const hops = processMtrData(result);
-
-        if (hops.length === 0) {
-            const hasRawData = result && (Array.isArray(result) ? result.length > 0 : Object.keys(result).length > 0);
-
-            return (
-                <div className="p-8 text-center text-sm text-muted-foreground bg-slate-50/50 dark:bg-slate-900/30 rounded-lg border border-slate-200/50 dark:border-white/5 my-2 flex flex-col items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
-                    <span className="font-medium">Collecting traceroute data...</span>
-                    <p className="text-[10px] opacity-60 max-w-[200px]">Data will appear here as soon as the first network hop is discovered.</p>
-
-                    {hasRawData && (
-                        <div className="mt-4 w-full text-left">
-                            <p className="text-xs font-bold text-red-500 mb-1">Raw Data Receiver (Parsing Failed):</p>
-                            <pre className="text-[10px] bg-slate-100 dark:bg-slate-950 p-2 rounded overflow-auto max-h-40 font-mono text-slate-600 dark:text-slate-400">
-                                {JSON.stringify(result, null, 2)}
-                            </pre>
-                        </div>
-                    )}
-                </div>
-            );
-        }
-
+    const renderMtrResult = (result: any, nodeId: string) => {
+        const location = getLocationInfo(nodeId);
         return (
-            <div className="p-4 bg-slate-50/50 dark:bg-slate-900/30 rounded-lg border border-slate-200/50 dark:border-white/5 my-2">
-                <Table>
-                    <TableHeader>
-                        <TableRow className="h-7 hover:bg-transparent border-0">
-                            <TableHead className="h-7 text-[10px] uppercase font-bold">Hop</TableHead>
-                            <TableHead className="h-7 text-[10px] uppercase font-bold">Host / IP</TableHead>
-                            <TableHead className="h-7 text-[10px] uppercase font-bold text-center">Loss %</TableHead>
-                            <TableHead className="h-7 text-[10px] uppercase font-bold text-right">Last</TableHead>
-                            <TableHead className="h-7 text-[10px] uppercase font-bold text-right">Avg</TableHead>
-                            <TableHead className="h-7 text-[10px] uppercase font-bold text-right">Best</TableHead>
-                            <TableHead className="h-7 text-[10px] uppercase font-bold text-right">Worst</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {hops.map((hop: any, i: number) => (
-                            <TableRow key={i} className="h-7 hover:bg-slate-100/50 dark:hover:bg-white/[0.02] border-0">
-                                <TableCell className="py-0.5 text-xs font-mono text-muted-foreground">{i + 1}</TableCell>
-                                <TableCell className="py-0.5 text-xs font-mono">
-                                    <div className="flex flex-col">
-                                        <span
-                                            className={cn(
-                                                "font-medium text-slate-700 dark:text-slate-200 transition-colors",
-                                                onPingIp && "cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline"
-                                            )}
-                                            onClick={(e) => {
-                                                if (onPingIp && hop.ip) {
-                                                    e.stopPropagation();
-                                                    onPingIp(hop.ip);
-                                                }
-                                            }}
-                                            title={onPingIp ? "Click for IP Info" : undefined}
-                                        >
-                                            {hop.host || '???'}
-                                        </span>
-                                        {hop.ip && hop.ip !== hop.host && (
-                                            <span
-                                                className={cn(
-                                                    "text-[10px] text-muted-foreground transition-colors",
-                                                    onPingIp && "cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline"
-                                                )}
-                                                onClick={(e) => {
-                                                    if (onPingIp) {
-                                                        e.stopPropagation();
-                                                        onPingIp(hop.ip);
-                                                    }
-                                                }}
-                                                title={onPingIp ? "Click for IP Info" : undefined}
-                                            >
-                                                {hop.ip}
-                                            </span>
-                                        )}
-                                    </div>
-                                </TableCell>
-                                <TableCell className="py-0.5 text-xs text-center">
-                                    <Badge variant={hop.loss > 0 ? "error" : "outline"} className="h-5 px-1.5 text-[10px]">
-                                        {hop.loss.toFixed(1)}%
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="py-0.5 text-xs text-right font-mono">{hop.last.toFixed(1)}</TableCell>
-                                <TableCell className="py-0.5 text-xs text-right font-mono font-bold text-indigo-600 dark:text-indigo-400">{hop.avg.toFixed(1)}</TableCell>
-                                <TableCell className="py-0.5 text-xs text-right font-mono text-muted-foreground">{hop.best.toFixed(1)}</TableCell>
-                                <TableCell className="py-0.5 text-xs text-right font-mono text-muted-foreground">{hop.worst.toFixed(1)}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
+            <MtrDashboard
+                result={result}
+                nodeCity={location.city}
+                onPingIp={onPingIp}
+                targetHost={targetHost}
+            />
         );
     };
 
@@ -667,7 +585,7 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
         <div className="space-y-4 mt-8">
             {/* Controls Header (hidden for dns-all single-block view) */}
             {checkType !== 'dns-all' && (
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-white/5 shadow-sm">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
                             <h3 className="font-semibold">Results</h3>
@@ -679,7 +597,7 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
                         <div className="h-4 w-px bg-border" />
 
                         <Tabs value={groupBy} onValueChange={(v) => setGroupBy(v as 'none' | 'region')}>
-                            <TabsList className="h-10 p-1 bg-slate-200/40 dark:bg-slate-900/60 rounded-xl border border-slate-200/50 dark:border-white/5">
+                            <TabsList className="h-10 p-1 bg-slate-200/40 dark:bg-slate-900/60 rounded-2xl border border-slate-200/50 dark:border-white/5">
                                 <TabsTrigger
                                     value="none"
                                     className="h-8 px-4 rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200"
@@ -746,7 +664,7 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
                                     </h4>
                                 )}
 
-                                <div className="rounded-xl border border-slate-200/60 dark:border-white/5 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+                                <div className="rounded-2xl border border-slate-200/60 dark:border-white/5 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
                                     <Table>
                                         <TableHeader>
                                             <TableRow className="bg-slate-50/80 dark:bg-slate-900/50 border-b border-slate-200/60 dark:border-white/5">
@@ -901,7 +819,7 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
                                                         {checkType === 'mtr' && expandedRows.has(nodeId) && (
                                                             <TableRow className="bg-slate-50/30 dark:bg-white/[0.01] hover:bg-slate-50/30 dark:hover:bg-white/[0.01]">
                                                                 <TableCell colSpan={6} className="p-0">
-                                                                    {renderMtrResult(result)}
+                                                                    {renderMtrResult(result, nodeId)}
                                                                 </TableCell>
                                                             </TableRow>
                                                         )}

@@ -162,7 +162,7 @@ export function SslDashboard({ data }: SslDashboardProps) {
     const allExpanded = expandedNodes.size === reversedChain.length;
 
     return (
-        <div ref={dashboardRef} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 p-1 bg-slate-50 dark:bg-slate-900 rounded-xl relative group/screenshot">
+        <div ref={dashboardRef} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 bg-slate-50 dark:bg-slate-900 rounded-2xl relative group/screenshot px-5 py-5">
             {/* Hover-reveal floating action buttons */}
             <div className="screenshot-hide absolute top-3 right-3 z-10 flex items-center gap-1 opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
                 <button
@@ -273,7 +273,7 @@ export function SslDashboard({ data }: SslDashboardProps) {
             <div className="mx-auto space-y-8">
                 {/* Certificate Chain Visualization */}
                 <div className="relative">
-                    <div className="flex items-center justify-between mb-8 px-2">
+                    <div className="flex items-center justify-between mb-8 px-5">
                         <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
                                 <Layers className="h-5 w-5 text-indigo-500" />
