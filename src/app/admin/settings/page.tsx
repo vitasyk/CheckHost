@@ -63,10 +63,40 @@ export default function AdminSettings() {
         const fetchConfigs = async () => {
             try {
                 // Fetch AdSense
-                const adsenseRes = await fetch('/api/admin/settings?key=adsense');
-                if (adsenseRes.ok) {
-                    const data = await adsenseRes.json();
-                    if (data) setConfig(data);
+                try {
+                    const adsenseRes = await fetch('/api/admin/settings?key=adsense');
+                    if (adsenseRes.ok) {
+                        const data = await adsenseRes.json();
+
+                        // Create deep copy of default slots
+                        const defaultSlots = {
+                            homepage_hero: { id: '', enabled: false },
+                            results_bottom: { id: '', enabled: false },
+                            blog_content: { id: '', enabled: false },
+                            blog_top: { id: '', enabled: false },
+                            blog_bottom: { id: '', enabled: false }
+                        };
+
+                        if (data) {
+                            // Merge existing slots with defaults to ensure all identified slots are visible
+                            const mergedSlots = { ...defaultSlots, ...(data.slots || {}) };
+                            setConfig({
+                                ...data,
+                                client_id: data.client_id || '',
+                                enabled: data.enabled ?? false,
+                                slots: mergedSlots
+                            });
+                        } else {
+                            // Initialize with defaults if no config exists
+                            setConfig({
+                                client_id: '',
+                                enabled: false,
+                                slots: defaultSlots
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.error('AdSense fetch error:', e);
                 }
 
                 // Fetch IP Info Display

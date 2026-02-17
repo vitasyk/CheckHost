@@ -1,5 +1,5 @@
 // CheckHost API types
-export type CheckType = 'info' | 'ping' | 'http' | 'tcp' | 'dns' | 'udp' | 'mtr' | 'dns-all';
+export type CheckType = 'info' | 'ping' | 'http' | 'tcp' | 'dns' | 'udp' | 'mtr' | 'dns-all' | 'ssl';
 
 export interface MtrHop {
     host: string;

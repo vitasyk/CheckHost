@@ -1,22 +1,26 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSiteSetting } from '@/lib/site-settings';
 
 /**
  * Public endpoint to fetch AdSense configuration for the frontend
- * Cached for performance
+ * Uses site-settings utility for robust fallback support
  */
 export async function GET() {
     try {
-        const { data, error } = await supabase
-            .from('site_settings')
-            .select('value')
-            .eq('key', 'adsense')
-            .single();
+        const adsenseConfig = await getSiteSetting('adsense');
 
-        if (error) throw error;
-        return NextResponse.json(data.value);
+        if (!adsenseConfig) {
+            console.log('[AdSense] No configuration found, returning defaults');
+            return NextResponse.json({
+                client_id: "",
+                enabled: false,
+                slots: {}
+            });
+        }
+
+        return NextResponse.json(adsenseConfig);
     } catch (error) {
-        // Fallback or empty config if DB is not ready
+        console.error('[AdSense] API Error:', error);
         return NextResponse.json({
             client_id: "",
             enabled: false,

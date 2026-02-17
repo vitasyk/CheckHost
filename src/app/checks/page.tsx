@@ -13,8 +13,10 @@ import { Activity, Wifi, Database, Network, Loader2, CheckCircle2, Info, ArrowLe
 import { IpInfoResponse } from '@/types/ip-info';
 import IpInfoResult from '@/components/ip-info/IpInfoResult';
 import { AdSlot } from '@/components/AdSlot';
+import { SslDashboard } from '@/components/checks/SslDashboard';
+import { ShieldCheck } from 'lucide-react';
 
-const tabs: CheckType[] = ['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'dns-all', 'mtr'];
+const tabs: CheckType[] = ['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'dns-all', 'ssl', 'mtr'];
 
 export default function ChecksPage() {
     const [nodes, setNodes] = useState<Record<string, Node>>({});
@@ -38,6 +40,8 @@ export default function ChecksPage() {
 
     const [mtrResults, setMtrResults] = useState<ResultsResponse | null>(null);
     const [mtrNodes, setMtrNodes] = useState<Record<string, any>>({});
+
+    const [sslResults, setSslResults] = useState<any | null>(null);
 
     const [ipInfoResult, setIpInfoResult] = useState<IpInfoResponse | null>(null);
 
@@ -208,6 +212,7 @@ export default function ChecksPage() {
                     case 'dns': setDnsNodes(nodes); break;
                     case 'dns-all': setDnsInfoNodes(nodes); break;
                     case 'mtr': setMtrNodes(nodes); break;
+                    case 'ssl': break; // No nodes for SSL
                 }
             },
             (results) => {
@@ -219,6 +224,7 @@ export default function ChecksPage() {
                     case 'dns': setDnsResults(results); break;
                     case 'dns-all': setDnsInfoResults(results); break;
                     case 'mtr': setMtrResults(results); break;
+                    case 'ssl': setSslResults(results); break;
                 }
             }
         );
@@ -258,6 +264,25 @@ export default function ChecksPage() {
                     console.error(`DNS lookup failed:`, err);
                     setErrorMessage(err.message || "Failed to perform DNS lookup.");
                     handleCheckComplete('dns-all');
+                });
+            return;
+        }
+
+        if (type === 'ssl') {
+            console.log(`Starting SSL check for ${sanitized}`);
+            fetch(`/api/ssl-check?host=${encodeURIComponent(sanitized)}`)
+                .then(res => {
+                    if (!res.ok) throw new Error('SSL check failed');
+                    return res.json();
+                })
+                .then(data => {
+                    setSslResults(data);
+                    handleCheckComplete('ssl');
+                })
+                .catch(err => {
+                    console.error(`SSL check failed:`, err);
+                    setErrorMessage(err.message || "Failed to perform SSL check.");
+                    handleCheckComplete('ssl');
                 });
             return;
         }
@@ -305,7 +330,7 @@ export default function ChecksPage() {
         }
         setErrorMessage(null);
 
-        const checkTypes: CheckType[] = ['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'dns-all'];
+        const checkTypes: CheckType[] = ['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'dns-all', 'ssl'];
 
         // Mark all as active immediately and clear completed
         setActiveChecks(new Set(checkTypes));
@@ -318,6 +343,7 @@ export default function ChecksPage() {
         setUdpResults({});
         setDnsResults({});
         setDnsInfoResults({});
+        setSslResults(null);
 
         checkTypes.forEach(type => {
             runCheck(type, host);
@@ -457,6 +483,15 @@ export default function ChecksPage() {
                                         {activeChecks.has('dns-all') ? (
                                             <Loader2 className="h-3 w-3 animate-spin absolute -top-1 right-0 z-10 text-primary" />
                                         ) : completedChecks.has('dns-all') ? (
+                                            <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
+                                        ) : null}
+                                    </TabsTrigger>
+                                    <TabsTrigger value="ssl" className="gap-2 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm data-[state=active]:text-indigo-600 transition-all duration-200" onClick={() => handleTabCheck('ssl')}>
+                                        <ShieldCheck className="h-4 w-4" />
+                                        <span>SSL</span>
+                                        {activeChecks.has('ssl') ? (
+                                            <Loader2 className="h-3 w-3 animate-spin absolute -top-1 right-0 z-10 text-primary" />
+                                        ) : completedChecks.has('ssl') ? (
                                             <CheckCircle2 className="h-3 w-3 absolute -top-1 right-0 z-10 text-green-500" />
                                         ) : null}
                                     </TabsTrigger>
@@ -698,6 +733,42 @@ export default function ChecksPage() {
                                         {(dnsInfoResults || Object.keys(dnsInfoNodes).length > 0 || activeChecks.has('dns-all')) && (
                                             <ResultsDisplay results={dnsInfoResults || {}} checkType="dns-all" nodes={nodes} activeNodes={dnsInfoNodes} dnsType={dnsType} targetHost={host} isLoading={activeChecks.has('dns-all')} />
                                         )}
+                                    </div>
+                                </TabsContent>
+
+                                {/* SSL Tab */}
+                                <TabsContent value="ssl" className="space-y-4">
+                                    <div className="space-y-4">
+                                        <CheckForm
+                                            type="ssl"
+                                            host={host}
+                                            maxNodes={maxNodes}
+                                            onMaxNodesChange={setMaxNodes}
+                                            onHostChange={onHostChange}
+                                            onResults={() => { }}
+                                            onCheckStart={() => {
+                                                setActiveChecks(prev => new Set(prev).add('ssl'));
+                                                setSslResults(null);
+                                            }}
+                                            onCheckComplete={() => {
+                                                if (host.trim()) {
+                                                    runCheck('ssl', host);
+                                                }
+                                            }}
+                                            errorMessage={errorMessage}
+                                            isLoading={activeChecks.has('ssl')}
+                                            nodes={nodes}
+                                            isReverseMtr={isReverseMtr}
+                                            onReverseMtrToggle={handleReverseMtrToggle}
+                                        />
+                                        {activeChecks.has('ssl') ? (
+                                            <div className="flex flex-col items-center justify-center p-12 text-muted-foreground animate-pulse gap-4">
+                                                <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+                                                <span>Inspecting certificates and chains...</span>
+                                            </div>
+                                        ) : sslResults ? (
+                                            <SslDashboard data={sslResults} />
+                                        ) : null}
                                     </div>
                                 </TabsContent>
                             </div>

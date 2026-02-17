@@ -53,7 +53,7 @@ export function CheckForm({
     const sanitizeInput = useCallback((input: string) => {
         let sanitized = input.trim();
 
-        if (type === 'info' || type === 'ping' || type === 'dns' || type === 'dns-all' || type === 'tcp' || type === 'udp' || type === 'mtr') {
+        if (type === 'info' || type === 'ping' || type === 'dns' || type === 'dns-all' || type === 'tcp' || type === 'udp' || type === 'mtr' || type === 'ssl') {
             // Remove protocol
             sanitized = sanitized.replace(/^https?:\/\//, '');
             // Remove path/query
@@ -125,8 +125,8 @@ export function CheckForm({
 
         const cleanHost = sanitizeInput(host);
         if (cleanHost) {
-            // For 'info' type, don't use CheckHost API - parent handles it
-            if (type === 'info') {
+            // For 'info' and 'ssl' type, don't use CheckHost API - parent handles it
+            if (type === 'info' || type === 'ssl') {
                 // Just trigger completion, parent component will handle the actual check
                 onCheckComplete(type);
                 return;
@@ -150,6 +150,7 @@ export function CheckForm({
                 return '8.8.8.8:53 or example.com:53';
             case 'dns':
             case 'dns-all':
+            case 'ssl':
                 return 'example.com';
             default:
                 return 'Enter URL or IP Address';
@@ -194,7 +195,7 @@ export function CheckForm({
                             />
 
                             <div className="absolute right-2 top-2 bottom-2 flex items-center gap-1.5">
-                                {type !== 'dns-all' && (
+                                {type !== 'dns-all' && type !== 'info' && type !== 'ssl' && (
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <Button
