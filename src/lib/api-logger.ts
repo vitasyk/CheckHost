@@ -1,6 +1,5 @@
-import pool from './postgres';
-
-const isDbConfigured = !!process.env.DATABASE_URL;
+import { supabase, isSupabaseConfigured } from './supabase';
+import pool, { isPostgresConfigured } from './postgres';
 
 export interface CheckLog {
     check_type: string;
@@ -24,35 +23,66 @@ export const apiLogger = {
      * Log a user check event
      */
     async logCheck(data: CheckLog) {
-        if (!isDbConfigured) return null;
-        try {
-            const result = await pool.query(
-                `INSERT INTO check_logs (check_type, target_host, user_ip, user_country_code, nodes_count, status, error_message)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7)
-                 RETURNING id`,
-                [data.check_type, data.target_host, data.user_ip, data.user_country_code, data.nodes_count, data.status || 'success', data.error_message]
-            );
+        if (isSupabaseConfigured) {
+            try {
+                const { data: result, error } = await supabase
+                    .from('check_logs')
+                    .insert([data])
+                    .select()
+                    .single();
 
-            return result.rows[0].id;
-        } catch (error) {
-            console.error('Failed to log check:', error);
-            return null;
+                if (error) throw error;
+                return result.id;
+            } catch (error) {
+                console.error('Failed to log check to Supabase:', error);
+            }
         }
+
+        if (isPostgresConfigured) {
+            try {
+                const result = await pool.query(
+                    `INSERT INTO check_logs (check_type, target_host, user_ip, user_country_code, nodes_count, status, error_message)
+                     VALUES ($1, $2, $3, $4, $5, $6, $7)
+                     RETURNING id`,
+                    [data.check_type, data.target_host, data.user_ip, data.user_country_code, data.nodes_count, data.status || 'success', data.error_message]
+                );
+
+                return result.rows[0].id;
+            } catch (error) {
+                console.error('Failed to log check to PostgreSQL:', error);
+            }
+        }
+
+        return null;
     },
 
     /**
      * Log an API request/response metric
      */
     async logApiUsage(data: ApiUsageLog) {
-        if (!isDbConfigured) return;
-        try {
-            await pool.query(
-                `INSERT INTO api_usage_logs (api_endpoint, check_id, response_time_ms, status_code)
-                 VALUES ($1, $2, $3, $4)`,
-                [data.api_endpoint, data.check_id, data.response_time_ms, data.status_code]
-            );
-        } catch (error) {
-            console.error('Failed to log API usage:', error);
+        if (isSupabaseConfigured) {
+            try {
+                const { error } = await supabase
+                    .from('api_usage_logs')
+                    .insert([data]);
+
+                if (error) throw error;
+                return;
+            } catch (error) {
+                console.error('Failed to log API usage to Supabase:', error);
+            }
+        }
+
+        if (isPostgresConfigured) {
+            try {
+                await pool.query(
+                    `INSERT INTO api_usage_logs (api_endpoint, check_id, response_time_ms, status_code)
+                     VALUES ($1, $2, $3, $4)`,
+                    [data.api_endpoint, data.check_id, data.response_time_ms, data.status_code]
+                );
+            } catch (error) {
+                console.error('Failed to log API usage to PostgreSQL:', error);
+            }
         }
     },
 
@@ -60,14 +90,27 @@ export const apiLogger = {
      * Update check log status
      */
     async updateCheckStatus(id: string, status: string, errorMessage?: string) {
-        if (!isDbConfigured) return;
-        try {
-            await pool.query(
-                `UPDATE check_logs SET status = $1, error_message = $2 WHERE id = $3`,
-                [status, errorMessage, id]
-            );
-        } catch (error) {
-            console.error('Failed to update check status:', error);
+        if (isSupabaseConfigured) {
+            try {
+                await supabase
+                    .from('check_logs')
+                    .update({ status, error_message: errorMessage })
+                    .eq('id', id);
+                return;
+            } catch (error) {
+                console.error('Failed to update check status in Supabase:', error);
+            }
+        }
+
+        if (isPostgresConfigured) {
+            try {
+                await pool.query(
+                    `UPDATE check_logs SET status = $1, error_message = $2 WHERE id = $3`,
+                    [status, errorMessage, id]
+                );
+            } catch (error) {
+                console.error('Failed to update check status in PostgreSQL:', error);
+            }
         }
     }
 };

@@ -12,5 +12,8 @@ const pool = new Pool({
 
 export default pool;
 
+// Helper to check if Postgres is configured
+export const isPostgresConfigured = !!process.env.DATABASE_URL;
+
 // Helper to run queries
 export const query = (text: string, params?: any[]) => pool.query(text, params);
