@@ -10,7 +10,7 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Play, ArrowLeftRight } from 'lucide-react';
+import { Loader2, Play, ArrowLeftRight, Keyboard, User, MousePointerClick } from 'lucide-react';
 
 interface CheckFormProps {
     type: CheckType;
@@ -163,21 +163,37 @@ export function CheckForm({
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
                         {type === 'mtr' && (
-                            <div className="flex items-center justify-between px-1 mb-2">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between px-1 mb-4 gap-3">
                                 <Label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                    <ArrowLeftRight className={`h-3 w-3 ${isReverseMtr ? 'text-indigo-500 animate-pulse' : 'text-slate-400'}`} />
-                                    Diagnostic Target
+                                    <div className="bg-indigo-500/10 dark:bg-indigo-500/5 p-1 rounded-md border border-indigo-500/10">
+                                        <ArrowLeftRight className={`h-3 w-3 ${isReverseMtr ? 'text-indigo-500 rotate-180' : 'text-slate-400'} transition-transform duration-500 ease-in-out`} />
+                                    </div>
+                                    Diagnostic Mode
                                 </Label>
-                                <div className="flex items-center gap-2 bg-slate-100/50 dark:bg-slate-800/50 p-1 px-2 rounded-lg border border-slate-200/50 dark:border-white/5 transition-all">
-                                    <span className={`text-[10px] font-bold uppercase tracking-wider ${isReverseMtr ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
-                                        {isReverseMtr ? 'Using My IP' : 'Manual Input'}
-                                    </span>
-                                    <Switch
-                                        id="reverse-mtr-toggle"
-                                        checked={isReverseMtr}
-                                        onCheckedChange={onReverseMtrToggle}
-                                        className="scale-75 origin-right data-[state=checked]:bg-indigo-500"
+
+                                <div className="relative flex p-1 bg-slate-100/80 dark:bg-slate-900/80 rounded-xl border border-slate-200/60 dark:border-white/5 w-full sm:w-auto min-w-[300px] overflow-hidden">
+                                    {/* Sliding active background */}
+                                    <div
+                                        className={`absolute inset-y-1 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) bg-white dark:bg-slate-800 shadow-sm rounded-lg border border-slate-200/50 dark:border-white/10 ${isReverseMtr ? 'left-[calc(50%+4px)] right-1' : 'left-1 right-[calc(50%+4px)]'}`}
                                     />
+
+                                    <button
+                                        type="button"
+                                        onClick={() => onReverseMtrToggle?.(false)}
+                                        className={`relative flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-tight transition-all duration-300 z-10 whitespace-nowrap ${!isReverseMtr ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-500'}`}
+                                    >
+                                        <Keyboard className={`h-3.5 w-3.5 transition-all duration-300 ${!isReverseMtr ? 'scale-110' : 'scale-90 opacity-40 grayscale'}`} />
+                                        <span>Manual Target</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => onReverseMtrToggle?.(true)}
+                                        className={`relative flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-tight transition-all duration-300 z-10 whitespace-nowrap ${isReverseMtr ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-500'}`}
+                                    >
+                                        <User className={`h-3.5 w-3.5 transition-all duration-300 ${isReverseMtr ? 'scale-110' : 'scale-90 opacity-40 grayscale'}`} />
+                                        <span>Using My IP</span>
+                                    </button>
                                 </div>
                             </div>
                         )}
