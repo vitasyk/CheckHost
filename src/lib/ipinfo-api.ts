@@ -200,7 +200,7 @@ export async function fetchIpInfo(ip: string): Promise<IpInfoLiteResponse | null
     }
 }
 
-export async function resolveHostToIp(host: string): Promise<string> {
+export async function resolveHostToIp(host: string): Promise<string | null> {
     // Basic sanitization: remove http://, https://, and trailing paths
     let cleanedHost = host
         .replace(/^https?:\/\//i, '') // Remove protocol
@@ -239,8 +239,8 @@ export async function resolveHostToIp(host: string): Promise<string> {
         console.error('Failed to resolve hostname:', error);
     }
 
-    // Fallback: return the original host
-    return host;
+    // Fallback: return null so the caller knows resolution failed
+    return null;
 }
 
 /**
@@ -307,19 +307,230 @@ export async function resolveNameservers(domain: string): Promise<string[]> {
 export async function fetchRdapInfo(query: string): Promise<any> {
     const isIp = /^(?:\d{1,3}\.){3}\d{1,3}$|^(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}$/.test(query);
     const type = isIp ? 'ip' : 'domain';
-    const url = `https://rdap.org/${type}/${query}`;
 
-    try {
-        const response = await fetch(url, {
-            headers: { 'Accept': 'application/rdap+json, application/json' },
-            signal: AbortSignal.timeout(5000)
+    // List of RDAP servers to try
+    const servers = [`https://rdap.org/${type}/${query}`];
+
+    // Add TLD-specific fallbacks for common TLDs if not already covered
+    if (!isIp) {
+        const tld = query.split('.').pop()?.toLowerCase();
+        if (tld === 'co') servers.push(`https://rdap.nic.co/domain/${query}`);
+        if (tld === 'io') servers.push(`https://rdap.nic.io/domain/${query}`);
+        if (tld === 'me') servers.push(`https://rdap.me/domain/${query}`);
+    }
+
+    for (const url of servers) {
+        try {
+            console.log(`[RDAP] Fetching from ${url}...`);
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/rdap+json, application/json' },
+                signal: AbortSignal.timeout(10000)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data && !data.error) return data;
+            }
+        } catch (error) {
+            console.warn(`RDAP fetch failed for ${url}:`, error instanceof Error ? error.message : error);
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Fetch WHOIS info via TCP port 43 as a fallback when RDAP is unavailable.
+ * Returns a structured object compatible with parseRdapData expectations.
+ */
+export async function fetchWhoisInfo(domain: string): Promise<any> {
+    const net = require('net');
+
+    // Map TLD to WHOIS server
+    const tld = domain.split('.').pop()?.toLowerCase() || '';
+    const whoisServers: Record<string, string> = {
+        'com': 'whois.verisign-grs.com',
+        'net': 'whois.verisign-grs.com',
+        'org': 'whois.pir.org',
+        'co': 'whois.nic.co',
+        'io': 'whois.nic.io',
+        'me': 'whois.nic.me',
+        'biz': 'whois.biz',
+        'info': 'whois.afilias.net',
+        'ua': 'whois.ua',
+    };
+
+    const primaryServer = whoisServers[tld] || `whois.nic.${tld}`;
+    const allServers = [primaryServer, 'whois.iana.org', 'whois.internic.net'];
+
+    for (const server of allServers) {
+        try {
+            let resText = await queryWhoisServer(server, domain, net);
+            if (!resText) continue;
+
+            // Handle IANA referral
+            if (server === 'whois.iana.org') {
+                const referLine = resText.split('\n').find(l => l.toLowerCase().startsWith('refer:') || l.toLowerCase().startsWith('whois:'));
+                if (referLine) {
+                    const referredServer = referLine.split(':')[1].trim();
+                    if (referredServer && referredServer !== server) {
+                        console.log(`[WHOIS] Following IANA referral to ${referredServer} for ${domain}`);
+                        const referredData = await queryWhoisServer(referredServer, domain, net).catch(() => null);
+                        if (referredData) resText = referredData;
+                    }
+                }
+            }
+
+            const parsed = parseWhoisText(resText, domain);
+            if (parsed) return parsed;
+        } catch (e) {
+            console.warn(`WHOIS query failed for ${server}:`, e instanceof Error ? e.message : e);
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Low-level TCP query to a WHOIS server
+ */
+async function queryWhoisServer(server: string, domain: string, net: any): Promise<string | null> {
+    return new Promise((resolve, reject) => {
+        let data = '';
+        const socket = new net.Socket();
+        const timeout = setTimeout(() => {
+            socket.destroy();
+            resolve(null);
+        }, 10000);
+
+        socket.connect(43, server, () => {
+            socket.write(domain + '\r\n');
         });
 
-        if (!response.ok) return null;
+        socket.on('data', (chunk: Buffer) => {
+            data += chunk.toString();
+        });
 
-        return await response.json();
-    } catch (error) {
-        console.error(`Failed to fetch RDAP for ${query}:`, error);
+        socket.on('end', () => {
+            clearTimeout(timeout);
+            resolve(data);
+        });
+
+        socket.on('error', (err: any) => {
+            clearTimeout(timeout);
+            reject(err);
+        });
+    });
+}
+
+/**
+ * Parse raw WHOIS text into a structured object compatible with RDAP viewer.
+ */
+function parseWhoisText(text: string, domain: string): any {
+    const lines = text.split('\n');
+    const result: any = {
+        objectClassName: 'domain',
+        ldhName: domain,
+        name: domain,
+        handle: domain,
+        status: [] as string[],
+        events: [] as any[],
+        entities: [] as any[],
+        nameservers: [] as any[],
+        _whoisRaw: text,
+    };
+
+    const fieldMap: Record<string, string> = {};
+
+    for (const line of lines) {
+        const match = line.match(/^\s*([^:]+):\s*(.+)\s*$/);
+        if (!match) continue;
+        const key = match[1].trim().toLowerCase();
+        const value = match[2].trim();
+
+        // Registrar
+        if (key.includes('registrar') && !key.includes('url') && !key.includes('abuse') && !key.includes('whois') && !key.includes('iana')) {
+            if (!fieldMap['registrar']) fieldMap['registrar'] = value;
+        }
+
+        // Registrar URL
+        if (key.includes('registrar url') || key === 'referral url') {
+            fieldMap['registrar_url'] = value;
+        }
+
+        // Dates
+        if (key.includes('creation date') || key.includes('registered') || key === 'created') {
+            fieldMap['creation_date'] = value;
+        }
+        if (key.includes('expir') || key.includes('registry expiry')) {
+            fieldMap['expiration_date'] = value;
+        }
+        if (key.includes('updated date') || key.includes('last updated') || key.includes('last modified')) {
+            fieldMap['updated_date'] = value;
+        }
+
+        // Status
+        if (key.includes('domain status') || key === 'status') {
+            const statusValue = value.split(' ')[0]; // "clientTransferProhibited https://..." -> "clientTransferProhibited"
+            result.status.push(statusValue);
+        }
+
+        // Nameservers
+        if (key.includes('name server') || key === 'nserver' || key === 'nameserver') {
+            result.nameservers.push({ ldhName: value.toLowerCase() });
+        }
+
+        // Abuse email
+        if (key.includes('abuse') && key.includes('email')) {
+            fieldMap['abuse_email'] = value;
+        }
+        if (key.includes('abuse') && key.includes('phone')) {
+            fieldMap['abuse_phone'] = value;
+        }
+    }
+
+    // Build events array
+    if (fieldMap['creation_date']) {
+        result.events.push({ eventAction: 'registration', eventDate: fieldMap['creation_date'] });
+    }
+    if (fieldMap['expiration_date']) {
+        result.events.push({ eventAction: 'expiration', eventDate: fieldMap['expiration_date'] });
+    }
+    if (fieldMap['updated_date']) {
+        result.events.push({ eventAction: 'last changed', eventDate: fieldMap['updated_date'] });
+    }
+
+    // Build entities (registrar)
+    if (fieldMap['registrar']) {
+        const registrarEntity: any = {
+            objectClassName: 'entity',
+            roles: ['registrar'],
+            vcardArray: ['vcard', [['fn', {}, 'text', fieldMap['registrar']]]],
+        };
+        if (fieldMap['registrar_url']) {
+            registrarEntity.publicIds = [{ identifier: fieldMap['registrar_url'] }];
+        }
+        result.entities.push(registrarEntity);
+    }
+
+    // Abuse contact entity
+    if (fieldMap['abuse_email'] || fieldMap['abuse_phone']) {
+        const abuseEntity: any = {
+            objectClassName: 'entity',
+            roles: ['abuse'],
+            vcardArray: ['vcard', [
+                ['fn', {}, 'text', 'Abuse Contact'],
+                ...(fieldMap['abuse_email'] ? [['email', {}, 'text', fieldMap['abuse_email']]] : []),
+                ...(fieldMap['abuse_phone'] ? [['tel', {}, 'text', fieldMap['abuse_phone']]] : []),
+            ]],
+        };
+        result.entities.push(abuseEntity);
+    }
+
+    // If we got no useful data, return null
+    if (!fieldMap['registrar'] && result.status.length === 0 && result.events.length === 0) {
         return null;
     }
+
+    return result;
 }

@@ -162,26 +162,27 @@ export function SslDashboard({ data }: SslDashboardProps) {
     const allExpanded = expandedNodes.size === reversedChain.length;
 
     return (
-        <div ref={dashboardRef} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 bg-slate-50 dark:bg-slate-900 rounded-2xl relative group/screenshot px-5 py-5">
-            {/* Hover-reveal floating action buttons */}
-            <div className="screenshot-hide absolute top-3 right-3 z-10 flex items-center gap-1 opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
+        <div ref={dashboardRef} className="animate-in fade-in slide-in-from-bottom-4 duration-500 bg-slate-100/80 dark:bg-slate-900/80 rounded-2xl relative group/screenshot overflow-hidden mt-8 p-1">
+            {/* Hover-reveal floating action buttons - Positioned relative to the frame */}
+            <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center gap-1 opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
                 <button
                     onClick={handleCopyToClipboard}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-l-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
                 >
                     {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
                     <span>{copied ? 'Copied' : 'Copy Img'}</span>
                 </button>
                 <button
                     onClick={handleScreenshot}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-r-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
                 >
                     <Camera className="h-3 w-3" />
                     <span>Save</span>
                 </button>
             </div>
-            {/* Professional Security Matrix Header */}
-            <Card className="overflow-hidden border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-md relative group">
+
+            {/* Professional Security Matrix Header Card */}
+            <div className="relative group overflow-hidden rounded-xl border border-slate-200/60 dark:border-white/5 bg-white dark:bg-slate-950 shadow-sm mx-1 mt-1">
                 <div className={cn(
                     "h-1.5 w-full transition-colors duration-1000",
                     isFullyTrusted ? "bg-emerald-500" : status.color === "red" ? "bg-red-500" : "bg-amber-500"
@@ -268,221 +269,196 @@ export function SslDashboard({ data }: SslDashboardProps) {
                         </div>
                     </div>
                 )}
-            </Card>
 
-            <div className="mx-auto space-y-8">
-                {/* Certificate Chain Visualization */}
-                <div className="relative">
-                    <div className="flex items-center justify-between mb-8 px-5">
-                        <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
-                                <Layers className="h-5 w-5 text-indigo-500" />
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest text-xs">Trust Hierarchy</h4>
-                                <p className="text-[10px] text-slate-400 font-medium">Click nodes to reveal technical fingerprints</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={toggleAll}
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-slate-200 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
-                            >
-                                {allExpanded ? 'Collapse All' : 'Expand All'}
-                            </button>
-                        </div>
-                    </div>
+                <div className="relative flex flex-col transition-all duration-500">
+                    {reversedChain.map((cert, index) => {
+                        const isVisible = index < revealLevel;
+                        const isVerified = index < revealLevel - 1;
+                        const isLast = index === reversedChain.length - 1;
+                        const isRoot = index === 0;
+                        const isExpanded = expandedNodes.has(cert.fingerprint);
+                        const isExpired = new Date(cert.valid_to) < new Date();
 
-                    <div className="relative flex flex-col transition-all duration-500">
-                        {reversedChain.map((cert, index) => {
-                            const isVisible = index < revealLevel;
-                            const isVerified = index < revealLevel - 1;
-                            const isLast = index === reversedChain.length - 1;
-                            const isRoot = index === 0;
-                            const isExpanded = expandedNodes.has(cert.fingerprint);
-                            const isExpired = new Date(cert.valid_to) < new Date();
-
-                            return (
-                                <div key={cert.fingerprint} className={cn(
-                                    "flex gap-4 relative transition-all duration-700",
-                                    isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-                                )}>
-                                    {/* Left Rail: Icon + Connector */}
-                                    <div className="flex flex-col items-center shrink-0 w-10 relative">
-                                        {/* Icon Node */}
-                                        <div
-                                            onClick={() => toggleNode(cert.fingerprint)}
-                                            className={cn(
-                                                "h-10 w-10 shrink-0 rounded-2xl flex items-center justify-center transition-all duration-500 z-20 relative bg-white dark:bg-slate-900 border cursor-pointer hover:scale-105 active:scale-95",
-                                                isExpanded
-                                                    ? "border-indigo-500/40 text-indigo-500 shadow-sm"
-                                                    : "border-slate-200 dark:border-slate-800",
-                                                isVisible ? "scale-100" : "scale-0",
-                                                // Status Colors
-                                                isVerified && !isExpanded && !isExpired && "bg-emerald-50/30 dark:bg-emerald-900/10 border-emerald-500/10",
-                                                isExpired && !isExpanded && "bg-red-50/30 dark:bg-red-900/10 border-red-500/10 ring-1 ring-red-500/10",
-                                                !isVerified && !isExpired && !isExpanded && "bg-amber-50/30 dark:bg-amber-900/10 border-amber-500/10"
-                                            )}
-                                        >
-                                            {isExpired ? (
-                                                <XCircle className="h-4 w-4 text-red-500 animate-in zoom-in duration-700" />
-                                            ) : isVerified ? (
-                                                <CheckCircle2 className="h-4 w-4 text-emerald-500 animate-in zoom-in duration-700" />
-                                            ) : isVisible ? (
-                                                <AlertTriangle className="h-3.5 w-3.5 text-amber-500 animate-in zoom-in duration-700" />
-                                            ) : (
-                                                <span className="text-[10px] font-bold text-slate-400">
-                                                    {isRoot ? "R" : isLast ? "L" : (reversedChain.length - index)}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {/* Connector Line (Grows to fill height) */}
-                                        {!isLast && isVisible && (
-                                            <div className="flex-1 w-0.5 bg-slate-100 dark:bg-white/5 relative my-1 min-h-[20px] rounded-full overflow-hidden">
-                                                <div className={cn(
-                                                    "absolute top-0 left-0 w-full shadow-[0_0_8px_rgba(16,185,129,0.3)] transition-all duration-1000",
-                                                    isExpired ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.3)]" :
-                                                        isVerified ? "bg-emerald-500" : "bg-amber-500",
-                                                    (isVerified || isExpired) ? "h-full opacity-100" : "h-0 opacity-0"
-                                                )} />
-                                                {/* Arrowhead at bottom of line */}
-                                                <div className={cn(
-                                                    "absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1 transition-all duration-700 z-10",
-                                                    (isVerified || isExpired) ? "opacity-100 scale-100" : "opacity-0 scale-50"
-                                                )}>
-                                                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                                        className={cn(
-                                                            "fill-current",
-                                                            isExpired ? "text-red-500" : isVerified ? "text-emerald-500" : "text-amber-500"
-                                                        )}>
-                                                        <path d="M0 0L5 5L10 0" fill="currentColor" />
-                                                    </svg>
-                                                </div>
-                                            </div>
+                        return (
+                            <div key={cert.fingerprint} className={cn(
+                                "flex gap-4 relative transition-all duration-700",
+                                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+                            )}>
+                                {/* Left Rail: Icon + Connector */}
+                                <div className="flex flex-col items-center shrink-0 w-10 relative">
+                                    {/* Icon Node */}
+                                    <div
+                                        onClick={() => toggleNode(cert.fingerprint)}
+                                        className={cn(
+                                            "h-10 w-10 shrink-0 rounded-2xl flex items-center justify-center transition-all duration-500 z-20 relative bg-white dark:bg-slate-900 border cursor-pointer hover:scale-105 active:scale-95",
+                                            isExpanded
+                                                ? "border-indigo-500/40 text-indigo-500 shadow-sm"
+                                                : "border-slate-200 dark:border-slate-800",
+                                            isVisible ? "scale-100" : "scale-0",
+                                            // Status Colors
+                                            isVerified && !isExpanded && !isExpired && "bg-emerald-50/30 dark:bg-emerald-900/10 border-emerald-500/10",
+                                            isExpired && !isExpanded && "bg-red-50/30 dark:bg-red-900/10 border-red-500/10 ring-1 ring-red-500/10",
+                                            !isVerified && !isExpired && !isExpanded && "bg-amber-50/30 dark:bg-amber-900/10 border-amber-500/10"
+                                        )}
+                                    >
+                                        {isExpired ? (
+                                            <XCircle className="h-4 w-4 text-red-500 animate-in zoom-in duration-700" />
+                                        ) : isVerified ? (
+                                            <CheckCircle2 className="h-4 w-4 text-emerald-500 animate-in zoom-in duration-700" />
+                                        ) : isVisible ? (
+                                            <AlertTriangle className="h-3.5 w-3.5 text-amber-500 animate-in zoom-in duration-700" />
+                                        ) : (
+                                            <span className="text-[10px] font-bold text-slate-400">
+                                                {isRoot ? "R" : isLast ? "L" : (reversedChain.length - index)}
+                                            </span>
                                         )}
                                     </div>
 
-                                    {/* Right Content: Card */}
-                                    <div className="flex-1 min-w-0 pb-6">
-                                        <div
-                                            className={cn(
-                                                "rounded-2xl border transition-all duration-300 group/node relative z-10 overflow-hidden",
-                                                isExpanded
-                                                    ? "bg-white dark:bg-slate-900 border-indigo-500/50 shadow-sm ring-1 ring-indigo-500/10"
-                                                    : isExpired
-                                                        ? "bg-red-50/40 dark:bg-red-900/10 border-red-200/60 dark:border-red-500/10 hover:border-red-300 dark:hover:border-red-500/30"
-                                                        : isVerified
-                                                            ? "bg-white/40 dark:bg-slate-900/40 border-slate-200/60 dark:border-white/5 hover:border-indigo-200 dark:hover:border-indigo-900/30"
-                                                            : "bg-amber-50/40 dark:bg-amber-900/10 border-amber-200/60 dark:border-amber-500/10 hover:border-amber-300 dark:hover:border-amber-500/30"
-                                            )}
-                                        >
-                                            {/* Clickable Header */}
-                                            <div
-                                                onClick={() => toggleNode(cert.fingerprint)}
-                                                className="flex items-center justify-between gap-3 p-3.5 cursor-pointer select-none"
-                                            >
-                                                <div className="min-w-0 flex-1">
-                                                    <p className={cn(
-                                                        "text-[13px] font-bold truncate transition-colors duration-300 select-text",
-                                                        isExpanded ? "text-indigo-600 dark:text-indigo-400" :
-                                                            isExpired ? "text-red-700 dark:text-red-400" :
-                                                                "text-slate-900 dark:text-slate-100"
-                                                    )} onClick={(e) => e.stopPropagation()}>
-                                                        {cert.subject.CN}
-                                                    </p>
-                                                    <p className="text-[10px] text-slate-400 font-medium truncate pointer-events-none">
-                                                        {cert.issuer.O || cert.issuer.CN}
-                                                    </p>
-                                                </div>
-
-                                                <div className="flex items-center gap-2 shrink-0">
-                                                    <Badge variant="outline" className={cn(
-                                                        "text-[8px] uppercase tracking-widest px-1.5 h-4 border-0 font-bold",
-                                                        isExpired ? "bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400" :
-                                                            isRoot ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" :
-                                                                isLast ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" :
-                                                                    "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                    {/* Connector Line (Grows to fill height) */}
+                                    {!isLast && isVisible && (
+                                        <div className="flex-1 w-0.5 bg-slate-100 dark:bg-white/5 relative my-1 min-h-[20px] rounded-full overflow-hidden">
+                                            <div className={cn(
+                                                "absolute top-0 left-0 w-full shadow-[0_0_8px_rgba(16,185,129,0.3)] transition-all duration-1000",
+                                                isExpired ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.3)]" :
+                                                    isVerified ? "bg-emerald-500" : "bg-amber-500",
+                                                (isVerified || isExpired) ? "h-full opacity-100" : "h-0 opacity-0"
+                                            )} />
+                                            {/* Arrowhead at bottom of line */}
+                                            <div className={cn(
+                                                "absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1 transition-all duration-700 z-10",
+                                                (isVerified || isExpired) ? "opacity-100 scale-100" : "opacity-0 scale-50"
+                                            )}>
+                                                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"
+                                                    className={cn(
+                                                        "fill-current",
+                                                        isExpired ? "text-red-500" : isVerified ? "text-emerald-500" : "text-amber-500"
                                                     )}>
-                                                        {isExpired ? "EXPIRED" : isLast ? "Leaf" : isRoot ? "Root" : "ICA"}
-                                                    </Badge>
-                                                    {/* Explicit Toggle Button */}
-                                                    <button
-                                                        type="button"
-                                                        className={cn(
-                                                            "h-6 w-6 rounded-full flex items-center justify-center border transition-all duration-300 hover:bg-slate-100 dark:hover:bg-white/10",
-                                                            isExpanded
-                                                                ? "rotate-180 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500 border-indigo-200 dark:border-indigo-500/20"
-                                                                : "bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-400"
-                                                        )}
-                                                    >
-                                                        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg" className="stroke-current stroke-2">
-                                                            <path d="M1 1L5 5L9 1" strokeLinecap="round" strokeLinejoin="round" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
+                                                    <path d="M0 0L5 5L10 0" fill="currentColor" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Right Content: Card */}
+                                <div className="flex-1 min-w-0 pb-6">
+                                    <div
+                                        className={cn(
+                                            "rounded-2xl border transition-all duration-300 group/node relative z-10 overflow-hidden",
+                                            isExpanded
+                                                ? "bg-white dark:bg-slate-900 border-indigo-500/50 shadow-sm ring-1 ring-indigo-500/10"
+                                                : isExpired
+                                                    ? "bg-red-50/40 dark:bg-red-900/10 border-red-200/60 dark:border-red-500/10 hover:border-red-300 dark:hover:border-red-500/30"
+                                                    : isVerified
+                                                        ? "bg-white/40 dark:bg-slate-900/40 border-slate-200/60 dark:border-white/5 hover:border-indigo-200 dark:hover:border-indigo-900/30"
+                                                        : "bg-amber-50/40 dark:bg-amber-900/10 border-amber-200/60 dark:border-amber-500/10 hover:border-amber-300 dark:hover:border-amber-500/30"
+                                        )}
+                                    >
+                                        {/* Clickable Header */}
+                                        <div
+                                            onClick={() => toggleNode(cert.fingerprint)}
+                                            className="flex items-center justify-between gap-3 p-3.5 cursor-pointer select-none"
+                                        >
+                                            <div className="min-w-0 flex-1">
+                                                <p className={cn(
+                                                    "text-[13px] font-bold truncate transition-colors duration-300 select-text",
+                                                    isExpanded ? "text-indigo-600 dark:text-indigo-400" :
+                                                        isExpired ? "text-red-700 dark:text-red-400" :
+                                                            "text-slate-900 dark:text-slate-100"
+                                                )} onClick={(e) => e.stopPropagation()}>
+                                                    {cert.subject.CN}
+                                                </p>
+                                                <p className="text-[10px] text-slate-400 font-medium truncate pointer-events-none">
+                                                    {cert.issuer.O || cert.issuer.CN}
+                                                </p>
                                             </div>
 
-                                            {/* Expandable Technical Details */}
-                                            <div
-                                                onClick={(e) => e.stopPropagation()}
-                                                className={cn(
-                                                    "overflow-hidden transition-all duration-500 ease-in-out cursor-text px-3.5",
-                                                    isExpanded ? "max-h-[800px] opacity-100 pb-3" : "max-h-0 opacity-0 pb-0"
-                                                )}
-                                            >
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-1.5 pt-2 border-t border-slate-100 dark:border-white/5">
-                                                    {/* Col 1: Identity */}
-                                                    <div className="space-y-1.5">
-                                                        <InfoRow label="Issued By" value={cert.issuer.O || cert.issuer.CN} />
-                                                        {cert.subject.O && <InfoRow label="Organization" value={cert.subject.O} />}
-                                                    </div>
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                <Badge variant="outline" className={cn(
+                                                    "text-[8px] uppercase tracking-widest px-1.5 h-4 border-0 font-bold",
+                                                    isExpired ? "bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400" :
+                                                        isRoot ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" :
+                                                            isLast ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" :
+                                                                "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                                )}>
+                                                    {isExpired ? "EXPIRED" : isLast ? "Leaf" : isRoot ? "Root" : "ICA"}
+                                                </Badge>
+                                                {/* Explicit Toggle Button */}
+                                                <button
+                                                    type="button"
+                                                    className={cn(
+                                                        "h-6 w-6 rounded-full flex items-center justify-center border transition-all duration-300 hover:bg-slate-100 dark:hover:bg-white/10",
+                                                        isExpanded
+                                                            ? "rotate-180 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500 border-indigo-200 dark:border-indigo-500/20"
+                                                            : "bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-400"
+                                                    )}
+                                                >
+                                                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg" className="stroke-current stroke-2">
+                                                        <path d="M1 1L5 5L9 1" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
 
-                                                    {/* Col 2: Security */}
-                                                    <div className="space-y-1.5">
-                                                        <InfoRow label="Algorithm" value={cert.sigalg || 'N/A'} />
-                                                        <InfoRow label="Serial Number" value={cert.serialNumber} mono />
-                                                    </div>
+                                        {/* Expandable Technical Details */}
+                                        <div
+                                            onClick={(e) => e.stopPropagation()}
+                                            className={cn(
+                                                "overflow-hidden transition-all duration-500 ease-in-out cursor-text px-3.5",
+                                                isExpanded ? "max-h-[800px] opacity-100 pb-3" : "max-h-0 opacity-0 pb-0"
+                                            )}
+                                        >
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-1.5 pt-2 border-t border-slate-100 dark:border-white/5">
+                                                {/* Col 1: Identity */}
+                                                <div className="space-y-1.5">
+                                                    <InfoRow label="Issued By" value={cert.issuer.O || cert.issuer.CN} />
+                                                    {cert.subject.O && <InfoRow label="Organization" value={cert.subject.O} />}
+                                                </div>
 
-                                                    {/* Col 3: Context */}
-                                                    <div className="space-y-1.5">
+                                                {/* Col 2: Security */}
+                                                <div className="space-y-1.5">
+                                                    <InfoRow label="Algorithm" value={cert.sigalg || 'N/A'} />
+                                                    <InfoRow label="Serial Number" value={cert.serialNumber} mono />
+                                                </div>
+
+                                                {/* Col 3: Context */}
+                                                <div className="space-y-1.5">
+                                                    <InfoRow
+                                                        label="Validity Window"
+                                                        value={`${new Date(cert.valid_from).toLocaleDateString()} — ${new Date(cert.valid_to).toLocaleDateString()}`}
+                                                        mono
+                                                    />
+                                                    {(cert.subject.L || cert.subject.ST || cert.subject.C) && (
                                                         <InfoRow
-                                                            label="Validity Window"
-                                                            value={`${new Date(cert.valid_from).toLocaleDateString()} — ${new Date(cert.valid_to).toLocaleDateString()}`}
-                                                            mono
+                                                            label="Location"
+                                                            value={[cert.subject.L, cert.subject.ST, cert.subject.C].filter(Boolean).join(', ')}
                                                         />
-                                                        {(cert.subject.L || cert.subject.ST || cert.subject.C) && (
-                                                            <InfoRow
-                                                                label="Location"
-                                                                value={[cert.subject.L, cert.subject.ST, cert.subject.C].filter(Boolean).join(', ')}
-                                                            />
-                                                        )}
-                                                    </div>
-
-                                                    {isLast && cert.subjectaltname && (
-                                                        <div className="col-span-1 md:col-span-3 pt-0.5">
-                                                            <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black inline-block mr-2">SANs:</span>
-                                                            <div className="inline-flex flex-wrap gap-x-2 gap-y-0 text-[10px] font-mono font-medium text-slate-500 dark:text-slate-400 align-baseline">
-                                                                {cert.subjectaltname.replace(/DNS:/g, '').split(', ').map((san, i) => (
-                                                                    <span key={san + i}>{san}{i < cert.subjectaltname!.split(', ').length - 1 ? ',' : ''}</span>
-                                                                ))}
-                                                            </div>
-                                                        </div>
                                                     )}
                                                 </div>
+
+                                                {isLast && cert.subjectaltname && (
+                                                    <div className="col-span-1 md:col-span-3 pt-0.5">
+                                                        <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black inline-block mr-2">SANs:</span>
+                                                        <div className="inline-flex flex-wrap gap-x-2 gap-y-0 text-[10px] font-mono font-medium text-slate-500 dark:text-slate-400 align-baseline">
+                                                            {cert.subjectaltname.replace(/DNS:/g, '').split(', ').map((san, i) => (
+                                                                <span key={san + i}>{san}{i < cert.subjectaltname!.split(', ').length - 1 ? ',' : ''}</span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
+                            </div>
+                        );
+                    })}
+                </div>
 
-                    <div className="mt-12 pt-6 border-t border-slate-100 dark:border-white/5 text-center">
-                        <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest italic">
-                            Verification Ritual Complete • Full Trust Chain Encrypted & Validated
-                        </p>
-                    </div>
+                <div className="mt-12 pt-6 border-t border-slate-100 dark:border-white/5 text-center">
+                    <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest italic">
+                        Verification Ritual Complete • Full Trust Chain Encrypted & Validated
+                    </p>
                 </div>
             </div>
         </div>

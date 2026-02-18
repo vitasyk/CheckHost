@@ -1,7 +1,8 @@
-import { IpInfoResponse } from '@/types/ip-info';
+﻿import { IpInfoResponse } from '@/types/ip-info';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Globe, ChevronDown, Database, Calendar, ShieldCheck, Mail, Phone, ExternalLink, Server, Network, Maximize2, Camera, Copy, Check, Loader2 } from 'lucide-react';
+import { MapPin, Globe, ChevronDown, Database, Calendar, ShieldCheck, Mail, Phone, ExternalLink, Server, Network, Maximize2, Camera, Copy, Check, Loader2, AlertTriangle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import MapWrapper from '@/components/ip-info/MapWrapper';
 import { getCountryCoords } from '@/lib/country-coords';
 import { parseRdapData } from '@/lib/rdap-parser';
@@ -103,6 +104,14 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
             }
         }
     };
+
+    const hasRdap = !!data.rdapRawData;
+    const rdap = hasRdap ? parseRdapData(data.rdapRawData) : null;
+    const isIP = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(data.ip || '');
+    const isUnresolved = data.status === 'failed';
+
+    // Simplified check for "unresolved" state but NO early return here
+    // The Execution will continue to define providerConfigs and render the dashboard.
 
     const providerConfigs = [
         {
@@ -245,7 +254,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
             fields: config.fields.filter(f => f.value && f.value !== 'N/A' && f.value !== '0' && f.value !== '0,0' && f.value !== '0km' && f.value !== '0, 0')
         }));
 
-    if (providerConfigs.length === 0) {
+    if (!isUnresolved && providerConfigs.length === 0) {
         return <div className="text-center p-8 text-muted-foreground">No IP information found.</div>;
     }
 
@@ -259,16 +268,16 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
     }
 
     return (
-        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 mt-8">
             {/* Screenshot area: Target IP + Domain Registration */}
-            <div ref={screenshotRef} className="space-y-4 bg-slate-50 dark:bg-slate-900 rounded-2xl p-5 relative group/screenshot">
-                {/* Hover-reveal floating action buttons */}
-                <div className="screenshot-hide absolute top-3 right-3 z-10 flex items-center gap-1 opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
+            <div ref={screenshotRef} className="bg-slate-50 dark:bg-slate-900 rounded-2xl relative group/screenshot border border-slate-200/60 dark:border-white/5 pb-1">
+                {/* Hover-reveal floating action buttons - Positioned relative to frame */}
+                <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center gap-1 opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
                     {onRefresh && (
                         <button
                             onClick={onRefresh}
                             disabled={isRefreshing}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-l-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer disabled:opacity-50"
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer disabled:opacity-50"
                         >
                             <Loader2 className={`h-3 w-3 ${isRefreshing ? 'animate-spin text-indigo-500' : ''}`} />
                             <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
@@ -276,212 +285,255 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                     )}
                     <button
                         onClick={handleCopyToClipboard}
-                        className={`flex items-center gap-1.5 px-2.5 py-1.5 ${onRefresh ? 'border-l-0' : 'rounded-l-lg'} bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer`}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 border-x border-b ${onRefresh ? 'border-l-0' : 'rounded-bl-lg'} bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer`}
                     >
                         {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
                         <span>{copied ? 'Copied' : 'Copy Img'}</span>
                     </button>
                     <button
                         onClick={handleScreenshot}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-r-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
                     >
                         <Camera className="h-3 w-3" />
                         <span>Save</span>
                     </button>
                 </div>
-                {/* Unified Summary Header Bar - Premium UI/UX */}
-                <Card className="p-4 border-slate-200 dark:border-border bg-white/50 dark:bg-card shadow-sm">
-                    <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
-                        {/* Focus: IP & Hostname */}
-                        <div className="flex items-center gap-4 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-border pb-4 lg:pb-0 lg:pr-8 w-full lg:w-auto">
-                            <div className="p-2.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl">
-                                <Globe className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                            </div>
-                            <div className="flex-1 lg:flex-none min-w-[140px]">
-                                <div className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Target IP</div>
-                                <div className="text-2xl font-mono font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 leading-none">
-                                    {data.ip}
-                                    <Badge variant="secondary" className="px-1.5 py-0 text-xs bg-slate-100 dark:bg-white/5 text-slate-500 rounded-md font-bold">
-                                        {providerConfigs.length}
-                                    </Badge>
+
+                {/* Conditional "Not Resolved" banner for partial data surfacing - Only for domains */}
+                {isUnresolved && !isIP && (
+                    <div className="bg-white dark:bg-slate-950 rounded-[calc(1rem-1px)] shadow-sm overflow-hidden flex flex-col mx-1 mt-1 mb-4">
+                        <div className={cn(
+                            "h-1.5 w-full",
+                            (!hasRdap) ? "bg-rose-500" : "bg-amber-500"
+                        )} />
+                        <div className="p-6">
+                            <div className="flex items-center gap-4">
+                                <div className={cn(
+                                    "relative shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center",
+                                    (!hasRdap) ? "bg-rose-50 dark:bg-rose-500/10 text-rose-500" : "bg-amber-50 dark:bg-amber-500/10 text-amber-500"
+                                )}>
+                                    <MapPin className="h-7 w-7" />
+                                    <div className={cn(
+                                        "absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-white dark:bg-slate-950 border-2 flex items-center justify-center",
+                                        (!hasRdap) ? "border-rose-50 dark:border-rose-500/20 text-rose-600" : "border-amber-50 dark:border-amber-500/20 text-orange-500"
+                                    )}>
+                                        <AlertTriangle className="h-3 w-3" />
+                                    </div>
                                 </div>
-                                {data.hostname && (
-                                    <div className="text-xs font-mono text-slate-400 line-clamp-1 mt-1">{data.hostname}</div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Focus: Quick Insights */}
-                        <div className="flex flex-1 items-center justify-between w-full">
-                            <div className="flex items-center gap-6 sm:gap-10 overflow-x-auto no-scrollbar py-1">
-                                {/* Location */}
-                                {providers.ipapi?.city && (
-                                    <div className="flex items-center gap-3 shrink-0">
-                                        <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-                                            <MapPin className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                                        </div>
-                                        <div>
-                                            <div className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Location</div>
-                                            <div className="text-base font-bold text-slate-800 dark:text-slate-200">
-                                                {providers.ipapi.city}, {providers.ipapi.countryCode}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Timezone & Info */}
-                                {providers.ipapi?.timezone && (
-                                    <div className="flex items-center gap-3 shrink-0">
-                                        <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                                            <Calendar className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                                        </div>
-                                        <div>
-                                            <div className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Details</div>
-                                            <div className="text-base font-bold text-slate-800 dark:text-slate-200">
-                                                {providers.ipapi.timezone}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Security Badges - Aligned Right */}
-                            <div className="flex items-center gap-3 shrink-0 ml-4">
-                                {providers.ipapi?.proxy && (
-                                    <Badge className="bg-amber-100/80 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200/50 dark:border-amber-900/50 hover:bg-amber-100 transition-colors uppercase text-xs font-bold px-3 py-1">
-                                        VPN / Proxy
-                                    </Badge>
-                                )}
-                                {providers.ipapi?.hosting && (
-                                    <Badge className="bg-rose-100/80 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 border-rose-200/50 dark:border-rose-900/50 hover:bg-rose-100 transition-colors uppercase text-xs font-bold px-3 py-1">
-                                        Data Center
-                                    </Badge>
-                                )}
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-lg font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                                        IP Not Resolved
+                                    </h3>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                                        <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data.host || 'the host'}</span>
+                                        {' '}couldn&apos;t be resolved to an IP address. Some intelligence might still be available below.
+                                    </p>
+                                </div>
+                                <Badge variant="outline" className="shrink-0 px-3 py-1 rounded-full border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black tracking-widest bg-slate-100/50 dark:bg-white/5">
+                                    Unresolved
+                                </Badge>
                             </div>
                         </div>
                     </div>
-                </Card>
+                )}
 
-                {/* Featured Map Section - High Visibility */}
-                {displaySettings.showFeaturedMap && (() => {
-                    let featuredLat = 0;
-                    let featuredLng = 0;
-                    let sourceName = '';
-
-                    // Priority 1: IPInfo.io real coordinates (as requested)
-                    if (providers.ipinfo?.loc) {
-                        const parts = providers.ipinfo.loc.split(',');
-                        const lat = parseFloat(parts[0]);
-                        const lng = parseFloat(parts[1]);
-                        if (!isNaN(lat) && !isNaN(lng) && (lat !== 0 || lng !== 0)) {
-                            featuredLat = lat;
-                            featuredLng = lng;
-                            sourceName = 'IPInfo.io';
-                        }
-                    }
-
-                    // Priority 2: Fallback to any other provider coordinates if IPInfo is missing
-                    if (featuredLat === 0) {
-                        const fallbackSource = providerConfigs.find(p => {
-                            const d = p.data as any;
-                            return d.latitude || d.lat || d.loc;
-                        });
-
-                        if (fallbackSource) {
-                            const d = fallbackSource.data as any;
-                            if (d.loc) {
-                                [featuredLat, featuredLng] = d.loc.split(',').map(parseFloat);
-                            } else {
-                                featuredLat = d.latitude || d.lat;
-                                featuredLng = d.longitude || d.lon;
-                            }
-                            sourceName = fallbackSource.name;
-                        }
-                    }
-
-                    if (featuredLat === 0) return null;
-
-                    return (
-                        <Card className="overflow-hidden border-slate-200 dark:border-white/5 shadow-md">
-                            <div className="flex flex-col md:flex-row h-[350px]">
-                                {/* Map Side */}
-                                <div className="flex-1 relative min-h-[200px] md:min-h-0">
-                                    <MapWrapper
-                                        lat={featuredLat}
-                                        lng={featuredLng}
-                                        city={providers.ipinfo?.city || providers.ipapi?.city || "Unknown Location"}
-                                        country={providers.ipinfo?.country_name || providers.ipapi?.country || ""}
-                                    />
-                                    <div className="absolute top-4 left-4 z-[10] flex gap-2">
-                                        <Badge className="bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-slate-100 backdrop-blur shadow-sm border-slate-200/50 dark:border-white/10 py-1.5 px-3">
-                                            <MapPin className="h-3.5 w-3.5 mr-1.5 text-indigo-500" />
-                                            {featuredLat.toFixed(4)}, {featuredLng.toFixed(4)}
-                                        </Badge>
+                {!isUnresolved && (
+                    <div className="bg-white dark:bg-slate-950 rounded-[calc(1rem-1px)] shadow-sm overflow-hidden flex flex-col mx-1 mt-1">
+                        <div className="h-1.5 w-full bg-emerald-500" />
+                        {/* Unified Summary Header Bar - Premium UI/UX */}
+                        <div className="p-4 bg-slate-100/30 dark:bg-slate-900/40 border-b border-slate-200 dark:border-white/5">
+                            <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
+                                {/* Focus: IP & Hostname */}
+                                <div className="flex items-center gap-4 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-border pb-4 lg:pb-0 lg:pr-8 w-full lg:w-auto">
+                                    <div className="p-2.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl">
+                                        <Globe className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                                    </div>
+                                    <div className="flex-1 lg:flex-none min-w-[140px]">
+                                        <div className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Target IP</div>
+                                        <div className="text-2xl font-mono font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 leading-none">
+                                            {data.ip}
+                                            <Badge variant="secondary" className="px-1.5 py-0 text-xs bg-slate-100 dark:bg-white/5 text-slate-500 rounded-md font-bold">
+                                                {providerConfigs.length}
+                                            </Badge>
+                                        </div>
+                                        {data.hostname && (
+                                            <div className="text-xs font-mono text-slate-400 line-clamp-1 mt-1">{data.hostname}</div>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Location Details Side */}
-                                <div className="w-full md:w-[300px] bg-slate-50/50 dark:bg-slate-900/50 p-6 flex flex-col justify-between border-l border-slate-200 dark:border-white/5">
-                                    <div>
-                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mb-4">Location Context</div>
-                                        <div className="space-y-5">
-                                            <div>
-                                                <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 leading-tight">
-                                                    {providers.ipinfo?.city || providers.ipapi?.city || "Unknown"}
+                                {/* Focus: Quick Insights */}
+                                <div className="flex flex-1 items-center justify-between w-full">
+                                    <div className="flex items-center gap-6 sm:gap-10 overflow-x-auto no-scrollbar py-1">
+                                        {/* Location */}
+                                        {providers.ipapi?.city && (
+                                            <div className="flex items-center gap-3 shrink-0">
+                                                <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                                                    <MapPin className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                                                 </div>
-                                                <div className="text-sm text-slate-500 font-medium">
-                                                    {providers.ipinfo?.region || providers.ipapi?.regionName || ""}, {providers.ipinfo?.country_name || providers.ipapi?.country || ""}
+                                                <div>
+                                                    <div className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Location</div>
+                                                    <div className="text-base font-bold text-slate-800 dark:text-slate-200">
+                                                        {providers.ipapi.city}, {providers.ipapi.countryCode}
+                                                    </div>
                                                 </div>
                                             </div>
+                                        )}
 
-                                            <div className="grid grid-cols-1 gap-3">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-white dark:bg-white/5 shadow-sm border border-slate-100 dark:border-white/5 flex items-center justify-center text-indigo-500">
-                                                        <Globe className="h-4 w-4" />
-                                                    </div>
-                                                    <div className="text-xs">
-                                                        <div className="text-slate-400 font-medium uppercase tracking-wider">Source</div>
-                                                        <div className="font-bold text-slate-700 dark:text-slate-300">{sourceName} Precision</div>
+                                        {/* Timezone & Info */}
+                                        {providers.ipapi?.timezone && (
+                                            <div className="flex items-center gap-3 shrink-0">
+                                                <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                                                    <Calendar className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                                                </div>
+                                                <div>
+                                                    <div className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Details</div>
+                                                    <div className="text-base font-bold text-slate-800 dark:text-slate-200">
+                                                        {providers.ipapi.timezone}
                                                     </div>
                                                 </div>
-
-                                                {providers.ipinfo?.timezone && (
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-full bg-white dark:bg-white/5 shadow-sm border border-slate-100 dark:border-white/5 flex items-center justify-center text-amber-500">
-                                                            <Calendar className="h-4 w-4" />
-                                                        </div>
-                                                        <div className="text-xs">
-                                                            <div className="text-slate-400 font-medium uppercase tracking-wider">Local Time</div>
-                                                            <div className="font-bold text-slate-700 dark:text-slate-300">{providers.ipinfo.timezone}</div>
-                                                        </div>
-                                                    </div>
-                                                )}
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
 
-                                    <div className="mt-6 pt-6 border-t border-slate-200/60 dark:border-white/5">
-                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Internal Tags</div>
-                                        <div className="flex flex-wrap gap-2">
-                                            <Badge variant="outline" className="text-[10px] bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400">
-                                                {providers.ipinfo?.postal || providers.ipapi?.zip || "No Zip"}
+                                    {/* Security Badges - Aligned Right */}
+                                    <div className="flex items-center gap-3 shrink-0 ml-4">
+                                        {providers.ipapi?.proxy && (
+                                            <Badge className="bg-amber-100/80 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200/50 dark:border-amber-900/50 hover:bg-amber-100 transition-colors uppercase text-xs font-bold px-3 py-1">
+                                                VPN / Proxy
                                             </Badge>
-                                            <Badge variant="outline" className="text-[10px] bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400">
-                                                {providers.ipinfo?.continent_code || "Global"}
+                                        )}
+                                        {providers.ipapi?.hosting && (
+                                            <Badge className="bg-rose-100/80 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 border-rose-200/50 dark:border-rose-900/50 hover:bg-rose-100 transition-colors uppercase text-xs font-bold px-3 py-1">
+                                                Data Center
                                             </Badge>
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
-                        </Card>
-                    );
-                })()}
+                        </div>
 
+                        {/* Featured Map Section - High Visibility */}
+                        {displaySettings.showFeaturedMap && (() => {
+                            let featuredLat = 0;
+                            let featuredLng = 0;
+                            let sourceName = '';
+
+                            // Priority 1: IPInfo.io real coordinates (as requested)
+                            if (providers.ipinfo?.loc) {
+                                const parts = providers.ipinfo.loc.split(',');
+                                const lat = parseFloat(parts[0]);
+                                const lng = parseFloat(parts[1]);
+                                if (!isNaN(lat) && !isNaN(lng) && (lat !== 0 || lng !== 0)) {
+                                    featuredLat = lat;
+                                    featuredLng = lng;
+                                    sourceName = 'IPInfo.io';
+                                }
+                            }
+
+                            // Priority 2: Fallback to any other provider coordinates if IPInfo is missing
+                            if (featuredLat === 0) {
+                                const fallbackSource = providerConfigs.find(p => {
+                                    const d = p.data as any;
+                                    return d.latitude || d.lat || d.loc;
+                                });
+
+                                if (fallbackSource) {
+                                    const d = fallbackSource.data as any;
+                                    if (d.loc) {
+                                        [featuredLat, featuredLng] = d.loc.split(',').map(parseFloat);
+                                    } else {
+                                        featuredLat = d.latitude || d.lat;
+                                        featuredLng = d.longitude || d.lon;
+                                    }
+                                    sourceName = fallbackSource.name;
+                                }
+                            }
+
+                            if (featuredLat === 0) return null;
+
+                            return (
+                                <Card className="overflow-hidden border-slate-200 dark:border-white/5 shadow-sm bg-white dark:bg-slate-950 mx-1 mt-4">
+                                    <div className="flex flex-col md:flex-row h-[350px]">
+                                        {/* Map Side */}
+                                        <div className="flex-1 relative min-h-[200px] md:min-h-0">
+                                            <MapWrapper
+                                                lat={featuredLat}
+                                                lng={featuredLng}
+                                                city={providers.ipinfo?.city || providers.ipapi?.city || "Unknown Location"}
+                                                country={providers.ipinfo?.country_name || providers.ipapi?.country || ""}
+                                            />
+                                            <div className="absolute top-4 left-4 z-[10] flex gap-2">
+                                                <Badge className="bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-slate-100 backdrop-blur shadow-sm border-slate-200/50 dark:border-white/10 py-1.5 px-3">
+                                                    <MapPin className="h-3.5 w-3.5 mr-1.5 text-indigo-500" />
+                                                    {featuredLat.toFixed(4)}, {featuredLng.toFixed(4)}
+                                                </Badge>
+                                            </div>
+                                        </div>
+
+                                        {/* Location Details Side */}
+                                        <div className="w-full md:w-[300px] bg-slate-50/50 dark:bg-slate-900/50 p-6 flex flex-col justify-between border-l border-slate-200 dark:border-white/5">
+                                            <div>
+                                                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mb-4">Location Context</div>
+                                                <div className="space-y-5">
+                                                    <div>
+                                                        <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 leading-tight">
+                                                            {providers.ipinfo?.city || providers.ipapi?.city || "Unknown"}
+                                                        </div>
+                                                        <div className="text-sm text-slate-500 font-medium">
+                                                            {providers.ipinfo?.region || providers.ipapi?.regionName || ""}, {providers.ipinfo?.country_name || providers.ipapi?.country || ""}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 gap-3">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-white dark:bg-white/5 shadow-sm border border-slate-100 dark:border-white/5 flex items-center justify-center text-indigo-500">
+                                                                <Globe className="h-4 w-4" />
+                                                            </div>
+                                                            <div className="text-xs">
+                                                                <div className="text-slate-400 font-medium uppercase tracking-wider">Source</div>
+                                                                <div className="font-bold text-slate-700 dark:text-slate-300">{sourceName} Precision</div>
+                                                            </div>
+                                                        </div>
+
+                                                        {providers.ipinfo?.timezone && (
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-8 h-8 rounded-full bg-white dark:bg-white/5 shadow-sm border border-slate-100 dark:border-white/5 flex items-center justify-center text-amber-500">
+                                                                    <Calendar className="h-4 w-4" />
+                                                                </div>
+                                                                <div className="text-xs">
+                                                                    <div className="text-slate-400 font-medium uppercase tracking-wider">Local Time</div>
+                                                                    <div className="font-bold text-slate-700 dark:text-slate-300">{providers.ipinfo.timezone}</div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-6 pt-6 border-t border-slate-200/60 dark:border-white/5">
+                                                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Internal Tags</div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    <Badge variant="outline" className="text-[10px] bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400">
+                                                        {providers.ipinfo?.postal || providers.ipapi?.zip || "No Zip"}
+                                                    </Badge>
+                                                    <Badge variant="outline" className="text-[10px] bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400">
+                                                        {providers.ipinfo?.continent_code || "Global"}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            );
+                        })()}
+                    </div>
+                )}
                 {/* RDAP / WHOIS Data Section - Moved to top per user request */}
                 {displaySettings.showRdapData && data.rdapRawData && (() => {
                     const rdap = parseRdapData(data.rdapRawData);
                     return (
-                        <Card className="border-slate-200 dark:border-white/5 overflow-hidden transition-all duration-300">
+                        <Card className="mt-4 border-slate-200 dark:border-white/5 overflow-hidden transition-all duration-300 bg-white dark:bg-slate-950 shadow-sm mx-1 mb-4">
                             <div className="p-4 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/50">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
@@ -655,55 +707,27 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                     );
                 })()}
             </div>
-            {/* End of screenshot area */}
 
-            {/* Provider Cards */}
-            {displaySettings.showProviderCards && (
-                <div className="grid gap-4">
-                    {providerConfigs.map((config) => {
+            {/* Provider List (outside of capture area) */}
+            {displaySettings.showProviderCards && providerConfigs.length > 0 && (
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between px-2">
+                        <div className="flex items-center gap-2">
+                            <Database className="h-4 w-4 text-indigo-500" />
+                            <h3 className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest text-[11px]">Provider Breakdown</h3>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-medium">Cross-referencing {providerConfigs.length} global databases</span>
+                    </div>
+                    {providerConfigs.map(config => {
                         const isExpanded = expandedProvider === config.key;
-                        let lat = 0, lng = 0;
-
-                        // Extract coordinates based on provider
-                        if (config.key === 'maxmind' && providers.maxmind) {
-                            lat = providers.maxmind.latitude;
-                            lng = providers.maxmind.longitude;
-                        } else if (config.key === 'maxmind_local' && providers.maxmind_local) {
-                            lat = providers.maxmind_local.latitude;
-                            lng = providers.maxmind_local.longitude;
-                        } else if (config.key === 'ipinfo' && providers.ipinfo?.loc) {
-                            [lat, lng] = providers.ipinfo.loc.split(',').map(parseFloat);
-                        } else if (config.key === 'ipapi' && providers.ipapi) {
-                            lat = providers.ipapi.lat;
-                            lng = providers.ipapi.lon;
-                        } else if (config.key === 'ip2location' && providers.ip2location) {
-                            lat = providers.ip2location.latitude;
-                            lng = providers.ip2location.longitude;
-                        } else if (config.key === 'ipgeolocation' && providers.ipgeolocation) {
-                            lat = parseFloat(providers.ipgeolocation.latitude);
-                            lng = parseFloat(providers.ipgeolocation.longitude);
-                        }
-
-                        // Fallback to country coordinates if still 0
-                        if (lat === 0 || lng === 0) {
-                            const countryData = config.data as any;
-                            const countryCode =
-                                countryData.countryCode ||
-                                countryData.country_code ||
-                                countryData.country_code2 ||
-                                countryData.cntry_code ||
-                                (config.key === 'ipinfo' ? countryData.country : null);
-
-                            const coords = getCountryCoords(countryCode);
-                            if (coords) {
-                                [lat, lng] = coords;
-                            }
-                        }
+                        const d = config.data as any;
+                        const lat = d.latitude || d.lat || (d.loc ? parseFloat(d.loc.split(',')[0]) : 0);
+                        const lng = d.longitude || d.lon || (d.loc ? parseFloat(d.loc.split(',')[1]) : 0);
 
                         return (
                             <Card
                                 key={config.key}
-                                className="overflow-hidden border-slate-200 dark:border-white/5 transition-all duration-300"
+                                className="overflow-hidden border-slate-200 dark:border-white/5 shadow-sm transition-all duration-300"
                             >
                                 {/* Provider Header */}
                                 <button
@@ -721,7 +745,6 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                                         )}
                                         {(() => {
                                             const d = config.data as any;
-                                            // Robust field mapping for city and country across all providers
                                             const city = d.city || d.city_name || d.cityName;
                                             const country = d.country_name || d.countryName || d.country || d.cntry_code || d.countryCode;
 
@@ -738,8 +761,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                                         })()}
                                     </div>
                                     <ChevronDown
-                                        className={`h-5 w-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''
-                                            }`}
+                                        className={`h-5 w-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
                                     />
                                 </button>
 

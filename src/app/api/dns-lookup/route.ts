@@ -251,6 +251,8 @@ export async function GET(request: Request) {
                 ipInfo: ipMetadata,
                 records,
                 timestamp: Date.now(),
+                status: records.length > 0 ? 'success' : 'failed',
+                error: records.length === 0 ? `DNS Resolution failed: No records found for "${cleanDomain}".` : undefined
             };
 
             // Cache successful response (TTL 600s = 10m)
@@ -261,8 +263,19 @@ export async function GET(request: Request) {
         return NextResponse.json(responseData, {
             headers: { 'X-Cache': 'MISS' }
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('DNS Lookup error:', error);
-        return NextResponse.json({ error: 'DNS Lookup failed' }, { status: 500 });
+
+        // Handle common DNS errors gracefully
+        if (error.code === 'ENOTFOUND' || error.message === 'DNS Timeout') {
+            return NextResponse.json({
+                domain: cleanDomain,
+                records: [],
+                status: 'failed',
+                error: `DNS Resolution failed: The domain "${cleanDomain}" could not be resolved.`
+            });
+        }
+
+        return NextResponse.json({ error: 'DNS Lookup failed', detail: error.message }, { status: 500 });
     }
 }

@@ -227,151 +227,134 @@ export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDash
     const maxLoss = Math.max(...hops.map(h => h.loss));
 
     return (
-        <div className="space-y-4 my-2">
-            {/* Action Bar */}
-            <div className="flex items-center justify-between px-1 screenshot-hide">
-                <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="h-6 gap-1.5 px-2 bg-white/50 dark:bg-slate-950/50">
-                        <Network className="h-3 w-3 text-indigo-500" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">{hops.length} Hops</span>
-                    </Badge>
-                    {maxLoss > 0 && (
-                        <Badge variant="error" className="h-6 gap-1.5 px-2">
-                            <Activity className="h-3 w-3" />
-                            <span className="text-[10px] font-bold uppercase tracking-wider">Loss Detected ({maxLoss.toFixed(1)}%)</span>
-                        </Badge>
-                    )}
-                </div>
-                <div className="flex items-center gap-1">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-[10px] font-semibold gap-1.5 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
+        <div className="mt-8">
+            {/* Content area with hover buttons - Framework pattern */}
+            <div ref={dashboardRef} className="bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-white/5 relative group/screenshot pb-1">
+                {/* Hover-reveal floating action buttons */}
+                <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center gap-1 opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
+                    <button
                         onClick={handleCopyText}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
                     >
-                        {textCopied ? <Check className="h-3 w-3" /> : <FileText className="h-3 w-3" />}
-                        {textCopied ? 'Copied' : 'Copy Text'}
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-[10px] font-semibold gap-1.5 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
+                        {textCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <FileText className="h-3 w-3" />}
+                        <span>{textCopied ? 'Copied' : 'Copy Text'}</span>
+                    </button>
+                    <button
                         onClick={handleCopyToClipboard}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 border-x border-b border-l-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
                     >
-                        {screenshotCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                        {screenshotCopied ? 'Copied' : 'Copy Image'}
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-[10px] font-semibold gap-1.5 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
+                        {screenshotCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                        <span>{screenshotCopied ? 'Copied Img' : 'Copy Img'}</span>
+                    </button>
+                    <button
                         onClick={handleScreenshot}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
                     >
                         <Camera className="h-3 w-3" />
-                        Save Image
-                    </Button>
+                        <span>Save</span>
+                    </button>
                 </div>
-            </div>
 
-            <div ref={dashboardRef} className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200/60 dark:border-white/5 shadow-sm">
-                <div className="mb-4 flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5">
-                    <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
-                            <Network className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 leading-none">
-                                Traceroute <ArrowRight className="h-3 w-3 opacity-50" /> {targetHost}
-                            </h4>
-                            <p className="text-[10px] text-muted-foreground font-medium mt-1 leading-none uppercase tracking-wider">
-                                FROM {nodeCity || 'Remote Node'} • {new Date().toLocaleTimeString()}
-                            </p>
+                <div className="bg-white dark:bg-slate-950 rounded-[calc(1rem-1px)] shadow-sm overflow-hidden p-4 mx-1 mt-1">
+                    <div className="mb-4 flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5">
+                        <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                                <Network className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 leading-none">
+                                    Traceroute <ArrowRight className="h-3 w-3 opacity-50" /> {targetHost}
+                                </h4>
+                                <p className="text-[10px] text-muted-foreground font-medium mt-1 leading-none uppercase tracking-wider">
+                                    FROM {nodeCity || 'Remote Node'} • {new Date().toLocaleTimeString()}
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <Table>
-                    <TableHeader>
-                        <TableRow className="h-8 hover:bg-transparent border-0 bg-slate-50/50 dark:bg-slate-950/30">
-                            <TableHead className="h-8 text-[10px] uppercase font-bold w-12 text-center">Hop</TableHead>
-                            <TableHead className="h-8 text-[10px] uppercase font-bold">Host / IP</TableHead>
-                            <TableHead className="h-8 text-[10px] uppercase font-bold text-center w-24">Loss %</TableHead>
-                            <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16">Last</TableHead>
-                            <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16">Avg</TableHead>
-                            <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16">Best</TableHead>
-                            <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16">Worst</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {hops.map((hop: MtrHop, i: number) => (
-                            <TableRow key={i} className="h-8 hover:bg-slate-100/50 dark:hover:bg-white/[0.02] border-0 transition-colors">
-                                <TableCell className="py-1 text-xs font-mono text-muted-foreground text-center">{i + 1}</TableCell>
-                                <TableCell className="py-1 text-xs font-mono">
-                                    <div className="flex flex-col">
-                                        <span
-                                            className={cn(
-                                                "font-medium text-slate-700 dark:text-slate-200 transition-colors",
-                                                onPingIp && "cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline"
-                                            )}
-                                            onClick={(e) => {
-                                                if (onPingIp && hop.ip) {
-                                                    e.stopPropagation();
-                                                    onPingIp(hop.ip);
-                                                }
-                                            }}
-                                        >
-                                            {hop.host || '???'}
-                                        </span>
-                                        {hop.ip && hop.ip !== hop.host && (
+                    <Table>
+                        <TableHeader>
+                            <TableRow className="h-8 hover:bg-transparent border-0 bg-slate-50/50 dark:bg-slate-950/30">
+                                <TableHead className="h-8 text-[10px] uppercase font-bold w-12 text-center">Hop</TableHead>
+                                <TableHead className="h-8 text-[10px] uppercase font-bold">Host / IP</TableHead>
+                                <TableHead className="h-8 text-[10px] uppercase font-bold text-center w-24">Loss %</TableHead>
+                                <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16">Last</TableHead>
+                                <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16">Avg</TableHead>
+                                <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16">Best</TableHead>
+                                <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16">Worst</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {hops.map((hop: MtrHop, i: number) => (
+                                <TableRow key={i} className="h-8 hover:bg-slate-100/50 dark:hover:bg-white/[0.02] border-0 transition-colors">
+                                    <TableCell className="py-1 text-xs font-mono text-muted-foreground text-center">{i + 1}</TableCell>
+                                    <TableCell className="py-1 text-xs font-mono">
+                                        <div className="flex flex-col">
                                             <span
                                                 className={cn(
-                                                    "text-[10px] text-muted-foreground transition-colors",
+                                                    "font-medium text-slate-700 dark:text-slate-200 transition-colors",
                                                     onPingIp && "cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline"
                                                 )}
                                                 onClick={(e) => {
-                                                    if (onPingIp) {
+                                                    if (onPingIp && hop.ip) {
                                                         e.stopPropagation();
                                                         onPingIp(hop.ip);
                                                     }
                                                 }}
                                             >
-                                                {hop.ip}
+                                                {hop.host || '???'}
                                             </span>
-                                        )}
-                                    </div>
-                                </TableCell>
-                                <TableCell className="py-1 text-xs text-center">
-                                    <Badge
-                                        variant={hop.loss > 0 ? (hop.loss > 20 ? "error" : "warning") : "success"}
-                                        className="h-5 px-1.5 text-[10px] min-w-[45px] justify-center"
-                                    >
-                                        {hop.loss.toFixed(1)}%
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="py-1 text-xs text-right font-mono text-slate-600 dark:text-slate-400">
-                                    {hop.last.toFixed(1)}
-                                </TableCell>
-                                <TableCell className="py-1 text-xs text-right font-mono font-bold text-indigo-600 dark:text-indigo-400">
-                                    {hop.avg.toFixed(1)}
-                                </TableCell>
-                                <TableCell className="py-1 text-xs text-right font-mono text-muted-foreground opacity-70">
-                                    {hop.best.toFixed(1)}
-                                </TableCell>
-                                <TableCell className="py-1 text-xs text-right font-mono text-muted-foreground opacity-70">
-                                    {hop.worst.toFixed(1)}
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                                            {hop.ip && hop.ip !== hop.host && (
+                                                <span
+                                                    className={cn(
+                                                        "text-[10px] text-muted-foreground transition-colors",
+                                                        onPingIp && "cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline"
+                                                    )}
+                                                    onClick={(e) => {
+                                                        if (onPingIp) {
+                                                            e.stopPropagation();
+                                                            onPingIp(hop.ip);
+                                                        }
+                                                    }}
+                                                >
+                                                    {hop.ip}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="py-1 text-xs text-center">
+                                        <Badge
+                                            variant={hop.loss > 0 ? (hop.loss > 20 ? "error" : "warning") : "success"}
+                                            className="h-5 px-1.5 text-[10px] min-w-[45px] justify-center"
+                                        >
+                                            {hop.loss.toFixed(1)}%
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="py-1 text-xs text-right font-mono text-slate-600 dark:text-slate-400">
+                                        {hop.last.toFixed(1)}
+                                    </TableCell>
+                                    <TableCell className="py-1 text-xs text-right font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                                        {hop.avg.toFixed(1)}
+                                    </TableCell>
+                                    <TableCell className="py-1 text-xs text-right font-mono text-muted-foreground opacity-70">
+                                        {hop.best.toFixed(1)}
+                                    </TableCell>
+                                    <TableCell className="py-1 text-xs text-right font-mono text-muted-foreground opacity-70">
+                                        {hop.worst.toFixed(1)}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
 
-                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
-                    <p className="text-[10px] text-slate-400 font-medium italic">
-                        * Latency values are in milliseconds (ms)
-                    </p>
-                    <div className="flex items-center gap-3 opacity-50">
-                        <div className="flex items-center gap-1.5 text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider">
-                            <Check className="h-3 w-3" /> Professional Reporting
+                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+                        <p className="text-[10px] text-slate-400 font-medium italic">
+                            * Latency values are in milliseconds (ms)
+                        </p>
+                        <div className="flex items-center gap-3 opacity-50">
+                            <div className="flex items-center gap-1.5 text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider">
+                                <Check className="h-3 w-3" /> Professional Reporting
+                            </div>
                         </div>
                     </div>
                 </div>

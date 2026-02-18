@@ -21,9 +21,38 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(result);
     } catch (error: any) {
         console.error(`[SSL Check] Error for ${host}:`, error);
+
+        // Map internal error codes to user-friendly messages
+        let errorMessage = error.message || 'Failed to check SSL certificate';
+        let isTechnicalError = true;
+
+        if (error.code === 'ENOTFOUND' || error.code === 'EAI_AGAIN') {
+            errorMessage = `DNS Resolution failed: The domain "${host}" could not be found.`;
+            isTechnicalError = false;
+        } else if (error.code === 'ECONNREFUSED') {
+            errorMessage = `Connection refused: The server at "${host}" is not accepting connections on port 443.`;
+            isTechnicalError = false;
+        } else if (error.code === 'ETIMEDOUT') {
+            errorMessage = `Connection timed out: The server at "${host}" took too long to respond.`;
+            isTechnicalError = false;
+        } else if (error.code === 'EHOSTUNREACH') {
+            errorMessage = `Host unreachable: No path to the server at "${host}".`;
+        }
+
+        // Return 200 for "Not Found" or "Refused" to allow the UI to render an integrated empty state
+        if (!isTechnicalError) {
+            return NextResponse.json({
+                host,
+                error: errorMessage,
+                errorCode: error.code,
+                status: 'failed'
+            });
+        }
+
         return NextResponse.json({
-            error: error.message || 'Failed to check SSL certificate',
-            code: error.code
+            error: errorMessage,
+            code: error.code,
+            originalError: error.message
         }, { status: 500 });
     }
 }
@@ -32,7 +61,9 @@ async function checkSsl(host: string, port: number = 443): Promise<any> {
     let hostIp = '';
     try {
         const ips = await resolve4(host);
-        hostIp = ips[0];
+        if (ips && ips.length > 0) {
+            hostIp = ips[0];
+        }
     } catch (e) {
         // Fallback or ignore
     }
@@ -154,9 +185,11 @@ async function checkSsl(host: string, port: number = 443): Promise<any> {
             cleanup(err);
         });
 
-        socket.setTimeout(10000); // 10s timeout
+        socket.setTimeout(15000); // Increased to 15s timeout
         socket.on('timeout', () => {
-            cleanup(new Error('Connection timed out'));
+            const err = new Error('Connection timed out');
+            (err as any).code = 'ETIMEDOUT';
+            cleanup(err);
         });
 
         function cleanup(err: Error | null, data?: any) {

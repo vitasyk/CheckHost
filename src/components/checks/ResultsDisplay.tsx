@@ -29,9 +29,11 @@ interface ResultsDisplayProps {
     dnsType?: string;
     targetHost?: string;
     isLoading?: boolean;
+    onRefresh?: () => void;
+    isRefreshing?: boolean;
 }
 
-export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {}, onPingIp, dnsType, targetHost, isLoading }: ResultsDisplayProps) {
+export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {}, onPingIp, dnsType, targetHost, isLoading, onRefresh, isRefreshing }: ResultsDisplayProps) {
     const [groupBy, setGroupBy] = useState<'none' | 'region'>('none');
     const [searchQuery, setSearchQuery] = useState('');
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -638,6 +640,8 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
                             result={entries[0][1]}
                             nodeCity={entries[0][0] ? getLocationInfo(entries[0][0]).city : undefined}
                             filterType={dnsType}
+                            onRefresh={onRefresh}
+                            isRefreshing={isRefreshing}
                         />
                     ) : (
                         <div className="text-center p-12 text-muted-foreground">
@@ -653,7 +657,7 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
                     )}
                 </div>
             ) : (
-                <div className="space-y-8">
+                <div className="space-y-4">
                     {Object.entries(groupedEntries).map(([groupName, groupEntries]) => (
                         groupEntries.length > 0 && (
                             <div key={groupName} className="space-y-3">

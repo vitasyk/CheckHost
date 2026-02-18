@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Globe, Mail, Server, Key, Clock, Copy, Check, Camera, FileText } from 'lucide-react';
+import { Globe, Mail, Server, Key, Clock, Copy, Check, Camera, FileText, AlertTriangle, Loader2 } from 'lucide-react';
 import { toPng, toBlob } from 'html-to-image';
 import { Button } from '@/components/ui/button';
 
@@ -19,15 +19,19 @@ interface DnsLookupResult {
     ipInfo?: any;
     records: DnsRecord[];
     timestamp: number;
+    status?: 'success' | 'failed';
+    error?: string;
 }
 
 interface DnsDashboardProps {
     result: any;
     nodeCity?: string;
     filterType?: string;
+    onRefresh?: () => void;
+    isRefreshing?: boolean;
 }
 
-export function DnsDashboard({ result, nodeCity, filterType = 'all' }: DnsDashboardProps) {
+export function DnsDashboard({ result, nodeCity, filterType = 'all', onRefresh, isRefreshing }: DnsDashboardProps) {
     const dashboardRef = useRef<HTMLDivElement>(null);
     const [screenshotCopied, setScreenshotCopied] = useState(false);
     const [textCopied, setTextCopied] = useState(false);
@@ -160,10 +164,50 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all' }: DnsDashbo
         return null;
     })();
 
-    if (!data || !data.records || data.records.length === 0) {
+    // Unified Empty State for Not Found / Refused DNS
+    if (!data || !data.records || data.records.length === 0 || data.status === 'failed') {
         return (
-            <div className="text-center py-12 text-muted-foreground">
-                No DNS data available
+            <div ref={dashboardRef} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 bg-slate-50 dark:bg-slate-900 rounded-2xl p-1 border border-slate-200/60 dark:border-white/5">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center shadow-sm">
+                    <div className="max-w-md mx-auto space-y-6">
+                        <div className="relative mx-auto w-24 h-24 rounded-3xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
+                            <Globe className="h-12 w-12 text-indigo-500" />
+                            <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-white dark:bg-slate-900 border-2 border-indigo-50 dark:border-indigo-500/20 flex items-center justify-center">
+                                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                                No DNS Records Found
+                            </h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                                We couldn&apos;t find any public DNS records for <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data?.domain || 'this host'}</span>.
+                                This domain might be newly registered, private, or non-existent.
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3 text-left">
+                            <div className="p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/40 border border-slate-100 dark:border-white/5 flex items-start gap-4">
+                                <div className="h-8 w-8 rounded-lg bg-white dark:bg-slate-900 flex items-center justify-center shrink-0 shadow-sm">
+                                    <Clock className="h-4 w-4 text-amber-500" />
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest">Propagation delay</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        If you recently updated DNS settings, it may take up to 48 hours to propagate globally.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-4">
+                            <Badge variant="outline" className="px-4 py-1.5 rounded-full border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black tracking-widest bg-slate-100/50 dark:bg-white/5">
+                                Status: Unresolved
+                            </Badge>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -215,25 +259,26 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all' }: DnsDashbo
         children: React.ReactNode;
         variant?: 'default' | 'email' | 'authority' | 'verification';
     }) => {
-        const borderColors = {
-            default: 'border-l-indigo-500',
-            email: 'border-l-amber-500',
-            authority: 'border-l-emerald-500',
-            verification: 'border-l-purple-500',
+        const accentColors = {
+            default: 'bg-indigo-500',
+            email: 'bg-amber-500',
+            authority: 'bg-emerald-500',
+            verification: 'bg-purple-500',
         };
 
         return (
-            <div className={cn("border-l-[3px] pl-5 py-1", borderColors[variant])}>
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="p-1.5 bg-slate-200/60 dark:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400 border border-slate-300/50 dark:border-white/5 shadow-sm">
+            <div className="rounded-xl border border-slate-200 dark:border-white/5 bg-white dark:bg-slate-950/50 shadow-sm overflow-hidden transition-all duration-300">
+                <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/50">
+                    <div className={cn("w-1 h-4 rounded-full shrink-0", accentColors[variant])} />
+                    <div className="p-1.5 bg-white dark:bg-slate-900 rounded-lg text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/5 shadow-sm shrink-0">
                         {icon}
                     </div>
-                    <div>
-                        <h4 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-slate-100 uppercase">{title}</h4>
-                        {subtitle && <p className="text-[10px] text-slate-500 dark:text-muted-foreground font-bold">{subtitle}</p>}
+                    <div className="min-w-0">
+                        <h4 className="text-[11px] font-black tracking-widest text-slate-900 dark:text-slate-100 uppercase truncate">{title}</h4>
+                        {subtitle && <p className="text-[9px] text-slate-500 dark:text-muted-foreground font-bold truncate">{subtitle}</p>}
                     </div>
                 </div>
-                <div className="space-y-1.5">
+                <div className="p-3 space-y-1.5 bg-white/50 dark:bg-transparent">
                     {children}
                 </div>
             </div>
@@ -245,7 +290,7 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all' }: DnsDashbo
         const isSubdomainRecord = record.auxiliary && record.auxiliary.includes('@');
 
         return (
-            <div className="flex items-start gap-3 py-2 px-3 rounded-lg bg-slate-50/70 dark:bg-slate-800/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 transition-colors">
+            <div className="flex items-start gap-3 py-2 px-3 rounded-lg bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-slate-50/80 dark:hover:bg-indigo-950/20 transition-all duration-200 group/row">
                 <Badge variant="outline" className="font-bold text-[10px] min-w-[50px] justify-center shrink-0 mt-0.5 border-slate-300 dark:border-slate-600">
                     {record.type}
                 </Badge>
@@ -311,32 +356,43 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all' }: DnsDashbo
     };
 
     return (
-        <div ref={dashboardRef} className="space-y-0 bg-slate-50 dark:bg-slate-900 rounded-xl p-1 relative group/screenshot">
+        <div ref={dashboardRef} className="bg-slate-50 dark:bg-slate-900 rounded-xl relative group/screenshot pb-1 mt-8">
             {/* Hover-reveal floating action buttons */}
-            <div className="screenshot-hide absolute top-3 right-3 z-10 flex items-center gap-1 opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
+            <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center gap-1 opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
+                {onRefresh && (
+                    <button
+                        onClick={onRefresh}
+                        disabled={isRefreshing}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer disabled:opacity-50"
+                    >
+                        <Loader2 className={`h-3 w-3 ${isRefreshing ? 'animate-spin text-indigo-500' : ''}`} />
+                        <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+                    </button>
+                )}
                 <button
                     onClick={handleCopyText}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-l-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
                 >
                     {textCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <FileText className="h-3 w-3" />}
                     <span>{textCopied ? 'Copied TXT' : 'Copy TXT'}</span>
                 </button>
                 <button
                     onClick={handleCopyToClipboard}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-y border-r border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer border-l-0"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer border-l-0"
                 >
                     {screenshotCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
                     <span>{screenshotCopied ? 'Copied Img' : 'Copy Img'}</span>
                 </button>
                 <button
                     onClick={handleScreenshot}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-r-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
                 >
                     <Camera className="h-3 w-3" />
                     <span>Save</span>
                 </button>
             </div>
-            <div className="rounded-2xl border border-slate-200/60 dark:border-white/5 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
+            <div className="rounded-2xl border border-slate-200/60 dark:border-white/5 bg-white dark:bg-slate-950 overflow-hidden shadow-sm mx-1 mt-1 flex flex-col">
+                <div className="h-1.5 w-full bg-emerald-500" />
                 {/* Summary Header - Balanced Professional Look */}
                 <div className="bg-slate-100/50 dark:bg-slate-950/30 border-b border-slate-200 dark:border-white/5 px-6 py-5 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 dark:bg-indigo-400/5 blur-3xl -mr-20 -mt-20 rounded-full" />

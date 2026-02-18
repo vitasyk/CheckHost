@@ -124,7 +124,7 @@ function ChecksPageContent() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [dnsType, setDnsType] = useState<string>('all');
     const [isReverseMtr, setIsReverseMtr] = useState(false);
-    const [globalCheckEnabled, setGlobalCheckEnabled] = useState(true);
+    const [globalCheckEnabled, setGlobalCheckEnabled] = useState(false);
     const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
     const [showMap, setShowMap] = useState(false);
 
@@ -276,6 +276,7 @@ function ChecksPageContent() {
             checkHostAPI.performDnsLookup(sanitized, refresh)
                 .then(dnsData => {
                     const fakeNodeId = 'dns-lookup';
+                    // Even if dnsData indicates failure, we pass it to the dashboard
                     const results = { [fakeNodeId]: dnsData };
                     const checkNodes = { [fakeNodeId]: ['', '', 'Server DNS'] };
                     setDnsInfoNodes(checkNodes);
@@ -293,9 +294,12 @@ function ChecksPageContent() {
         if (type === 'ssl') {
             console.log(`Starting SSL check for ${sanitized}`);
             fetch(`/api/ssl-check?host=${encodeURIComponent(sanitized)}`)
-                .then(res => {
-                    if (!res.ok) throw new Error('SSL check failed');
-                    return res.json();
+                .then(async res => {
+                    const data = await res.json();
+                    if (!res.ok) {
+                        throw new Error(data.error || 'SSL check failed');
+                    }
+                    return data;
                 })
                 .then(data => {
                     setSslResults(data);
@@ -713,7 +717,7 @@ function ChecksPageContent() {
                                             selectedNodeIds={selectedNodeIds}
                                         />
                                         {activeChecks.has('info') ? (
-                                            <div className="flex flex-col items-center justify-center p-12 text-muted-foreground animate-pulse gap-4">
+                                            <div className="flex flex-col items-center justify-center p-12 text-muted-foreground animate-pulse gap-4 mt-8">
                                                 <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
                                                 <span>Obtaining global IP intelligence...</span>
                                             </div>
@@ -1118,21 +1122,17 @@ function ChecksPageContent() {
                                         />
                                         {(dnsInfoResults || Object.keys(dnsInfoNodes).length > 0 || activeChecks.has('dns-all')) && (
                                             <div className="space-y-4">
-                                                {dnsInfoResults && dnsInfoResults['dns-lookup'] && (
-                                                    <div className="flex justify-end px-2">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-8 text-[10px] font-bold text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 gap-2 uppercase tracking-tight"
-                                                            onClick={() => runCheck('dns-all', host, true)}
-                                                            disabled={activeChecks.has('dns-all')}
-                                                        >
-                                                            <Loader2 className={`h-3 w-3 ${activeChecks.has('dns-all') ? 'animate-spin text-indigo-500' : ''}`} />
-                                                            Refresh DNS Info
-                                                        </Button>
-                                                    </div>
-                                                )}
-                                                <ResultsDisplay results={dnsInfoResults || {}} checkType="dns-all" nodes={nodes} activeNodes={dnsInfoNodes} dnsType={dnsType} targetHost={host} isLoading={activeChecks.has('dns-all')} />
+                                                <ResultsDisplay
+                                                    results={dnsInfoResults || {}}
+                                                    checkType="dns-all"
+                                                    nodes={nodes}
+                                                    activeNodes={dnsInfoNodes}
+                                                    dnsType={dnsType}
+                                                    targetHost={host}
+                                                    isLoading={activeChecks.has('dns-all')}
+                                                    onRefresh={() => runCheck('dns-all', host, true)}
+                                                    isRefreshing={activeChecks.has('dns-all')}
+                                                />
                                             </div>
                                         )}
                                     </div>
@@ -1166,7 +1166,7 @@ function ChecksPageContent() {
                                             selectedNodeIds={selectedNodeIds}
                                         />
                                         {activeChecks.has('ssl') ? (
-                                            <div className="flex flex-col items-center justify-center p-12 text-muted-foreground animate-pulse gap-4">
+                                            <div className="flex flex-col items-center justify-center p-12 text-muted-foreground animate-pulse gap-4 mt-8">
                                                 <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
                                                 <span>Inspecting certificates and chains...</span>
                                             </div>

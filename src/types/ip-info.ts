@@ -11,6 +11,10 @@ export interface IpInfoResponse {
         maxmind_local?: MaxMindData;
     };
     rdapRawData?: any;
+    nameservers?: string[];
+    status?: 'success' | 'failed';
+    host?: string;
+    error?: string;
 }
 
 export interface IpApiData {

@@ -54,20 +54,37 @@ export async function GET(request: NextRequest) {
 
     // 2. Deduplicate concurrent requests
     try {
-        const mockData = await memoryCache.deduplicate(cacheKey, async () => {
+        const responseData = await memoryCache.deduplicate(cacheKey, async () => {
             const data = await getMockIpInfo(host!);
 
-            // Cache successful response (TTL 3600s = 1h)
-            memoryCache.set(cacheKey, data, 3600);
+            // If IP is null or equal to host (resolution failed), mark as failed but keep RDAP data
+            if (!data.ip || data.ip === host) {
+                return {
+                    host,
+                    status: 'failed',
+                    error: `DNS Resolution failed: The host "${host}" could not be resolved to an IP address.`,
+                    rdapRawData: data.rdapRawData || null,
+                    nameservers: data.nameservers || [],
+                    providers: data.providers || {},
+                    timestamp: Date.now()
+                };
+            }
 
-            return data;
+            // Cache successful response (TTL 3600s = 1h)
+            const successData = { ...data, status: 'success' };
+            memoryCache.set(cacheKey, successData, 3600);
+
+            return successData;
         });
 
-        return NextResponse.json(mockData, {
+        return NextResponse.json(responseData, {
             headers: { 'X-Cache': 'MISS' }
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('IP Info error:', error);
-        return NextResponse.json({ error: 'Failed to fetch IP info' }, { status: 500 });
+        return NextResponse.json({
+            error: 'Failed to fetch IP info',
+            detail: error.message
+        }, { status: 500 });
     }
 }

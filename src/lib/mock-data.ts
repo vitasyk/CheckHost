@@ -1,12 +1,40 @@
 import { IpInfoResponse } from '@/types/ip-info';
-import { fetchIpInfo, resolveHostToIp, fetchFromIpGeolocation, fetchFromMaxMind, fetchRdapInfo, resolveIpToHost, resolveNameservers } from './ipinfo-api';
+import { fetchIpInfo, resolveHostToIp, fetchFromIpGeolocation, fetchFromMaxMind, fetchRdapInfo, fetchWhoisInfo, resolveIpToHost, resolveNameservers } from './ipinfo-api';
 import { fetchIpApiData } from './ipapi-api';
 import { lookupLocalIpInfo } from './ipinfo-local';
 
 export async function getMockIpInfo(host: string): Promise<IpInfoResponse> {
     // Resolve hostname to IP
-    const ip = await resolveHostToIp(host);
+    const resolvedIp = await resolveHostToIp(host);
     const isIpInput = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host);
+    const ip = resolvedIp ?? (isIpInput ? host : null);
+    if (!ip) {
+        // IP couldn't be resolved, but we can still try RDAP/WHOIS for domain registration data
+        let rdapData = null;
+        let nameservers: string[] = [];
+        try {
+            [rdapData, nameservers] = await Promise.all([
+                fetchRdapInfo(host).catch(() => null),
+                resolveNameservers(host).catch(() => [])
+            ]);
+
+            // If RDAP returned nothing, try direct WHOIS as fallback
+            if (!rdapData && !isIpInput) {
+                console.log(`[WHOIS Fallback] RDAP unavailable for ${host}, trying WHOIS...`);
+                rdapData = await fetchWhoisInfo(host).catch(() => null);
+            }
+        } catch (e) {
+            // Silently ignore
+        }
+        return {
+            ip: null,
+            host,
+            hostname: undefined,
+            providers: {},
+            rdapRawData: rdapData,
+            nameservers: nameservers || [],
+        } as unknown as IpInfoResponse;
+    }
 
     // Fetch data from multiple sources in parallel
     const [realIpInfo, ipApiData, ipGeoData, maxmindData, localMmdbData, ptrHost] = await Promise.all([
