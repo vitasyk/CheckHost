@@ -1,7 +1,7 @@
 ﻿import { IpInfoResponse } from '@/types/ip-info';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Globe, ChevronDown, Database, Calendar, ShieldCheck, Mail, Phone, ExternalLink, Server, Network, Maximize2, Camera, Copy, Check, Loader2, AlertTriangle } from 'lucide-react';
+import { MapPin, Globe, ChevronDown, Database, Calendar, ShieldCheck, Mail, Phone, ExternalLink, Server, Network, Maximize2, Camera, Copy, Check, Loader2, AlertTriangle, Building2, Flag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import MapWrapper from '@/components/ip-info/MapWrapper';
 import { getCountryCoords } from '@/lib/country-coords';
@@ -39,7 +39,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                     } else {
                         // Fallback to defaults if no settings in DB
                         setDisplaySettings({
-                            showFeaturedMap: true,
+                            showFeaturedMap: false,
                             showRdapData: true,
                             showProviderCards: true
                         });
@@ -49,7 +49,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                 console.warn('Failed to fetch IP Info display settings:', err);
                 // Fallback on error
                 setDisplaySettings({
-                    showFeaturedMap: true,
+                    showFeaturedMap: false,
                     showRdapData: true,
                     showProviderCards: true
                 });
@@ -270,14 +270,14 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 mt-8">
             {/* Screenshot area: Target IP + Domain Registration */}
-            <div ref={screenshotRef} className="bg-slate-50 dark:bg-slate-900 rounded-2xl relative group/screenshot border border-slate-200/60 dark:border-white/5 pb-1">
+            <div ref={screenshotRef} className="relative group/screenshot space-y-4">
                 {/* Hover-reveal floating action buttons - Positioned relative to frame */}
-                <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center gap-1 opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
+                <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
                     {onRefresh && (
                         <button
                             onClick={onRefresh}
                             disabled={isRefreshing}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer disabled:opacity-50"
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-l-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer disabled:opacity-50"
                         >
                             <Loader2 className={`h-3 w-3 ${isRefreshing ? 'animate-spin text-indigo-500' : ''}`} />
                             <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
@@ -285,52 +285,89 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                     )}
                     <button
                         onClick={handleCopyToClipboard}
-                        className={`flex items-center gap-1.5 px-2.5 py-1.5 border-x border-b ${onRefresh ? 'border-l-0' : 'rounded-bl-lg'} bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer`}
+                        className={cn(
+                            "flex items-center gap-1.5 px-2.5 py-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer",
+                            onRefresh ? "border-l-0" : "rounded-l-lg"
+                        )}
                     >
                         {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
                         <span>{copied ? 'Copied' : 'Copy Img'}</span>
                     </button>
                     <button
                         onClick={handleScreenshot}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-r-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
                     >
                         <Camera className="h-3 w-3" />
                         <span>Save</span>
                     </button>
                 </div>
 
-                {/* Conditional "Not Resolved" banner for partial data surfacing - Only for domains */}
-                {isUnresolved && !isIP && (
-                    <div className="bg-white dark:bg-slate-950 rounded-[calc(1rem-1px)] shadow-sm overflow-hidden flex flex-col mx-1 mt-1 mb-4">
+                {/* Intelligence Banner: Network info for IPs or status for unresolved domains */}
+                {((isUnresolved && !isIP) || (isIP && hasRdap)) && (
+                    <div className="bg-white dark:bg-slate-950 rounded-2xl shadow-sm overflow-hidden flex flex-col border border-slate-200/60 dark:border-white/5">
                         <div className={cn(
                             "h-1.5 w-full",
-                            (!hasRdap) ? "bg-rose-500" : "bg-amber-500"
+                            isIP ? "bg-indigo-500" : ((!hasRdap) ? "bg-rose-500" : "bg-amber-500")
                         )} />
                         <div className="p-6">
                             <div className="flex items-center gap-4">
                                 <div className={cn(
                                     "relative shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center",
-                                    (!hasRdap) ? "bg-rose-50 dark:bg-rose-500/10 text-rose-500" : "bg-amber-50 dark:bg-amber-500/10 text-amber-500"
+                                    isIP ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500" : ((!hasRdap) ? "bg-rose-50 dark:bg-rose-500/10 text-rose-500" : "bg-amber-50 dark:bg-amber-500/10 text-amber-500")
                                 )}>
-                                    <MapPin className="h-7 w-7" />
+                                    {isIP ? <Network className="h-7 w-7" /> : <MapPin className="h-7 w-7" />}
                                     <div className={cn(
                                         "absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-white dark:bg-slate-950 border-2 flex items-center justify-center",
-                                        (!hasRdap) ? "border-rose-50 dark:border-rose-500/20 text-rose-600" : "border-amber-50 dark:border-amber-500/20 text-orange-500"
+                                        isIP ? "border-indigo-50 dark:border-indigo-500/20 text-indigo-600" : ((!hasRdap) ? "border-rose-50 dark:border-rose-500/20 text-rose-600" : "border-amber-50 dark:border-amber-500/20 text-orange-500")
                                     )}>
                                         <AlertTriangle className="h-3 w-3" />
                                     </div>
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h3 className="text-lg font-black text-slate-900 dark:text-slate-100 tracking-tight">
-                                        IP Not Resolved
+                                        {isIP ? "IP Information Summary" : "IP Not Resolved"}
                                     </h3>
                                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                                        <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data.host || 'the host'}</span>
-                                        {' '}couldn&apos;t be resolved to an IP address. Some intelligence might still be available below.
+                                        {isIP ? (
+                                            <>
+                                                Primary network registration and ownership data for <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data.ip}</span>.
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data.host || 'the host'}</span>
+                                                {' '}couldn&apos;t be resolved to an IP address. Some intelligence might still be available below.
+                                            </>
+                                        )}
                                     </p>
+                                    {rdap && (rdap.organization || rdap.country) && (
+                                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                                            {rdap.organization && (
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500">
+                                                        <Building2 className="h-4 w-4" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Organization</p>
+                                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-tight">{rdap.organization}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {rdap.country && (
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500">
+                                                        <Flag className="h-4 w-4" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Registration Country</p>
+                                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-tight">{rdap.country}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                                 <Badge variant="outline" className="shrink-0 px-3 py-1 rounded-full border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black tracking-widest bg-slate-100/50 dark:bg-white/5">
-                                    Unresolved
+                                    {isIP ? "IP Network" : "Unresolved"}
                                 </Badge>
                             </div>
                         </div>
@@ -338,7 +375,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                 )}
 
                 {!isUnresolved && (
-                    <div className="bg-white dark:bg-slate-950 rounded-[calc(1rem-1px)] shadow-sm overflow-hidden flex flex-col mx-1 mt-1">
+                    <div className="bg-white dark:bg-slate-950 rounded-2xl shadow-sm overflow-hidden flex flex-col border border-slate-200/60 dark:border-white/5">
                         <div className="h-1.5 w-full bg-emerald-500" />
                         {/* Unified Summary Header Bar - Premium UI/UX */}
                         <div className="p-4 bg-slate-100/30 dark:bg-slate-900/40 border-b border-slate-200 dark:border-white/5">
@@ -529,11 +566,12 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                         })()}
                     </div>
                 )}
-                {/* RDAP / WHOIS Data Section - Moved to top per user request */}
+
+                {/* RDAP / WHOIS Data Section */}
                 {displaySettings.showRdapData && data.rdapRawData && (() => {
                     const rdap = parseRdapData(data.rdapRawData);
                     return (
-                        <Card className="mt-4 border-slate-200 dark:border-white/5 overflow-hidden transition-all duration-300 bg-white dark:bg-slate-950 shadow-sm mx-1 mb-4">
+                        <Card className="border-slate-200/60 dark:border-white/5 overflow-hidden transition-all duration-300 bg-white dark:bg-slate-950 shadow-sm">
                             <div className="p-4 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/50">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
@@ -710,8 +748,8 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
 
             {/* Provider List (outside of capture area) */}
             {displaySettings.showProviderCards && providerConfigs.length > 0 && (
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between px-2">
+                <div className="space-y-4 mt-8">
+                    <div className="flex items-center justify-between px-2 mb-1">
                         <div className="flex items-center gap-2">
                             <Database className="h-4 w-4 text-indigo-500" />
                             <h3 className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest text-[11px]">Provider Breakdown</h3>

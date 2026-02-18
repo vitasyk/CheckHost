@@ -140,7 +140,9 @@ export function SslDashboard({ data }: SslDashboardProps) {
                                 <p className="text-xs text-slate-500 dark:text-slate-400">
                                     {data.errorCode === 'ENOTFOUND'
                                         ? "The domain name doesn't resolve to any IP address. Verify the domain registration and DNS records."
-                                        : "The server is active but refusing connections on port 443. Ensure an SSL certificate is installed and the web server is running."}
+                                        : data.errorCode === 'ETIMEDOUT'
+                                            ? "The connection timed out after 15 seconds. The server might be behind a firewall, or the service is too slow to respond."
+                                            : "The server is active but refusing connections on port 443. Ensure an SSL certificate is installed and the web server is running."}
                                 </p>
                             </div>
                         </div>
@@ -213,9 +215,9 @@ export function SslDashboard({ data }: SslDashboardProps) {
     const allExpanded = expandedNodes.size === reversedChain.length;
 
     return (
-        <div ref={dashboardRef} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 bg-slate-50 dark:bg-slate-900 rounded-2xl relative group/screenshot px-5 py-5">
+        <div ref={dashboardRef} className="animate-in fade-in slide-in-from-bottom-4 duration-500 bg-slate-50 dark:bg-slate-900 rounded-2xl relative group/screenshot pb-1 mt-8">
             {/* Hover-reveal floating action buttons */}
-            <div className="screenshot-hide absolute top-3 right-3 z-10 flex items-center gap-1 opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
+            <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
                 <button
                     onClick={handleCopyToClipboard}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-l-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
@@ -232,7 +234,7 @@ export function SslDashboard({ data }: SslDashboardProps) {
                 </button>
             </div>
             {/* Professional Security Matrix Header */}
-            <Card className="overflow-hidden border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-md relative group">
+            <Card className="overflow-hidden border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm relative group mx-1 mt-1">
                 <div className={cn(
                     "h-1.5 w-full transition-colors duration-1000",
                     isFullyTrusted ? "bg-emerald-500" : status.color === "red" ? "bg-red-500" : "bg-amber-500"
@@ -321,7 +323,7 @@ export function SslDashboard({ data }: SslDashboardProps) {
                 )}
             </Card>
 
-            <div className="mx-auto space-y-8">
+            <div className="mx-1 mt-2.5 space-y-8">
                 {/* Certificate Chain Visualization */}
                 <div className="relative">
                     <div className="flex items-center justify-between mb-8 px-5">

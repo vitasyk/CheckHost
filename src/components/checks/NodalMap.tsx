@@ -7,7 +7,6 @@ import 'leaflet/dist/leaflet.css';
 import { Node } from '@/types/checkhost';
 import { geocodeNode } from '@/lib/node-geocoder';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import { MapPin, Globe, Check, Info } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
@@ -98,21 +97,34 @@ export default function NodalMap({ nodes, selectedNodeIds, onToggleNode }: Nodal
                                         <span>ASN: {node.asn}</span>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onToggleNode(node.id);
-                                    }}
-                                    className={cn(
-                                        "w-full mt-2 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2",
-                                        selectedNodeIds.includes(node.id)
-                                            ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                                            : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                                    )}
-                                >
-                                    {selectedNodeIds.includes(node.id) ? <Check className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}
-                                    {selectedNodeIds.includes(node.id) ? 'Selected' : 'Select Node'}
-                                </button>
+                                {selectedNodeIds.includes(node.id) ? (
+                                    <div className="mt-2 flex items-center justify-between py-1.5 px-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200/60 dark:border-emerald-500/20">
+                                        <div className="flex items-center gap-1.5">
+                                            <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                                            <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">Selected</span>
+                                        </div>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onToggleNode(node.id);
+                                            }}
+                                            className="text-[10px] font-medium text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors cursor-pointer underline underline-offset-2"
+                                        >
+                                            remove
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onToggleNode(node.id);
+                                        }}
+                                        className="w-full mt-2 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400"
+                                    >
+                                        <MapPin className="h-3 w-3" />
+                                        Select Node
+                                    </button>
+                                )}
                             </div>
                         </Popup>
                     </Marker>

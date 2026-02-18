@@ -17,6 +17,12 @@ export interface ParsedRdap {
         phone?: string;
     };
     objectClassName?: string;
+    // IP Network fields
+    cidr?: string;
+    organization?: string;
+    country?: string;
+    remarks?: string[];
+    networkType?: string;
 }
 
 export function parseRdapData(data: any): ParsedRdap {
@@ -31,8 +37,33 @@ export function parseRdapData(data: any): ParsedRdap {
         ipVersion: data.ipVersion,
         status: data.status || [],
         nameservers: data.nameservers?.map((ns: any) => typeof ns === 'string' ? ns : ns.ldhName) || [],
-        objectClassName: data.objectClassName
+        objectClassName: data.objectClassName,
+        country: data.country,
+        networkType: data.type,
     };
+
+    // Parse CIDR from cidr0_cidrs or cidrs array
+    const cidrs = data.cidr0_cidrs || data.cidrs;
+    if (Array.isArray(cidrs) && cidrs.length > 0) {
+        result.cidr = cidrs.map((c: any) => {
+            if (c.v4prefix && c.length !== undefined) return `${c.v4prefix}/${c.length}`;
+            if (c.v6prefix && c.length !== undefined) return `${c.v6prefix}/${c.length}`;
+            return null;
+        }).filter(Boolean).join(', ');
+    }
+
+    // Parse Remarks
+    if (data.remarks && Array.isArray(data.remarks)) {
+        const allRemarks: string[] = [];
+        data.remarks.forEach((remark: any) => {
+            if (remark.description && Array.isArray(remark.description)) {
+                allRemarks.push(...remark.description);
+            } else if (remark.title) {
+                allRemarks.push(remark.title);
+            }
+        });
+        if (allRemarks.length > 0) result.remarks = allRemarks;
+    }
 
     // Parse Events (Dates)
     if (data.events && Array.isArray(data.events)) {
@@ -55,6 +86,12 @@ export function parseRdapData(data: any): ParsedRdap {
                 const fn = extractVCardField(entity.vcardArray, 'fn');
                 if (fn && !result.registrar) result.registrar = fn;
 
+                // Extract organization from vcard 'org' field
+                if (!result.organization) {
+                    const org = extractVCardField(entity.vcardArray, 'org');
+                    if (org) result.organization = org;
+                }
+
                 // Look for abuse contact inside entities
                 if (entity.entities && Array.isArray(entity.entities)) {
                     entity.entities.forEach((subEntity: any) => {
@@ -69,6 +106,22 @@ export function parseRdapData(data: any): ParsedRdap {
                 }
             }
         });
+
+        // Fallback: if no organization found, try the entity fn itself
+        if (!result.organization) {
+            const firstEntity = data.entities.find((e: any) =>
+                e.roles?.some((r: string) => ['registrant', 'administrative'].includes(r.toLowerCase()))
+            );
+            if (firstEntity) {
+                const fn = extractVCardField(firstEntity.vcardArray, 'fn');
+                if (fn && fn !== result.registrar) result.organization = fn;
+            }
+        }
+    }
+
+    // Final fallback for IP networks: use the network name as organization if still empty
+    if (!result.organization && result.objectClassName === 'ip network' && result.name) {
+        result.organization = result.name;
     }
 
     return result;

@@ -20,8 +20,6 @@ export async function GET(request: NextRequest) {
         const result = await checkSsl(host);
         return NextResponse.json(result);
     } catch (error: any) {
-        console.error(`[SSL Check] Error for ${host}:`, error);
-
         // Map internal error codes to user-friendly messages
         let errorMessage = error.message || 'Failed to check SSL certificate';
         let isTechnicalError = true;
@@ -33,13 +31,20 @@ export async function GET(request: NextRequest) {
             errorMessage = `Connection refused: The server at "${host}" is not accepting connections on port 443.`;
             isTechnicalError = false;
         } else if (error.code === 'ETIMEDOUT') {
-            errorMessage = `Connection timed out: The server at "${host}" took too long to respond.`;
+            errorMessage = `Connection timed out: The server at "${host}" (port 443) took too long to respond.`;
             isTechnicalError = false;
         } else if (error.code === 'EHOSTUNREACH') {
             errorMessage = `Host unreachable: No path to the server at "${host}".`;
+            isTechnicalError = false;
         }
 
-        // Return 200 for "Not Found" or "Refused" to allow the UI to render an integrated empty state
+        if (!isTechnicalError) {
+            console.warn(`[SSL Check] Handled failure for ${host}: ${error.code} - ${error.message}`);
+        } else {
+            console.error(`[SSL Check] Technical error for ${host}:`, error);
+        }
+
+        // Return 200 for "Not Found", "Refused", or "Timeout" to allow the UI to render an integrated empty state
         if (!isTechnicalError) {
             return NextResponse.json({
                 host,

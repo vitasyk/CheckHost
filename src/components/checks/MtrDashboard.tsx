@@ -231,24 +231,24 @@ export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDash
             {/* Content area with hover buttons - Framework pattern */}
             <div ref={dashboardRef} className="bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-white/5 relative group/screenshot pb-1">
                 {/* Hover-reveal floating action buttons */}
-                <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center gap-1 opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
+                <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
                     <button
                         onClick={handleCopyText}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-l-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
                     >
                         {textCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <FileText className="h-3 w-3" />}
-                        <span>{textCopied ? 'Copied' : 'Copy Text'}</span>
+                        <span>{textCopied ? 'Copied' : 'Copy TXT'}</span>
                     </button>
                     <button
                         onClick={handleCopyToClipboard}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 border-x border-b border-l-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
                     >
                         {screenshotCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
                         <span>{screenshotCopied ? 'Copied Img' : 'Copy Img'}</span>
                     </button>
                     <button
                         onClick={handleScreenshot}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-r-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
                     >
                         <Camera className="h-3 w-3" />
                         <span>Save</span>

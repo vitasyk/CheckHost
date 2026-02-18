@@ -266,20 +266,45 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onRefresh, 
             verification: 'bg-purple-500',
         };
 
+        const iconColors = {
+            default: 'text-indigo-600 dark:text-indigo-400',
+            email: 'text-amber-600 dark:text-amber-400',
+            authority: 'text-emerald-600 dark:text-emerald-400',
+            verification: 'text-purple-600 dark:text-purple-400',
+        };
+
+        const iconBgColors = {
+            default: 'bg-white dark:bg-slate-900',
+            email: 'bg-white dark:bg-slate-900',
+            authority: 'bg-white dark:bg-slate-900',
+            verification: 'bg-white dark:bg-slate-900',
+        };
+
         return (
-            <div className="rounded-xl border border-slate-200 dark:border-white/5 bg-white dark:bg-slate-950/50 shadow-sm overflow-hidden transition-all duration-300">
-                <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/50">
-                    <div className={cn("w-1 h-4 rounded-full shrink-0", accentColors[variant])} />
-                    <div className="p-1.5 bg-white dark:bg-slate-900 rounded-lg text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/5 shadow-sm shrink-0">
-                        {icon}
+            <div className="group/section relative pl-10 pb-2">
+                {/* Elegant thin vertical accent line */}
+                <div className={cn(
+                    "absolute left-0 top-0 bottom-0 w-[2px] rounded-full transition-all duration-300 opacity-60 group-hover/section:opacity-100",
+                    accentColors[variant]
+                )} />
+
+                <div className="space-y-5">
+                    <div className="flex items-center gap-3.5">
+                        <div className={cn(
+                            "p-2.5 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm shrink-0",
+                            iconBgColors[variant],
+                            iconColors[variant]
+                        )}>
+                            {icon}
+                        </div>
+                        <div className="min-w-0">
+                            <h4 className="text-[13px] font-black tracking-tight text-slate-900 dark:text-slate-100 uppercase leading-none mb-1.5">{title}</h4>
+                            {subtitle && <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-[0.1em]">{subtitle}</p>}
+                        </div>
                     </div>
-                    <div className="min-w-0">
-                        <h4 className="text-[11px] font-black tracking-widest text-slate-900 dark:text-slate-100 uppercase truncate">{title}</h4>
-                        {subtitle && <p className="text-[9px] text-slate-500 dark:text-muted-foreground font-bold truncate">{subtitle}</p>}
+                    <div className="grid grid-cols-1 gap-2.5">
+                        {children}
                     </div>
-                </div>
-                <div className="p-3 space-y-1.5 bg-white/50 dark:bg-transparent">
-                    {children}
                 </div>
             </div>
         );
@@ -290,31 +315,31 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onRefresh, 
         const isSubdomainRecord = record.auxiliary && record.auxiliary.includes('@');
 
         return (
-            <div className="flex items-start gap-3 py-2 px-3 rounded-lg bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-slate-50/80 dark:hover:bg-indigo-950/20 transition-all duration-200 group/row">
-                <Badge variant="outline" className="font-bold text-[10px] min-w-[50px] justify-center shrink-0 mt-0.5 border-slate-300 dark:border-slate-600">
+            <div className="flex items-center gap-4 py-2 px-4 rounded-xl bg-slate-100/40 dark:bg-white/5 hover:bg-slate-200/60 dark:hover:bg-white/10 transition-all duration-500 group/row cursor-default">
+                <Badge variant="secondary" className="font-black text-[10px] min-w-[52px] h-6 justify-center shrink-0 rounded-full bg-white dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-white/10 shadow-sm">
                     {record.type}
                 </Badge>
                 <div className="flex-1 min-w-0">
                     {isSubdomainRecord && (
-                        <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 mr-2 shrink-0">
+                        <span className="text-[12px] font-bold text-indigo-600 dark:text-indigo-400 mr-2 shrink-0">
                             {record.auxiliary} :
                         </span>
                     )}
-                    <span className="font-mono text-xs break-all text-slate-700 dark:text-slate-200 leading-relaxed">
+                    <span className="font-mono text-[11px] break-all text-slate-800 dark:text-slate-100 leading-relaxed tracking-tight">
                         {record.value}
                     </span>
                     {(record.auxiliary && !isSubdomainRecord) && (
-                        <div className="text-[10px] text-muted-foreground mt-0.5">{record.auxiliary}</div>
+                        <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">{record.auxiliary}</div>
                     )}
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2.5 shrink-0">
                     {record.priority !== undefined && (
-                        <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-0 text-[10px] h-5 px-1.5">
-                            pri:{record.priority}
+                        <Badge className="bg-amber-100/40 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 border border-amber-200/30 dark:border-amber-900/20 text-[10px] font-bold h-5 px-2 rounded-full">
+                            PRI: {record.priority}
                         </Badge>
                     )}
                     {record.ttl !== undefined && (
-                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold bg-white/50 dark:bg-white/5 px-2.5 py-1 rounded-full border border-slate-100 dark:border-white/5">
                             <Clock className="h-3 w-3" />
                             <span className="font-mono">{record.ttl}s</span>
                         </div>
@@ -328,25 +353,25 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onRefresh, 
     const SpfRow = ({ record }: { record: DnsRecord }) => {
         const parts = record.value.split(' ').filter(Boolean);
         return (
-            <div className="py-2 px-3 rounded-lg bg-slate-50/70 dark:bg-slate-800/40">
-                <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="outline" className="font-bold text-[10px] min-w-[50px] justify-center border-slate-300 dark:border-slate-600">
+            <div className="py-3 px-4 rounded-xl bg-slate-100/30 dark:bg-white/5 hover:bg-slate-200/50 dark:hover:bg-white/10 transition-all duration-500 cursor-default">
+                <div className="flex items-center gap-3 mb-2.5">
+                    <Badge variant="secondary" className="font-black text-[10px] min-w-[52px] h-6 justify-center rounded-full bg-white dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-white/10 shadow-sm">
                         SPF
                     </Badge>
-                    <span className="text-[10px] text-muted-foreground">Sender Policy Framework</span>
+                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Sender Policy Framework</span>
                 </div>
-                <div className="flex flex-wrap gap-1.5 ml-[62px]">
+                <div className="sm:ml-[65px] font-mono text-[12px] leading-relaxed break-all">
                     {parts.map((part, i) => {
-                        let color = 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300';
-                        if (part.startsWith('include:')) color = 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
-                        else if (part.startsWith('ip4:') || part.startsWith('ip6:')) color = 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300';
-                        else if (part === '~all' || part === '-all') color = 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
-                        else if (part === 'mx' || part === 'a') color = 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300';
-                        else if (part === 'v=spf1') color = 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300';
+                        let textColor = 'text-slate-600 dark:text-slate-400';
+                        if (part.startsWith('include:')) textColor = 'text-blue-600 dark:text-blue-400';
+                        else if (part.startsWith('ip4:') || part.startsWith('ip6:')) textColor = 'text-emerald-600 dark:text-emerald-400';
+                        else if (part === '~all' || part === '-all') textColor = 'text-rose-600 dark:text-rose-400';
+                        else if (part === 'mx' || part === 'a') textColor = 'text-amber-600 dark:text-amber-400';
+                        else if (part === 'v=spf1') textColor = 'text-indigo-600 dark:text-indigo-500 font-black';
 
                         return (
-                            <span key={i} className={cn("px-2 py-0.5 rounded-md text-[11px] font-mono font-medium", color)}>
-                                {part}
+                            <span key={i} className={textColor}>
+                                {part}{i < parts.length - 1 ? ' ' : ''}
                             </span>
                         );
                     })}
@@ -358,12 +383,12 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onRefresh, 
     return (
         <div ref={dashboardRef} className="bg-slate-50 dark:bg-slate-900 rounded-xl relative group/screenshot pb-1 mt-8">
             {/* Hover-reveal floating action buttons */}
-            <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center gap-1 opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
+            <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
                 {onRefresh && (
                     <button
                         onClick={onRefresh}
                         disabled={isRefreshing}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-l-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer disabled:opacity-50"
                     >
                         <Loader2 className={`h-3 w-3 ${isRefreshing ? 'animate-spin text-indigo-500' : ''}`} />
                         <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
@@ -371,21 +396,24 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onRefresh, 
                 )}
                 <button
                     onClick={handleCopyText}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
+                    className={cn(
+                        "flex items-center gap-1.5 px-2.5 py-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer",
+                        !onRefresh ? "rounded-l-lg" : "border-l-0"
+                    )}
                 >
                     {textCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <FileText className="h-3 w-3" />}
                     <span>{textCopied ? 'Copied TXT' : 'Copy TXT'}</span>
                 </button>
                 <button
                     onClick={handleCopyToClipboard}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer border-l-0"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
                 >
                     {screenshotCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
                     <span>{screenshotCopied ? 'Copied Img' : 'Copy Img'}</span>
                 </button>
                 <button
                     onClick={handleScreenshot}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-b-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border-x border-b border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-r-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
                 >
                     <Camera className="h-3 w-3" />
                     <span>Save</span>
