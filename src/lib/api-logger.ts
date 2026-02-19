@@ -1,5 +1,26 @@
 import { supabase, isSupabaseConfigured } from './supabase';
 import pool, { isPostgresConfigured } from './postgres';
+import { getSiteSetting } from './site-settings';
+
+// Cache for logging settings to avoid DB spam (60s TTL)
+let cachedVerboseMode: boolean | null = null;
+let lastCheckTime = 0;
+
+async function isVerbose(): Promise<boolean> {
+    const now = Date.now();
+    if (cachedVerboseMode !== null && (now - lastCheckTime < 60000)) {
+        return cachedVerboseMode;
+    }
+
+    try {
+        const config = await getSiteSetting('system_config');
+        cachedVerboseMode = config?.verboseLogging === true;
+        lastCheckTime = now;
+        return cachedVerboseMode;
+    } catch (e) {
+        return false;
+    }
+}
 
 export interface CheckLog {
     check_type: string;
@@ -19,6 +40,22 @@ export interface ApiUsageLog {
 }
 
 export const apiLogger = {
+    /**
+     * Log a message to terminal ONLY if verbose logging is enabled
+     */
+    async info(message: string, ...args: any[]) {
+        if (await isVerbose()) {
+            console.log(`[SYSTEM] ${message}`, ...args);
+        }
+    },
+
+    /**
+     * Log an error to terminal (always logged, but prefixed)
+     */
+    async error(message: string, ...args: any[]) {
+        console.error(`[ERROR] ${message}`, ...args);
+    },
+
     /**
      * Log a user check event
      */

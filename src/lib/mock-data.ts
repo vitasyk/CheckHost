@@ -237,6 +237,7 @@ export async function getMockIpInfo(host: string): Promise<IpInfoResponse> {
                 _isReal: true
             } : undefined
         },
-        rdapRawData: rdapData
+        rdapRawData: rdapData,
+        host: host
     };
 }

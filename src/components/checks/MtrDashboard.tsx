@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Network, ArrowRight, Camera, Copy, Check, FileText, Loader2, Activity } from 'lucide-react';
@@ -19,6 +19,116 @@ interface MtrDashboardProps {
     nodeCity?: string;
     onPingIp?: (ip: string) => void;
     targetHost?: string;
+}
+
+// Global cache to avoid duplicate PTR lookups across the same IPs in MTR
+const rdnsCache: Record<string, string> = {};
+const pendingLookups: Record<string, boolean> = {};
+const rdnsListeners: Record<string, Set<(name: string) => void>> = {};
+
+function MtrHopHost({ hop, onPingIp }: { hop: MtrHop, onPingIp?: (ip: string) => void }) {
+    const [rdns, setRdns] = useState<string | null>(rdnsCache[hop.ip] || null);
+
+    useEffect(() => {
+        if (!hop.ip) return;
+
+        // If CheckHost already provided a resolved hostname, cache and use it
+        if (hop.host && hop.host !== hop.ip && hop.host !== '???') {
+            rdnsCache[hop.ip] = hop.host;
+            setRdns(hop.host);
+            return;
+        }
+
+        // If we already successfully resolved it locally, use it
+        if (rdnsCache[hop.ip]) {
+            setRdns(rdnsCache[hop.ip]);
+            return;
+        }
+
+        // Filter out private/local IPs to reduce unnecessary network requests
+        const parts = hop.ip.split('.').map(Number);
+        if (
+            parts[0] === 10 || parts[0] === 127 || parts[0] === 0 ||
+            (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) ||
+            (parts[0] === 192 && parts[1] === 168) ||
+            (parts[0] === 169 && parts[1] === 254)
+        ) {
+            return;
+        }
+
+        // Register this component instance to listen for resolution updates for this IP
+        if (!rdnsListeners[hop.ip]) rdnsListeners[hop.ip] = new Set();
+        const callback = (name: string) => setRdns(name);
+        rdnsListeners[hop.ip].add(callback);
+
+        // Fetch if nobody else is currently fetching this IP
+        if (!pendingLookups[hop.ip]) {
+            pendingLookups[hop.ip] = true;
+            fetch(`/api/dns-lookup?domain=${hop.ip}`)
+                .then(res => res.json())
+                .then(data => {
+                    let name = '';
+                    if (data && data.records) {
+                        const ptr = data.records.find((r: any) => r.type === 'PTR');
+                        if (ptr && ptr.value) {
+                            name = ptr.value.replace(/\.$/, '');
+                        }
+                    }
+                    if (name) {
+                        rdnsCache[hop.ip] = name;
+                        rdnsListeners[hop.ip].forEach(cb => cb(name));
+                    }
+                })
+                .catch(() => {
+                    // silent failure, will just leave the IP as is
+                });
+        }
+
+        // Cleanup listener on unmount
+        return () => {
+            if (rdnsListeners[hop.ip]) {
+                rdnsListeners[hop.ip].delete(callback);
+            }
+        };
+    }, [hop.ip, hop.host]);
+
+    const displayHost = rdns || (hop.host && hop.host !== hop.ip && hop.host !== '???' ? hop.host : hop.ip) || '???';
+    const showIp = hop.ip && hop.ip !== displayHost;
+
+    return (
+        <div className="flex items-center gap-1.5 flex-wrap">
+            <span
+                className={cn(
+                    "font-medium text-slate-700 dark:text-slate-200 transition-colors",
+                    onPingIp && "cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline"
+                )}
+                onClick={(e) => {
+                    if (onPingIp && hop.ip) {
+                        e.stopPropagation();
+                        onPingIp(hop.ip);
+                    }
+                }}
+            >
+                {displayHost}
+            </span>
+            {showIp && (
+                <span
+                    className={cn(
+                        "text-xs text-muted-foreground transition-colors",
+                        onPingIp && "cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline"
+                    )}
+                    onClick={(e) => {
+                        if (onPingIp) {
+                            e.stopPropagation();
+                            onPingIp(hop.ip);
+                        }
+                    }}
+                >
+                    ({hop.ip})
+                </span>
+            )}
+        </div>
+    );
 }
 
 export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDashboardProps) {

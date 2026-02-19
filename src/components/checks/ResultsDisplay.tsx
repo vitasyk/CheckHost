@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { DnsRecordsTable } from './DnsRecordsTable';
 import { DnsDashboard } from './DnsDashboard';
 import { MtrDashboard } from './MtrDashboard';
+import { Link, Share2, Check } from 'lucide-react';
 
 interface ResultsDisplayProps {
     results: ResultsResponse;
@@ -32,12 +33,63 @@ interface ResultsDisplayProps {
     onRefresh?: () => void;
     isRefreshing?: boolean;
     onDnsTypeChange?: (type: string) => void;
+    isSharedView?: boolean;
 }
 
-export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {}, onPingIp, dnsType, onDnsTypeChange, targetHost, isLoading, onRefresh, isRefreshing }: ResultsDisplayProps) {
+export function ResultsDisplay({
+    results,
+    checkType,
+    nodes = {},
+    activeNodes = {},
+    onPingIp,
+    dnsType,
+    onDnsTypeChange,
+    targetHost,
+    isLoading,
+    onRefresh,
+    isRefreshing,
+    isSharedView = false
+}: ResultsDisplayProps) {
     const [groupBy, setGroupBy] = useState<'none' | 'region'>('none');
     const [searchQuery, setSearchQuery] = useState('');
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+    const [isSharing, setIsSharing] = useState(false);
+    const [shareUrl, setShareUrl] = useState<string | null>(null);
+    const [shareCopied, setShareCopied] = useState(false);
+
+    const handleShare = async () => {
+        if (isSharing || isLoading) return;
+        setIsSharing(true);
+        try {
+            const res = await fetch('/api/share', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: checkType,
+                    host: targetHost || '',
+                    results,
+                    checkNodes: nodes,
+                    metadata: {
+                        timestamp: new Date().toISOString()
+                    }
+                })
+            });
+
+            if (!res.ok) throw new Error('Failed to create share link');
+
+            const data = await res.json();
+            const fullUrl = `${window.location.origin}/share/${data.id}`;
+            setShareUrl(fullUrl);
+
+            await navigator.clipboard.writeText(fullUrl);
+            setShareCopied(true);
+            setTimeout(() => setShareCopied(false), 3000);
+        } catch (err) {
+            console.error('Sharing failed:', err);
+        } finally {
+            setIsSharing(false);
+        }
+    };
 
     const toggleRow = (nodeId: string) => {
         setExpandedRows(prev => {
@@ -620,6 +672,31 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        {!isSharedView && successCount > 0 && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleShare}
+                                disabled={isSharing}
+                                className={cn(
+                                    "h-9 px-4 rounded-xl border-indigo-200 dark:border-indigo-500/20 transition-all duration-300",
+                                    shareCopied
+                                        ? "bg-green-500/10 text-green-600 border-green-500/30"
+                                        : "bg-indigo-50/50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400"
+                                )}
+                            >
+                                {isSharing ? (
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                ) : shareCopied ? (
+                                    <Check className="h-4 w-4 mr-2" />
+                                ) : (
+                                    <Share2 className="h-4 w-4 mr-2" />
+                                )}
+                                <span className="font-bold text-[11px] uppercase tracking-tight">
+                                    {shareCopied ? 'Link Copied' : 'Copy Link'}
+                                </span>
+                            </Button>
+                        )}
                         <div className="relative w-full md:w-64">
                             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input

@@ -13,7 +13,10 @@ import {
     Loader2,
     CheckCircle2,
     Megaphone,
-    SwitchCamera
+    SwitchCamera,
+    Share2,
+    Trash2,
+    Terminal
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { useEffect, useState } from 'react';
@@ -44,6 +47,10 @@ interface AdSenseConfig {
     slots: Record<string, AdSlotConfig>;
 }
 
+interface ShareResultsConfig {
+    ttlDays: number;
+}
+
 export default function AdminSettings() {
     const { data: session } = useSession();
     const [config, setConfig] = useState<AdSenseConfig | null>(null);
@@ -55,8 +62,15 @@ export default function AdminSettings() {
     const [featureConfig, setFeatureConfig] = useState<FeatureFlagsConfig>({
         globalCheckEnabled: true
     });
+    const [shareConfig, setShareConfig] = useState<ShareResultsConfig>({
+        ttlDays: 30
+    });
+    const [systemConfig, setSystemConfig] = useState({
+        verboseLogging: false
+    });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [clearing, setClearing] = useState(false);
     const [saved, setSaved] = useState(false);
 
     useEffect(() => {
@@ -112,6 +126,20 @@ export default function AdminSettings() {
                     const data = await featureRes.json();
                     if (data) setFeatureConfig(data);
                 }
+
+                // Fetch Share Results Config
+                const shareRes = await fetch('/api/admin/settings?key=share_results');
+                if (shareRes.ok) {
+                    const data = await shareRes.json();
+                    if (data) setShareConfig(data);
+                }
+
+                // Fetch System Config
+                const systemRes = await fetch('/api/admin/settings?key=system_config');
+                if (systemRes.ok) {
+                    const data = await systemRes.json();
+                    if (data) setSystemConfig(data);
+                }
             } catch (error) {
                 console.error('Failed to fetch configs:', error);
             } finally {
@@ -145,13 +173,52 @@ export default function AdminSettings() {
                 body: JSON.stringify(featureConfig),
             });
 
-            await Promise.all([p1, p2, p3]);
+            // Save Share Config
+            const p4 = fetch('/api/admin/settings?key=share_results', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(shareConfig),
+            });
+
+            // Save System Config
+            const p5 = fetch('/api/admin/settings?key=system_config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(systemConfig),
+            });
+
+            await Promise.all([p1, p2, p3, p4, p5]);
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
         } catch (error) {
             console.error('Failed to save config:', error);
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleClearSnapshots = async () => {
+        if (!confirm('Are you sure you want to clear all shared results? This will invalidate all existing share links!')) {
+            return;
+        }
+
+        setClearing(true);
+        try {
+            const res = await fetch('/api/admin/snapshots?all=true', {
+                method: 'DELETE',
+            });
+
+            if (res.ok) {
+                alert('All shared snapshots have been cleared.');
+            } else {
+                const data = await res.json();
+                alert(`Failed to clear snapshots: ${data.error || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Failed to clear snapshots:', error);
+            alert('An error occurred while clearing snapshots.');
+        } finally {
+            setClearing(false);
         }
     };
 
@@ -249,28 +316,83 @@ export default function AdminSettings() {
                                 </div>
                             </Card>
 
-                            {/* Features Section */}
+                            {/* Share Results Section */}
                             <Card className="p-8 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm relative overflow-hidden group">
-                                <SwitchCamera className="absolute -right-4 -bottom-4 h-24 w-24 text-indigo-500/5 group-hover:text-indigo-500/10 transition-colors" />
+                                <Share2 className="absolute -right-4 -bottom-4 h-24 w-24 text-indigo-500/5 group-hover:text-indigo-500/10 transition-colors" />
 
                                 <div className="space-y-1 mb-6">
                                     <div className="flex items-center gap-2">
-                                        <h3 className="text-xl font-bold font-display">System Features</h3>
-                                        <Badge variant="outline" className="text-[10px] py-0 border-slate-200 text-slate-500 bg-slate-50 dark:bg-slate-800/50">Functionality</Badge>
+                                        <h3 className="text-xl font-bold font-display">Share Results</h3>
+                                        <Badge variant="outline" className="text-[10px] py-0 border-slate-200 text-slate-500 bg-slate-50 dark:bg-slate-800/50">Snapshots</Badge>
                                     </div>
-                                    <p className="text-sm text-slate-400">Control core features and diagnostic tools available to users.</p>
+                                    <p className="text-sm text-slate-400">Configure how check results are shared and stored as permanent links.</p>
                                 </div>
 
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <Card className="p-4 border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20 flex flex-col gap-4">
                                         <div className="flex items-center justify-between">
-                                            <div className="text-sm font-bold">Global Check (Check All)</div>
+                                            <div className="text-sm font-bold">Retention Period (Days)</div>
+                                            <div className="w-24">
+                                                <Input
+                                                    type="number"
+                                                    value={shareConfig.ttlDays}
+                                                    onChange={(e) => setShareConfig({ ...shareConfig, ttlDays: parseInt(e.target.value) || 30 })}
+                                                    className="h-8 text-center font-bold"
+                                                />
+                                            </div>
+                                        </div>
+                                        <p className="text-xs text-slate-400">How many days the shared results link remains active before deletion. Default is 30 days.</p>
+                                    </Card>
+
+                                    <Card className="p-4 border-red-100 dark:border-red-900/20 bg-red-50/30 dark:bg-red-900/10 flex flex-col gap-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-sm font-bold text-red-600 dark:text-red-400">Clean Snapshots</div>
+                                            <Button
+                                                variant="destructive"
+                                                size="sm"
+                                                className="h-8 gap-2 rounded-lg"
+                                                onClick={handleClearSnapshots}
+                                                disabled={clearing}
+                                            >
+                                                {clearing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                                                Clear All
+                                            </Button>
+                                        </div>
+                                        <p className="text-xs text-slate-400">Permanently delete all shared result snapshots from the database. <span className="text-red-500 font-bold">This cannot be undone.</span></p>
+                                    </Card>
+                                </div>
+                            </Card>
+
+                            {/* System Configuration Section */}
+                            <Card className="p-8 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm relative overflow-hidden group">
+                                <Terminal className="absolute -right-4 -bottom-4 h-24 w-24 text-indigo-500/5 group-hover:text-indigo-500/10 transition-colors" />
+
+                                <div className="space-y-1 mb-6">
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="text-xl font-bold font-display">System Configuration</h3>
+                                        <Badge variant="outline" className="text-[10px] py-0 border-slate-200 text-slate-500 bg-slate-50 dark:bg-slate-800/50">Core</Badge>
+                                    </div>
+                                    <p className="text-sm text-slate-400">Internal system parameters and diagnostic controls.</p>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <Card className="p-4 border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20 flex flex-col gap-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-sm font-bold">Verbose Logging</div>
                                             <Switch
-                                                checked={featureConfig.globalCheckEnabled}
-                                                onCheckedChange={(val) => setFeatureConfig({ ...featureConfig, globalCheckEnabled: val })}
+                                                checked={systemConfig.verboseLogging}
+                                                onCheckedChange={(val) => setSystemConfig({ ...systemConfig, verboseLogging: val })}
                                             />
                                         </div>
-                                        <p className="text-xs text-slate-400">Allows users to trigger all checks (Ping, HTTP, DNS, etc.) simultaneously with one button.</p>
+                                        <p className="text-xs text-slate-400">Enable detailed application logs in the server terminal. Useful for debugging check flows.</p>
+                                    </Card>
+
+                                    <Card className="p-4 border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20 flex flex-col gap-4 opacity-50 cursor-not-allowed">
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-sm font-bold">Debug Mode</div>
+                                            <Switch disabled checked={false} />
+                                        </div>
+                                        <p className="text-xs text-slate-400">Enable deep trace logging for all API interactions (Coming soon).</p>
                                     </Card>
                                 </div>
                             </Card>

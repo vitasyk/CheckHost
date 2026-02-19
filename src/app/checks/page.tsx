@@ -166,23 +166,26 @@ function ChecksPageContent() {
         }
     };
 
-    // URL Persistence Effect
+    // URL Persistence Effect (Debounced)
     useEffect(() => {
-        const params = new URLSearchParams(searchParams.toString());
+        const handler = setTimeout(() => {
+            const params = new URLSearchParams(searchParams.toString());
 
-        if (activeTab) params.set('tab', activeTab);
-        else params.delete('tab');
+            if (activeTab) params.set('tab', activeTab);
+            else params.delete('tab');
 
-        if (host.trim()) params.set('host', host.trim());
-        else params.delete('host');
+            if (host.trim()) params.set('host', host.trim());
+            else params.delete('host');
 
-        // Only update if params actually changed to avoid unnecessary history entries
-        const currentQuery = searchParams.toString();
-        const newQuery = params.toString();
+            const currentQuery = searchParams.toString();
+            const newQuery = params.toString();
 
-        if (currentQuery !== newQuery) {
-            router.replace(`${pathname}?${newQuery}`, { scroll: false });
-        }
+            if (currentQuery !== newQuery) {
+                router.replace(`${pathname}?${newQuery}`, { scroll: false });
+            }
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(handler);
     }, [activeTab, host, pathname, router, searchParams]);
 
     const handleCheckStart = (type: CheckType, checkNodes: Record<string, any>, setNodesFn: (nodes: Record<string, any>) => void, setResultsFn: (res: ResultsResponse | null) => void) => {
@@ -715,6 +718,7 @@ function ChecksPageContent() {
                                             onReverseMtrToggle={handleReverseMtrToggle}
                                             selectedNodeCount={selectedNodeIds.length}
                                             selectedNodeIds={selectedNodeIds}
+                                            isMapVisible={showMap}
                                         />
                                         {activeChecks.has('info') ? (
                                             <div className="flex flex-col items-center justify-center p-12 text-muted-foreground animate-pulse gap-4 mt-8">
@@ -754,6 +758,7 @@ function ChecksPageContent() {
                                             selectedNodeIds={selectedNodeIds}
                                             onToggleMap={() => setShowMap(!showMap)}
                                             onClearSelection={clearSelectedNodes}
+                                            isMapVisible={showMap}
                                         />
 
                                         {/* Nodal Network Map (Looking Glass Phase 2) */}
@@ -776,14 +781,6 @@ function ChecksPageContent() {
                                                                 Clear Selection
                                                             </Button>
                                                         )}
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-7 w-7 p-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                                                            onClick={() => setShowMap(false)}
-                                                        >
-                                                            <X className="h-4 w-4" />
-                                                        </Button>
                                                     </div>
                                                 </div>
                                                 <NodalMap
@@ -838,6 +835,7 @@ function ChecksPageContent() {
                                             selectedNodeIds={selectedNodeIds}
                                             onToggleMap={() => setShowMap(!showMap)}
                                             onClearSelection={clearSelectedNodes}
+                                            isMapVisible={showMap}
                                         />
 
                                         {/* Nodal Network Map (Looking Glass Phase 2) */}
@@ -855,7 +853,7 @@ function ChecksPageContent() {
                                                                 <X className="h-3 w-3" /> Clear Selection
                                                             </Button>
                                                         )}
-                                                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" onClick={() => setShowMap(false)}>
+                                                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" onClick={() => { setShowMap(false); clearSelectedNodes(); }}>
                                                             <X className="h-4 w-4" />
                                                         </Button>
                                                     </div>
@@ -904,6 +902,7 @@ function ChecksPageContent() {
                                             selectedNodeIds={selectedNodeIds}
                                             onToggleMap={() => setShowMap(!showMap)}
                                             onClearSelection={clearSelectedNodes}
+                                            isMapVisible={showMap}
                                         />
 
                                         {showMap && (
@@ -919,9 +918,6 @@ function ChecksPageContent() {
                                                                 <X className="h-3 w-3" /> Clear Selection
                                                             </Button>
                                                         )}
-                                                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" onClick={() => setShowMap(false)}>
-                                                            <X className="h-4 w-4" />
-                                                        </Button>
                                                     </div>
                                                 </div>
                                                 <NodalMap nodes={nodes} selectedNodeIds={selectedNodeIds} onToggleNode={toggleNode} />
@@ -955,6 +951,7 @@ function ChecksPageContent() {
                                             selectedNodeIds={selectedNodeIds}
                                             onToggleMap={() => setShowMap(!showMap)}
                                             onClearSelection={clearSelectedNodes}
+                                            isMapVisible={showMap}
                                         />
 
                                         {showMap && (
@@ -970,9 +967,6 @@ function ChecksPageContent() {
                                                                 <X className="h-3 w-3" /> Clear Selection
                                                             </Button>
                                                         )}
-                                                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" onClick={() => setShowMap(false)}>
-                                                            <X className="h-4 w-4" />
-                                                        </Button>
                                                     </div>
                                                 </div>
                                                 <NodalMap nodes={nodes} selectedNodeIds={selectedNodeIds} onToggleNode={toggleNode} />
@@ -1006,6 +1000,7 @@ function ChecksPageContent() {
                                             selectedNodeIds={selectedNodeIds}
                                             onToggleMap={() => setShowMap(!showMap)}
                                             onClearSelection={clearSelectedNodes}
+                                            isMapVisible={showMap}
                                         />
 
                                         {showMap && (
@@ -1021,9 +1016,6 @@ function ChecksPageContent() {
                                                                 <X className="h-3 w-3" /> Clear Selection
                                                             </Button>
                                                         )}
-                                                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" onClick={() => setShowMap(false)}>
-                                                            <X className="h-4 w-4" />
-                                                        </Button>
                                                     </div>
                                                 </div>
                                                 <NodalMap nodes={nodes} selectedNodeIds={selectedNodeIds} onToggleNode={toggleNode} />
@@ -1066,6 +1058,7 @@ function ChecksPageContent() {
                                             selectedNodeIds={selectedNodeIds}
                                             onToggleMap={() => setShowMap(!showMap)}
                                             onClearSelection={clearSelectedNodes}
+                                            isMapVisible={showMap}
                                         />
 
                                         {showMap && (
@@ -1081,9 +1074,6 @@ function ChecksPageContent() {
                                                                 <X className="h-3 w-3" /> Clear Selection
                                                             </Button>
                                                         )}
-                                                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" onClick={() => setShowMap(false)}>
-                                                            <X className="h-4 w-4" />
-                                                        </Button>
                                                     </div>
                                                 </div>
                                                 <NodalMap nodes={nodes} selectedNodeIds={selectedNodeIds} onToggleNode={toggleNode} />
@@ -1128,6 +1118,7 @@ function ChecksPageContent() {
                                             onReverseMtrToggle={handleReverseMtrToggle}
                                             selectedNodeCount={selectedNodeIds.length}
                                             selectedNodeIds={selectedNodeIds}
+                                            isMapVisible={showMap}
                                         />
                                         {(dnsInfoResults || Object.keys(dnsInfoNodes).length > 0 || activeChecks.has('dns-all')) && (
                                             <div className="space-y-4">
@@ -1174,6 +1165,7 @@ function ChecksPageContent() {
                                             onReverseMtrToggle={handleReverseMtrToggle}
                                             selectedNodeCount={selectedNodeIds.length}
                                             selectedNodeIds={selectedNodeIds}
+                                            isMapVisible={showMap}
                                         />
                                         {activeChecks.has('ssl') ? (
                                             <div className="flex flex-col items-center justify-center p-12 text-muted-foreground animate-pulse gap-4 mt-8">

@@ -39,6 +39,7 @@ export async function GET(
             const url = `https://check-host.net/check-${type}?${searchParams.toString()}`;
 
             const startTime = Date.now();
+            await apiLogger.info(`Initiating ${type} check for host: ${host}`);
             const response = await axios.get(url, {
                 headers: {
                     Accept: 'application/json',

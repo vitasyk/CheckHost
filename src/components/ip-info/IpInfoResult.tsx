@@ -1,24 +1,29 @@
 ﻿import { IpInfoResponse } from '@/types/ip-info';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Globe, ChevronDown, Database, Calendar, ShieldCheck, Mail, Phone, ExternalLink, Server, Network, Maximize2, Camera, Copy, Check, Loader2, AlertTriangle, Building2, Flag, Navigation, Clock, Sun, Moon, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import MapWrapper from '@/components/ip-info/MapWrapper';
 import { getCountryCoords } from '@/lib/country-coords';
 import { parseRdapData } from '@/lib/rdap-parser';
 import { useState, useEffect, useRef } from 'react';
-import { toPng, toBlob } from 'html-to-image';
+import {
+    Share2, Link, Check, Loader2, AlertTriangle, Building2, Flag,
+    Navigation, Clock, Sun, Moon, ArrowUpRight, MapPin, Globe,
+    ChevronDown, Database, Calendar, ShieldCheck, Mail, Phone,
+    ExternalLink, Server, Network, Maximize2, Copy
+} from 'lucide-react';
 
 interface IpInfoResultProps {
     data: IpInfoResponse;
     onRefresh?: () => void;
     isRefreshing?: boolean;
+    isSharedView?: boolean;
 }
 
-export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoResultProps) {
+export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedView = false }: IpInfoResultProps) {
     const { providers } = data;
     const screenshotRef = useRef<HTMLDivElement>(null);
-    const [expandedProvider, setExpandedProvider] = useState<string | null>('maxmind');
+    const [expandedProvider, setExpandedProvider] = useState<string | null>(null);
     const [expandedRaw, setExpandedRaw] = useState(false);
     const [displaySettings, setDisplaySettings] = useState({
         showFeaturedMap: false,
@@ -26,6 +31,8 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
         showProviderCards: false
     });
     const [settingsLoaded, setSettingsLoaded] = useState(false);
+    const [isSharing, setIsSharing] = useState(false);
+    const [shareCopied, setShareCopied] = useState(false);
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -36,6 +43,12 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                     const settings = await res.json();
                     if (settings) {
                         setDisplaySettings(settings);
+                        // Apply conditional expansion logic based on map visibility
+                        if (settings.showFeaturedMap) {
+                            setExpandedProvider(null);
+                        } else {
+                            setExpandedProvider('maxmind');
+                        }
                     } else {
                         // Fallback to defaults if no settings in DB
                         setDisplaySettings({
@@ -43,6 +56,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                             showRdapData: true,
                             showProviderCards: true
                         });
+                        setExpandedProvider('maxmind');
                     }
                 }
             } catch (err) {
@@ -53,6 +67,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                     showRdapData: true,
                     showProviderCards: true
                 });
+                setExpandedProvider('maxmind');
             } finally {
                 setSettingsLoaded(true);
             }
@@ -64,44 +79,37 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
         setExpandedProvider(expandedProvider === provider ? null : provider);
     };
 
-    const [copied, setCopied] = useState(false);
+    const handleShare = async () => {
+        if (isSharing) return;
+        setIsSharing(true);
+        try {
+            const res = await fetch('/api/share', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'info',
+                    host: data.host || data.hostname || data.ip || '',
+                    results: data, // For IP info, we store the whole response
+                    checkNodes: {},
+                    metadata: {
+                        timestamp: new Date().toISOString(),
+                        providerCount: providerConfigs.length
+                    }
+                })
+            });
 
-    const captureOptions = {
-        pixelRatio: 2,
-        cacheBust: true,
-        filter: (node: HTMLElement) => !node.classList?.contains('screenshot-hide')
-    };
+            if (!res.ok) throw new Error('Failed to create share link');
 
-    const handleScreenshot = async () => {
-        if (screenshotRef.current) {
-            try {
-                const dataUrl = await toPng(screenshotRef.current, captureOptions);
-                const link = document.createElement('a');
-                link.href = dataUrl;
-                link.download = `${data.ip}-info-report.png`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } catch (err) {
-                console.error('Screenshot failed:', err);
-            }
-        }
-    };
+            const shareData = await res.json();
+            const fullUrl = `${window.location.origin}/share/${shareData.id}`;
 
-    const handleCopyToClipboard = async () => {
-        if (screenshotRef.current) {
-            try {
-                const blob = await toBlob(screenshotRef.current, captureOptions);
-                if (blob) {
-                    await navigator.clipboard.write([
-                        new ClipboardItem({ 'image/png': blob })
-                    ]);
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 2000);
-                }
-            } catch (err) {
-                console.error('Copy to clipboard failed:', err);
-            }
+            await navigator.clipboard.writeText(fullUrl);
+            setShareCopied(true);
+            setTimeout(() => setShareCopied(false), 3000);
+        } catch (err) {
+            console.error('Sharing failed:', err);
+        } finally {
+            setIsSharing(false);
         }
     };
 
@@ -273,33 +281,34 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
             <div ref={screenshotRef} className="relative group/screenshot space-y-4">
                 {/* Hover-reveal floating action buttons - Positioned relative to frame */}
                 <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
-                    {onRefresh && (
-                        <button
-                            onClick={onRefresh}
-                            disabled={isRefreshing}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-l-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer disabled:opacity-50"
-                        >
-                            <Loader2 className={`h-3 w-3 ${isRefreshing ? 'animate-spin text-indigo-500' : ''}`} />
-                            <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
-                        </button>
+                    {!isSharedView && (
+                        <div className="flex bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 rounded-lg shadow-sm overflow-hidden">
+                            {onRefresh && (
+                                <button
+                                    onClick={onRefresh}
+                                    disabled={isRefreshing}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all duration-200 cursor-pointer disabled:opacity-50 border-r border-slate-200/80 dark:border-white/10"
+                                >
+                                    <Loader2 className={`h-3 w-3 ${isRefreshing ? 'animate-spin text-indigo-500' : ''}`} />
+                                    <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+                                </button>
+                            )}
+                            <button
+                                onClick={handleShare}
+                                disabled={isSharing}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all duration-200 cursor-pointer"
+                            >
+                                {shareCopied ? (
+                                    <Check className="h-3 w-3 text-emerald-500" />
+                                ) : isSharing ? (
+                                    <Loader2 className="h-3 w-3 animate-spin text-indigo-500" />
+                                ) : (
+                                    <Link className="h-3 w-3" />
+                                )}
+                                <span>{shareCopied ? 'Link Copied' : 'Copy Link'}</span>
+                            </button>
+                        </div>
                     )}
-                    <button
-                        onClick={handleCopyToClipboard}
-                        className={cn(
-                            "flex items-center gap-1.5 px-2.5 py-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer",
-                            onRefresh ? "border-l-0" : "rounded-l-lg"
-                        )}
-                    >
-                        {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                        <span>{copied ? 'Copied' : 'Copy Img'}</span>
-                    </button>
-                    <button
-                        onClick={handleScreenshot}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-r-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
-                    >
-                        <Camera className="h-3 w-3" />
-                        <span>Save</span>
-                    </button>
                 </div>
 
                 {/* Intelligence Banner: Network info for IPs or status for unresolved domains */}
@@ -339,7 +348,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                                                         <Building2 className="h-4 w-4" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Organization</p>
+                                                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">Organization</p>
                                                         <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-tight">{rdap.organization}</p>
                                                     </div>
                                                 </div>
@@ -350,7 +359,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                                                         <Flag className="h-4 w-4" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Registration Country</p>
+                                                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">Registration Country</p>
                                                         <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-tight">{rdap.country}</p>
                                                     </div>
                                                 </div>
@@ -358,7 +367,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                                         </div>
                                     )}
                                 </div>
-                                <Badge variant="outline" className="shrink-0 px-3 py-1 rounded-full border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black tracking-widest bg-slate-100/50 dark:bg-white/5">
+                                <Badge variant="outline" className="shrink-0 px-3 py-1 rounded-full border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 text-[11px] uppercase font-black tracking-widest bg-slate-100/50 dark:bg-white/5">
                                     Unresolved
                                 </Badge>
                             </div>
@@ -378,16 +387,28 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                                         <Globe className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                                     </div>
                                     <div className="flex-1 lg:flex-none min-w-[140px]">
-                                        <div className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Target IP</div>
+                                        <div className="text-[11px] text-slate-400 font-bold uppercase tracking-widest mb-1.5">
+                                            Target IP
+                                        </div>
                                         <div className="text-2xl font-mono font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 leading-none">
                                             {data.ip}
                                             <Badge variant="secondary" className="px-1.5 py-0 text-xs bg-slate-100 dark:bg-white/5 text-slate-500 rounded-md font-bold">
                                                 {providerConfigs.length}
                                             </Badge>
                                         </div>
-                                        {data.hostname && (
-                                            <div className="text-xs font-mono text-slate-400 line-clamp-1 mt-1">{data.hostname}</div>
-                                        )}
+                                        <div className="text-xs font-mono text-slate-400 line-clamp-1 mt-1 flex items-center gap-2">
+                                            {data.hostname && data.hostname !== data.ip && (
+                                                <span>{data.hostname}</span>
+                                            )}
+                                            {data.host && data.host !== data.ip && data.host !== data.hostname && (
+                                                <>
+                                                    {data.hostname && data.hostname !== data.ip && (
+                                                        <span className="text-[10px] opacity-50">•</span>
+                                                    )}
+                                                    <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data.host}</span>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 

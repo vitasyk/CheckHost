@@ -11,7 +11,7 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Play, ArrowLeftRight, Keyboard, User, MousePointerClick, Map as MapIcon, Globe, X } from 'lucide-react';
+import { Loader2, Play, ArrowLeftRight, Keyboard, User, MousePointerClick, Map as MapIcon, Globe, Globe2, X, ChevronDown, Settings2, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface CheckFormProps {
@@ -35,6 +35,7 @@ interface CheckFormProps {
     selectedNodeCount?: number;
     onToggleMap?: () => void;
     onClearSelection?: () => void;
+    isMapVisible?: boolean;
 }
 
 export function CheckForm({
@@ -57,7 +58,8 @@ export function CheckForm({
     selectedNodeCount = 0,
     selectedNodeIds = [],
     onToggleMap,
-    onClearSelection
+    onClearSelection,
+    isMapVisible = false
 }: CheckFormProps) {
     // Smart parsing logic
     const sanitizeInput = useCallback((input: string) => {
@@ -218,101 +220,123 @@ export function CheckForm({
                                 value={host}
                                 onChange={(e) => onHostChange(e.target.value)}
                                 placeholder={getPlaceholder()}
-                                className={`text-lg h-14 pl-6 pr-32 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-slate-950/60 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/40 transition-all duration-300 ${errorMessage && !errorMessage.includes('Using 1.1.1.1') ? 'border-destructive ring-destructive' : ''} ${isReverseMtr ? 'border-indigo-500/30' : ''}`}
+                                className={`text-lg h-14 pl-6 pr-64 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-slate-950/60 focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all duration-300 ${errorMessage && !errorMessage.includes('Using 1.1.1.1') ? 'border-destructive ring-destructive' : ''} ${isReverseMtr ? 'border-indigo-500/30' : ''}`}
                                 autoFocus
                                 required
                             />
 
-                            <div className="absolute right-2 top-2 bottom-2 flex items-center gap-1.5">
+                            <div className="absolute right-2 top-2 bottom-2 flex items-center gap-2">
                                 {type !== 'dns-all' && type !== 'info' && type !== 'ssl' && (
-                                    selectedNodeCount > 0 ? (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={onClearSelection}
-                                            className="h-10 px-3 gap-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-500/20 transition-all duration-200"
-                                            title="Clear manual selection and use random nodes"
-                                        >
-                                            <span className="font-bold text-[10px] uppercase">{selectedNodeCount} MANUAL</span>
-                                            <X className="h-3 w-3" />
-                                        </Button>
-                                    ) : (
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
+                                    <div className="flex items-center gap-1 bg-slate-100/10 dark:bg-slate-800/20 p-1 rounded-xl border border-slate-200 dark:border-white/5 backdrop-blur-sm">
+                                        {!isMapVisible ? (
+                                            <>
+                                                {/* Nodes Picker Capsule */}
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <button
+                                                            type="button"
+                                                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-all duration-200 group/pill"
+                                                        >
+                                                            <Globe className="h-4 w-4 text-slate-400 group-hover/pill:text-indigo-500 group-hover/pill:animate-[spin_2s_linear_infinite] transition-colors" />
+                                                            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 tracking-tight">{maxNodes} Nodes</span>
+                                                            <ChevronDown className="h-3 w-3 text-slate-300 dark:text-slate-600" />
+                                                        </button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-64 p-4 rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 shadow-2xl" align="end" sideOffset={8}>
+                                                        <div className="space-y-4">
+                                                            <div className="flex items-center justify-between">
+                                                                <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Node Population</h4>
+                                                                <span className="text-sm font-mono font-bold text-indigo-500">{maxNodes}</span>
+                                                            </div>
+                                                            <Slider
+                                                                value={[maxNodes]}
+                                                                onValueChange={(vals) => onMaxNodesChange(vals[0])}
+                                                                min={3}
+                                                                max={60}
+                                                                step={1}
+                                                            />
+                                                        </div>
+                                                    </PopoverContent>
+                                                </Popover>
+
+                                                <div className="w-px h-4 bg-slate-200 dark:bg-white/10 mx-0.5" />
+
+                                                {/* Map Toggle Capsule */}
+                                                <button
                                                     type="button"
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-10 px-3 gap-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 border border-transparent hover:border-slate-200 dark:hover:border-white/10 transition-all duration-200"
+                                                    onClick={() => {
+                                                        if (isMapVisible) onClearSelection?.();
+                                                        onToggleMap?.();
+                                                    }}
+                                                    className={cn(
+                                                        "flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all duration-200 group/map",
+                                                        selectedNodeCount > 0
+                                                            ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                                                            : "hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+                                                    )}
                                                 >
-                                                    <span className="font-bold text-xs">{maxNodes}</span>
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-64 p-4 rounded-xl border-slate-200 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm shadow-xl" align="end">
-                                                <div className="space-y-4">
-                                                    <div className="flex items-center justify-between">
-                                                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Nodes to use</h4>
-                                                        <span className="text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400">{maxNodes}</span>
-                                                    </div>
-                                                    <Slider
-                                                        value={[maxNodes]}
-                                                        onValueChange={(vals) => onMaxNodesChange(vals[0])}
-                                                        min={3}
-                                                        max={60}
-                                                        step={1}
-                                                        className="py-2"
-                                                    />
-                                                    <div className="flex justify-between text-[10px] text-slate-400 font-medium">
-                                                        <span>3 NODES</span>
-                                                        <span>60 NODES</span>
-                                                    </div>
+                                                    <MapPin className={cn(
+                                                        "h-4 w-4 transition-all duration-1000",
+                                                        selectedNodeCount > 0
+                                                            ? "text-indigo-500"
+                                                            : "text-slate-400 group-hover/map:text-indigo-500 animate-[pulse_5s_infinite] scale-105"
+                                                    )} />
+                                                    <span className="text-[11px] font-bold tracking-tight">
+                                                        {selectedNodeCount > 0 ? `${selectedNodeCount} Regions` : 'Map'}
+                                                    </span>
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <div className="flex items-center gap-2 pl-3 pr-1 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+                                                <div className="flex items-center gap-1.5">
+                                                    <Globe2 className="h-4 w-4 text-indigo-500 animate-pulse" />
+                                                    <span className="text-[11px] font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-tight">
+                                                        {selectedNodeCount > 0 ? `${selectedNodeCount} Nodes Selected` : 'Select on Map'}
+                                                    </span>
                                                 </div>
-                                            </PopoverContent>
-                                        </Popover>
-                                    )
-                                )}
-
-                                {type !== 'info' && type !== 'dns-all' && type !== 'ssl' && (
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={onToggleMap}
-                                        className={cn(
-                                            "h-10 px-3 gap-2 rounded-lg transition-all duration-300",
-                                            selectedNodeCount > 0
-                                                ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-200/50 dark:border-indigo-500/20"
-                                                : "hover:bg-white dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 border-transparent"
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        onClearSelection?.();
+                                                        onToggleMap?.();
+                                                    }}
+                                                    className="p-1 hover:bg-white dark:hover:bg-slate-800 rounded-md text-indigo-600 dark:text-indigo-400 transition-colors"
+                                                    title="Close Map (Back to Auto)"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </button>
+                                            </div>
                                         )}
-                                    >
-                                        <div className="relative">
-                                            <Globe className={cn("h-4 w-4", selectedNodeCount > 0 && "animate-pulse")} />
-                                            {selectedNodeCount > 0 && (
-                                                <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-                                                </span>
-                                            )}
-                                        </div>
-                                        <span className="font-bold text-[10px] uppercase hidden sm:inline">
-                                            {selectedNodeCount > 0 ? `${selectedNodeCount} Nodes` : 'Map'}
-                                        </span>
-                                    </Button>
-                                )}
 
-                                <div className="w-px h-6 bg-slate-200 dark:bg-white/10 mx-1" />
+                                        {/* Reset Selection Button (when nodes are active but map is closed) */}
+                                        {!isMapVisible && selectedNodeCount > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={onClearSelection}
+                                                className="ml-1 p-1 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-full text-rose-500 transition-colors"
+                                                title="Reset Selection"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
 
                                 <Button
                                     type="submit"
                                     size="sm"
-                                    disabled={checkMutation.isPending || isLoading || !host.trim()}
-                                    className="h-10 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 transition-all duration-200 active:scale-95"
+                                    disabled={checkMutation.isPending || isLoading || !host.trim() || (isMapVisible && selectedNodeCount === 0)}
+                                    className={cn(
+                                        "h-10 px-6 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
+                                        isMapVisible && selectedNodeCount === 0 && "bg-slate-400 hover:bg-slate-400 shadow-none"
+                                    )}
                                 >
                                     {checkMutation.isPending || isLoading ? (
                                         <Loader2 className="h-4 w-4 animate-spin" />
                                     ) : (
-                                        <span className="font-bold text-xs">CHECK</span>
+                                        <span className="font-extrabold text-xs tracking-widest uppercase">
+                                            {isMapVisible && selectedNodeCount === 0 ? 'Select Nodes' : 'CHECK'}
+                                        </span>
                                     )}
                                 </Button>
                             </div>

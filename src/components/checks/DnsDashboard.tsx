@@ -2,8 +2,7 @@ import { useState, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Globe, Mail, Server, Key, Clock, Copy, Check, Camera, FileText, AlertTriangle, Loader2, Layers } from 'lucide-react';
-import { toPng, toBlob } from 'html-to-image';
+import { Globe, Mail, Server, Key, Clock, Copy, Check, FileText, AlertTriangle, Loader2, Layers, Share2, Link } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface DnsRecord {
@@ -31,49 +30,45 @@ interface DnsDashboardProps {
     onFilterTypeChange?: (type: string) => void;
     onRefresh?: () => void;
     isRefreshing?: boolean;
+    isSharedView?: boolean;
 }
 
-export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTypeChange, onRefresh, isRefreshing }: DnsDashboardProps) {
+export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTypeChange, onRefresh, isRefreshing, isSharedView = false }: DnsDashboardProps) {
     const dashboardRef = useRef<HTMLDivElement>(null);
-    const [screenshotCopied, setScreenshotCopied] = useState(false);
     const [textCopied, setTextCopied] = useState(false);
+    const [isSharing, setIsSharing] = useState(false);
+    const [shareCopied, setShareCopied] = useState(false);
 
-    const captureOptions = {
-        pixelRatio: 2,
-        cacheBust: true,
-        filter: (node: HTMLElement) => !node.classList?.contains('screenshot-hide')
-    };
+    const handleShare = async () => {
+        if (isSharing) return;
+        setIsSharing(true);
+        try {
+            const res = await fetch('/api/share', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'dns-all',
+                    host: data?.domain || '',
+                    results: result,
+                    checkNodes: {},
+                    metadata: {
+                        timestamp: new Date().toISOString()
+                    }
+                })
+            });
 
-    const handleScreenshot = async () => {
-        if (dashboardRef.current) {
-            try {
-                const dataUrl = await toPng(dashboardRef.current, captureOptions);
-                const link = document.createElement('a');
-                link.href = dataUrl;
-                link.download = `${data?.domain || 'dns'}-records.png`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } catch (err) {
-                console.error('Screenshot failed:', err);
-            }
-        }
-    };
+            if (!res.ok) throw new Error('Failed to create share link');
 
-    const handleCopyToClipboard = async () => {
-        if (dashboardRef.current) {
-            try {
-                const blob = await toBlob(dashboardRef.current, captureOptions);
-                if (blob) {
-                    await navigator.clipboard.write([
-                        new ClipboardItem({ 'image/png': blob })
-                    ]);
-                    setScreenshotCopied(true);
-                    setTimeout(() => setScreenshotCopied(false), 2000);
-                }
-            } catch (err) {
-                console.error('Copy to clipboard failed:', err);
-            }
+            const shareData = await res.json();
+            const fullUrl = `${window.location.origin}/share/${shareData.id}`;
+
+            await navigator.clipboard.writeText(fullUrl);
+            setShareCopied(true);
+            setTimeout(() => setShareCopied(false), 3000);
+        } catch (err) {
+            console.error('Sharing failed:', err);
+        } finally {
+            setIsSharing(false);
         }
     };
 
@@ -204,7 +199,7 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTyp
                         </div>
 
                         <div className="pt-4">
-                            <Badge variant="outline" className="px-4 py-1.5 rounded-full border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black tracking-widest bg-slate-100/50 dark:bg-white/5">
+                            <Badge variant="outline" className="px-4 py-1.5 rounded-full border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 text-xs uppercase font-black tracking-widest bg-slate-100/50 dark:bg-white/5">
                                 Status: Unresolved
                             </Badge>
                         </div>
@@ -301,7 +296,7 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTyp
                         </div>
                         <div className="min-w-0">
                             <h4 className="text-[13px] font-black tracking-tight text-slate-900 dark:text-slate-100 uppercase leading-none mb-1.5">{title}</h4>
-                            {subtitle && <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-[0.1em]">{subtitle}</p>}
+                            {subtitle && <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-[0.1em]">{subtitle}</p>}
                         </div>
                     </div>
                     <div className="grid grid-cols-1 gap-2.5">
@@ -318,7 +313,7 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTyp
 
         return (
             <div className="flex items-center gap-4 py-2 px-4 rounded-xl bg-slate-100/40 dark:bg-white/5 hover:bg-slate-200/60 dark:hover:bg-white/10 transition-all duration-500 group/row cursor-default">
-                <Badge variant="secondary" className="font-black text-[10px] min-w-[52px] h-6 justify-center shrink-0 rounded-full bg-white dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-white/10 shadow-sm">
+                <Badge variant="secondary" className="font-black text-[11px] min-w-[54px] h-6 justify-center shrink-0 rounded-full bg-white dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-white/10 shadow-sm">
                     {record.type}
                 </Badge>
                 <div className="flex-1 min-w-0">
@@ -327,21 +322,21 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTyp
                             {record.auxiliary} :
                         </span>
                     )}
-                    <span className="font-mono text-[11px] break-all text-slate-800 dark:text-slate-100 leading-relaxed tracking-tight">
+                    <span className="font-mono text-[12px] break-all text-slate-800 dark:text-slate-100 leading-relaxed tracking-tight">
                         {record.value}
                     </span>
                     {(record.auxiliary && !isSubdomainRecord) && (
-                        <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">{record.auxiliary}</div>
+                        <div className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">{record.auxiliary}</div>
                     )}
                 </div>
                 <div className="flex items-center gap-2.5 shrink-0">
                     {record.priority !== undefined && (
-                        <Badge className="bg-amber-100/40 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 border border-amber-200/30 dark:border-amber-900/20 text-[10px] font-bold h-5 px-2 rounded-full">
+                        <Badge className="bg-amber-100/40 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 border border-amber-200/30 dark:border-amber-900/20 text-[11px] font-bold h-5 px-ok-2 rounded-full">
                             PRI: {record.priority}
                         </Badge>
                     )}
                     {record.ttl !== undefined && (
-                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold bg-white/50 dark:bg-white/5 px-2.5 py-1 rounded-full border border-slate-100 dark:border-white/5">
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-bold bg-white/50 dark:bg-white/5 px-2.5 py-1 rounded-full border border-slate-100 dark:border-white/5">
                             <Clock className="h-3 w-3" />
                             <span className="font-mono">{record.ttl}s</span>
                         </div>
@@ -357,10 +352,10 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTyp
         return (
             <div className="py-3 px-4 rounded-xl bg-slate-100/30 dark:bg-white/5 hover:bg-slate-200/50 dark:hover:bg-white/10 transition-all duration-500 cursor-default">
                 <div className="flex items-center gap-3 mb-2.5">
-                    <Badge variant="secondary" className="font-black text-[10px] min-w-[52px] h-6 justify-center rounded-full bg-white dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-white/10 shadow-sm">
+                    <Badge variant="secondary" className="font-black text-[11px] min-w-[54px] h-6 justify-center rounded-full bg-white dark:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-white/10 shadow-sm">
                         SPF
                     </Badge>
-                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Sender Policy Framework</span>
+                    <span className="text-[11px] text-slate-400 font-black uppercase tracking-widest">Sender Policy Framework</span>
                 </div>
                 <div className="sm:ml-[65px] font-mono text-[12px] leading-relaxed break-all">
                     {parts.map((part, i) => {
@@ -384,42 +379,45 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTyp
 
     return (
         <div ref={dashboardRef} className="bg-slate-100/80 dark:bg-slate-900/80 rounded-2xl relative group/screenshot pb-1 mt-8">
-            {/* Hover-reveal floating action buttons */}
             <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
-                {onRefresh && (
-                    <button
-                        onClick={onRefresh}
-                        disabled={isRefreshing}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-l-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer disabled:opacity-50"
-                    >
-                        <Loader2 className={`h-3 w-3 ${isRefreshing ? 'animate-spin text-indigo-500' : ''}`} />
-                        <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
-                    </button>
-                )}
-                <button
-                    onClick={handleCopyText}
-                    className={cn(
-                        "flex items-center gap-1.5 px-2.5 py-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer",
-                        !onRefresh ? "rounded-l-lg" : "border-l-0"
+                <div className="flex bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 rounded-lg shadow-sm overflow-hidden">
+                    {onRefresh && (
+                        <button
+                            onClick={onRefresh}
+                            disabled={isRefreshing}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-200 cursor-pointer disabled:opacity-50 border-r border-slate-200 dark:border-white/10"
+                        >
+                            <Loader2 className={`h-3 w-3 ${isRefreshing ? 'animate-spin text-indigo-500' : ''}`} />
+                            <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+                        </button>
                     )}
-                >
-                    {textCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <FileText className="h-3 w-3" />}
-                    <span>{textCopied ? 'Copied TXT' : 'Copy TXT'}</span>
-                </button>
-                <button
-                    onClick={handleCopyToClipboard}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
-                >
-                    {screenshotCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                    <span>{screenshotCopied ? 'Copied Img' : 'Copy Img'}</span>
-                </button>
-                <button
-                    onClick={handleScreenshot}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-r-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
-                >
-                    <Camera className="h-3 w-3" />
-                    <span>Save</span>
-                </button>
+                    <button
+                        onClick={handleCopyText}
+                        className={cn(
+                            "flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-200 cursor-pointer",
+                            !isSharedView && "border-r border-slate-200 dark:border-white/10"
+                        )}
+                    >
+                        {textCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <FileText className="h-3 w-3" />}
+                        <span>{textCopied ? 'Copied TXT' : 'Copy TXT'}</span>
+                    </button>
+                    {!isSharedView && (
+                        <button
+                            onClick={handleShare}
+                            disabled={isSharing}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50/50 dark:hover:bg-slate-700/50 transition-all duration-200 cursor-pointer disabled:opacity-50"
+                        >
+                            {shareCopied ? (
+                                <Check className="h-3 w-3 text-emerald-500" />
+                            ) : isSharing ? (
+                                <Loader2 className="h-3 w-3 animate-spin text-indigo-500" />
+                            ) : (
+                                <Link className="h-3 w-3" />
+                            )}
+                            <span>{shareCopied ? 'Link Copied' : 'Copy Link'}</span>
+                        </button>
+                    )}
+                </div>
             </div>
             <div className="rounded-2xl border border-slate-200/60 dark:border-white/5 bg-white dark:bg-slate-950 overflow-hidden shadow-sm mx-1 mt-1 flex flex-col">
                 <div className="h-1.5 w-full bg-emerald-500" />
