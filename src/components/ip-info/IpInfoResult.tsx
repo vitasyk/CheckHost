@@ -1,7 +1,7 @@
 ﻿import { IpInfoResponse } from '@/types/ip-info';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Globe, ChevronDown, Database, Calendar, ShieldCheck, Mail, Phone, ExternalLink, Server, Network, Maximize2, Camera, Copy, Check, Loader2, AlertTriangle, Building2, Flag } from 'lucide-react';
+import { MapPin, Globe, ChevronDown, Database, Calendar, ShieldCheck, Mail, Phone, ExternalLink, Server, Network, Maximize2, Camera, Copy, Check, Loader2, AlertTriangle, Building2, Flag, Navigation, Clock, Sun, Moon, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import MapWrapper from '@/components/ip-info/MapWrapper';
 import { getCountryCoords } from '@/lib/country-coords';
@@ -303,41 +303,33 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                 </div>
 
                 {/* Intelligence Banner: Network info for IPs or status for unresolved domains */}
-                {((isUnresolved && !isIP) || (isIP && hasRdap)) && (
+                {(isUnresolved && !isIP) && (
                     <div className="bg-white dark:bg-slate-950 rounded-2xl shadow-sm overflow-hidden flex flex-col border border-slate-200/60 dark:border-white/5">
                         <div className={cn(
                             "h-1.5 w-full",
-                            isIP ? "bg-indigo-500" : ((!hasRdap) ? "bg-rose-500" : "bg-amber-500")
+                            !hasRdap ? "bg-rose-500" : "bg-amber-500"
                         )} />
                         <div className="p-6">
                             <div className="flex items-center gap-4">
                                 <div className={cn(
                                     "relative shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center",
-                                    isIP ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500" : ((!hasRdap) ? "bg-rose-50 dark:bg-rose-500/10 text-rose-500" : "bg-amber-50 dark:bg-amber-500/10 text-amber-500")
+                                    !hasRdap ? "bg-rose-50 dark:bg-rose-500/10 text-rose-500" : "bg-amber-50 dark:bg-amber-500/10 text-amber-500"
                                 )}>
-                                    {isIP ? <Network className="h-7 w-7" /> : <MapPin className="h-7 w-7" />}
+                                    <MapPin className="h-7 w-7" />
                                     <div className={cn(
                                         "absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-white dark:bg-slate-950 border-2 flex items-center justify-center",
-                                        isIP ? "border-indigo-50 dark:border-indigo-500/20 text-indigo-600" : ((!hasRdap) ? "border-rose-50 dark:border-rose-500/20 text-rose-600" : "border-amber-50 dark:border-amber-500/20 text-orange-500")
+                                        !hasRdap ? "border-rose-50 dark:border-rose-500/20 text-rose-600" : "border-amber-50 dark:border-amber-500/20 text-orange-500"
                                     )}>
                                         <AlertTriangle className="h-3 w-3" />
                                     </div>
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h3 className="text-lg font-black text-slate-900 dark:text-slate-100 tracking-tight">
-                                        {isIP ? "IP Information Summary" : "IP Not Resolved"}
+                                        IP Not Resolved
                                     </h3>
                                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                                        {isIP ? (
-                                            <>
-                                                Primary network registration and ownership data for <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data.ip}</span>.
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data.host || 'the host'}</span>
-                                                {' '}couldn&apos;t be resolved to an IP address. Some intelligence might still be available below.
-                                            </>
-                                        )}
+                                        <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data.host || 'the host'}</span>
+                                        {' '}couldn&apos;t be resolved to an IP address. Some intelligence might still be available below.
                                     </p>
                                     {rdap && (rdap.organization || rdap.country) && (
                                         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
@@ -367,7 +359,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
                                     )}
                                 </div>
                                 <Badge variant="outline" className="shrink-0 px-3 py-1 rounded-full border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black tracking-widest bg-slate-100/50 dark:bg-white/5">
-                                    {isIP ? "IP Network" : "Unresolved"}
+                                    Unresolved
                                 </Badge>
                             </div>
                         </div>
@@ -489,79 +481,158 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing }: IpInfoRe
 
                             if (featuredLat === 0) return null;
 
+                            const hourOffset = providers.ipgeolocation?.time_zone?.offset || 0;
+                            // Basic night detection (6 PM to 6 AM)
+                            const currentHour = (new Date().getUTCHours() + hourOffset + 24) % 24;
+                            const isNight = currentHour < 6 || currentHour >= 18;
+
                             return (
-                                <Card className="overflow-hidden border-slate-200 dark:border-white/5 shadow-sm bg-white dark:bg-slate-950 mx-1 mt-4">
-                                    <div className="flex flex-col md:flex-row h-[350px]">
-                                        {/* Map Side */}
-                                        <div className="flex-1 relative min-h-[200px] md:min-h-0">
-                                            <MapWrapper
-                                                lat={featuredLat}
-                                                lng={featuredLng}
-                                                city={providers.ipinfo?.city || providers.ipapi?.city || "Unknown Location"}
-                                                country={providers.ipinfo?.country_name || providers.ipapi?.country || ""}
-                                            />
-                                            <div className="absolute top-4 left-4 z-[10] flex gap-2">
-                                                <Badge className="bg-white/90 dark:bg-slate-900/90 text-slate-900 dark:text-slate-100 backdrop-blur shadow-sm border-slate-200/50 dark:border-white/10 py-1.5 px-3">
-                                                    <MapPin className="h-3.5 w-3.5 mr-1.5 text-indigo-500" />
-                                                    {featuredLat.toFixed(4)}, {featuredLng.toFixed(4)}
-                                                </Badge>
+                                <div className="relative overflow-hidden border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm bg-white dark:bg-slate-950 mx-1 mt-4 group/map h-[480px]">
+                                    {/* Map as Background */}
+                                    <div className="absolute inset-0 z-0 scale-110 group-hover/map:scale-100 transition-transform duration-[3s] ease-out">
+                                        <MapWrapper
+                                            lat={featuredLat}
+                                            lng={featuredLng}
+                                            city={providers.ipinfo?.city || providers.ipapi?.city || "Unknown Location"}
+                                            country={providers.ipinfo?.country_name || providers.ipapi?.country || ""}
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-slate-900/40 via-transparent to-slate-900/20 pointer-events-none" />
+                                    </div>
+
+                                    {/* Glass Tile: Geolocation Hub (Left Top) */}
+                                    <div className="absolute top-4 left-4 z-10 w-72 animate-in slide-in-from-left-4 duration-700">
+                                        <div className="backdrop-blur-md bg-white/70 dark:bg-slate-900/70 border border-white/40 dark:border-white/10 rounded-2xl p-4 shadow-2xl">
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-600/30">
+                                                    <Navigation className="h-4 w-4 text-white" />
+                                                </div>
+                                                <div>
+                                                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Network Hub</div>
+                                                    <div className="text-sm font-black text-slate-900 dark:text-white leading-none">Geolocation Center</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-end border-b border-slate-200/50 dark:border-white/5 pb-2">
+                                                    <div>
+                                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mb-0.5">Primary Coordinates</div>
+                                                        <div className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400">{featuredLat.toFixed(5)}, {featuredLng.toFixed(5)}</div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(`${featuredLat}, ${featuredLng}`);
+                                                            // Could add a small local toast here if needed
+                                                        }}
+                                                        className="p-1.5 hover:bg-white/50 dark:hover:bg-white/10 rounded-lg transition-all text-slate-400 hover:text-indigo-500"
+                                                        title="Copy Coordinates"
+                                                    >
+                                                        <Copy className="h-3.5 w-3.5" />
+                                                    </button>
+                                                </div>
+
+                                                {providers.maxmind?.accuracyRadius && (
+                                                    <div className="flex items-center gap-2 px-1">
+                                                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight group/acc relative cursor-help">
+                                                            ± {providers.maxmind.accuracyRadius}km accuracy radius
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 
-                                        {/* Location Details Side */}
-                                        <div className="w-full md:w-[300px] bg-slate-50/50 dark:bg-slate-900/50 p-6 flex flex-col justify-between border-l border-slate-200 dark:border-white/5">
-                                            <div>
-                                                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mb-4">Location Context</div>
-                                                <div className="space-y-5">
-                                                    <div>
-                                                        <div className="text-2xl font-bold text-slate-900 dark:text-slate-100 leading-tight">
-                                                            {providers.ipinfo?.city || providers.ipapi?.city || "Unknown"}
-                                                        </div>
-                                                        <div className="text-sm text-slate-500 font-medium">
-                                                            {providers.ipinfo?.region || providers.ipapi?.regionName || ""}, {providers.ipinfo?.country_name || providers.ipapi?.country || ""}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-1 gap-3">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-full bg-white dark:bg-white/5 shadow-sm border border-slate-100 dark:border-white/5 flex items-center justify-center text-indigo-500">
-                                                                <Globe className="h-4 w-4" />
-                                                            </div>
-                                                            <div className="text-xs">
-                                                                <div className="text-slate-400 font-medium uppercase tracking-wider">Source</div>
-                                                                <div className="font-bold text-slate-700 dark:text-slate-300">{sourceName} Precision</div>
-                                                            </div>
-                                                        </div>
-
-                                                        {providers.ipinfo?.timezone && (
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-8 h-8 rounded-full bg-white dark:bg-white/5 shadow-sm border border-slate-100 dark:border-white/5 flex items-center justify-center text-amber-500">
-                                                                    <Calendar className="h-4 w-4" />
-                                                                </div>
-                                                                <div className="text-xs">
-                                                                    <div className="text-slate-400 font-medium uppercase tracking-wider">Local Time</div>
-                                                                    <div className="font-bold text-slate-700 dark:text-slate-300">{providers.ipinfo.timezone}</div>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="mt-6 pt-6 border-t border-slate-200/60 dark:border-white/5">
-                                                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Internal Tags</div>
-                                                <div className="flex flex-wrap gap-2">
-                                                    <Badge variant="outline" className="text-[10px] bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400">
-                                                        {providers.ipinfo?.postal || providers.ipapi?.zip || "No Zip"}
-                                                    </Badge>
-                                                    <Badge variant="outline" className="text-[10px] bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400">
-                                                        {providers.ipinfo?.continent_code || "Global"}
-                                                    </Badge>
-                                                </div>
+                                        {/* External Links Hub */}
+                                        <div className="mt-3 flex gap-2">
+                                            <a
+                                                href={`https://www.google.com/maps?q=${featuredLat},${featuredLng}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex-1 backdrop-blur-md bg-white/70 dark:bg-slate-900/70 border border-white/40 dark:border-white/10 rounded-xl py-2 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:bg-slate-900 dark:hover:bg-white hover:text-white dark:hover:text-slate-900 transition-all shadow-xl shadow-black/5"
+                                            >
+                                                Open Maps <ArrowUpRight className="h-3 w-3" />
+                                            </a>
+                                            <div className="backdrop-blur-md bg-indigo-500/90 text-white border border-indigo-400/50 rounded-xl px-3 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                                                <Globe className="h-3.5 w-3.5" />
                                             </div>
                                         </div>
                                     </div>
-                                </Card>
+
+                                    {/* Glass Tile: Regional Intelligence (Right Top) */}
+                                    <div className="absolute top-4 right-4 z-10 w-64 animate-in slide-in-from-right-4 duration-700">
+                                        <div className="backdrop-blur-md bg-white/70 dark:bg-slate-900/70 border border-white/40 dark:border-white/10 rounded-2xl p-4 shadow-2xl">
+                                            <div className="flex items-center justify-between mb-5">
+                                                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Regional Profile</div>
+                                                <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-slate-100/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/10">
+                                                    {isNight ? <Moon className="h-3 w-3 text-blue-400" /> : <Sun className="h-3 w-3 text-amber-500" />}
+                                                    <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase leading-none">{isNight ? 'Night' : 'Day'}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-y-5 gap-x-4">
+                                                <div>
+                                                    <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                                        <Clock className="h-2.5 w-2.5" /> Offset
+                                                    </div>
+                                                    <div className="text-xs font-black text-slate-800 dark:text-slate-100">
+                                                        {hourOffset !== undefined ? `UTC ${hourOffset >= 0 ? '+' : ''}${hourOffset}:00` : 'N/A'}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                                        <Database className="h-2.5 w-2.5" /> Currency
+                                                    </div>
+                                                    <div className="text-xs font-black text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                                                        {providers.ipgeolocation?.currency?.code || providers.ipapi?.currency || 'N/A'}
+                                                        {providers.ipgeolocation?.currency?.symbol && <span className="opacity-50 text-[10px]">{providers.ipgeolocation.currency.symbol}</span>}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                                        <Phone className="h-2.5 w-2.5" /> Calling
+                                                    </div>
+                                                    <div className="text-xs font-black text-slate-800 dark:text-slate-100">
+                                                        {providers.ipgeolocation?.calling_code ? `+${providers.ipgeolocation.calling_code}` : 'N/A'}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                                        <MapPin className="h-2.5 w-2.5" /> Languages
+                                                    </div>
+                                                    <div className="text-xs font-black text-slate-800 dark:text-slate-100 truncate pr-1">
+                                                        {providers.ipgeolocation?.languages?.split(',')[0] || 'N/A'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Technical Integrity Badge */}
+                                        <div className="mt-3 backdrop-blur-md bg-emerald-500/10 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 flex items-center justify-between shadow-xl">
+                                            <div className="flex items-center gap-2">
+                                                <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                                                <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Technical Precision</span>
+                                            </div>
+                                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{sourceName}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Bottom Floating Info: City/Country Branding */}
+                                    <div className="absolute bottom-4 left-4 right-4 z-10 flex items-end justify-between pointer-events-none">
+                                        <div className="animate-in slide-in-from-bottom-4 duration-700 delay-200">
+                                            <div className="text-[10px] text-white/60 font-black uppercase tracking-[0.3em] mb-1 drop-shadow-md">Verified Geopoint</div>
+                                            <div className="text-3xl font-black text-white drop-shadow-lg tracking-tighter flex items-center gap-3">
+                                                {providers.ipinfo?.city || providers.ipapi?.city || "Unknown City"}
+                                                <span className="text-white/40 font-light translate-y-1">/</span>
+                                                <span className="text-xl text-white/80">{providers.ipinfo?.country_name || providers.ipapi?.country || ""}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Status Indicator */}
+                                        <div className="p-3 backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl flex items-center gap-3 shadow-2xl pointer-events-auto hover:bg-white/20 transition-all cursor-default">
+                                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
+                                            <span className="text-[10px] text-white font-black uppercase tracking-widest">Network Online</span>
+                                        </div>
+                                    </div>
+                                </div>
                             );
                         })()}
                     </div>

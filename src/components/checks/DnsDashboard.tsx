@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Globe, Mail, Server, Key, Clock, Copy, Check, Camera, FileText, AlertTriangle, Loader2 } from 'lucide-react';
+import { Globe, Mail, Server, Key, Clock, Copy, Check, Camera, FileText, AlertTriangle, Loader2, Layers } from 'lucide-react';
 import { toPng, toBlob } from 'html-to-image';
 import { Button } from '@/components/ui/button';
 
@@ -27,11 +28,12 @@ interface DnsDashboardProps {
     result: any;
     nodeCity?: string;
     filterType?: string;
+    onFilterTypeChange?: (type: string) => void;
     onRefresh?: () => void;
     isRefreshing?: boolean;
 }
 
-export function DnsDashboard({ result, nodeCity, filterType = 'all', onRefresh, isRefreshing }: DnsDashboardProps) {
+export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTypeChange, onRefresh, isRefreshing }: DnsDashboardProps) {
     const dashboardRef = useRef<HTMLDivElement>(null);
     const [screenshotCopied, setScreenshotCopied] = useState(false);
     const [textCopied, setTextCopied] = useState(false);
@@ -381,7 +383,7 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onRefresh, 
     };
 
     return (
-        <div ref={dashboardRef} className="bg-slate-50 dark:bg-slate-900 rounded-xl relative group/screenshot pb-1 mt-8">
+        <div ref={dashboardRef} className="bg-slate-100/80 dark:bg-slate-900/80 rounded-2xl relative group/screenshot pb-1 mt-8">
             {/* Hover-reveal floating action buttons */}
             <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
                 {onRefresh && (
@@ -472,19 +474,49 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onRefresh, 
                         </div>
                     </div>
 
-                    {/* Quick stats - Modern pill style */}
+                    {/* Quick stats - Interactive Smart Pills */}
                     <div className="flex flex-wrap gap-2 mt-5 relative z-10">
+                        <button
+                            onClick={() => onFilterTypeChange?.('all')}
+                            className={cn(
+                                "border rounded-full px-3 py-1 flex items-center gap-2 transition-all duration-300 shadow-sm",
+                                filterType === 'all'
+                                    ? "bg-indigo-600 border-indigo-500 text-white shadow-indigo-500/20"
+                                    : "bg-white dark:bg-slate-900/80 border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-white/10"
+                            )}
+                        >
+                            <span className="text-[10px] font-black uppercase tracking-widest">ALL</span>
+                            <span className={cn(
+                                "text-xs font-bold",
+                                filterType === 'all' ? "text-white/90" : "text-indigo-600 dark:text-indigo-400"
+                            )}>{data.records.length}</span>
+                        </button>
+
                         {Object.entries(typeCounts).map(([type, count]) => (
-                            <div key={type} className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/5 rounded-full px-3 py-1 flex items-center gap-2 shadow-sm hover:border-slate-300 dark:hover:border-white/10 transition-colors">
-                                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tighter">{type}</span>
-                                <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{count}</span>
-                            </div>
+                            <button
+                                key={type}
+                                onClick={() => onFilterTypeChange?.(type)}
+                                className={cn(
+                                    "border rounded-full px-3 py-1 flex items-center gap-2 transition-all duration-300 shadow-sm",
+                                    filterType.toUpperCase() === type.toUpperCase()
+                                        ? "bg-indigo-600 border-indigo-500 text-white shadow-indigo-500/20"
+                                        : "bg-white dark:bg-slate-900/80 border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-white/10"
+                                )}
+                            >
+                                <span className="text-[10px] font-bold uppercase tracking-tighter">{type}</span>
+                                <span className={cn(
+                                    "text-xs font-bold",
+                                    filterType.toUpperCase() === type.toUpperCase() ? "text-white/90" : "text-indigo-600 dark:text-indigo-400"
+                                )}>{count}</span>
+                            </button>
                         ))}
                     </div>
                 </div>
+            </div>
 
-                {/* Sections */}
-                <div className="p-6 space-y-8">
+            <div className="mx-1 mt-2.5">
+                {/* Sections wrapped in their own Card */}
+                <Card className="overflow-hidden border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm relative group p-6 space-y-8">
                     {/* Resolution Section */}
                     {hasResolution && (
                         <Section
@@ -546,7 +578,7 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onRefresh, 
                             No DNS records found for this domain.
                         </div>
                     )}
-                </div>
+                </Card>
             </div>
         </div>
     );

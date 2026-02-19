@@ -318,27 +318,6 @@ export function CheckForm({
                             </div>
                         </div>
 
-                        {type === 'dns-all' && (
-                            <div className="flex items-center gap-4 bg-slate-50/50 dark:bg-slate-950/20 p-2.5 px-4 rounded-xl border border-slate-200/50 dark:border-white/5 mt-2 transition-all">
-                                <Label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest shrink-0">Records Filter:</Label>
-                                <Select value={dnsType || 'all'} onValueChange={onDnsTypeChange}>
-                                    <SelectTrigger className="h-9 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-xs font-bold rounded-lg shadow-sm w-full md:w-[180px]">
-                                        <SelectValue placeholder="Select Record Type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All (Standard)</SelectItem>
-                                        <SelectItem value="A">A (IPv4)</SelectItem>
-                                        <SelectItem value="AAAA">AAAA (IPv6)</SelectItem>
-                                        <SelectItem value="CNAME">CNAME</SelectItem>
-                                        <SelectItem value="MX">MX (Mail)</SelectItem>
-                                        <SelectItem value="NS">NS (Nameserver)</SelectItem>
-                                        <SelectItem value="TXT">TXT</SelectItem>
-                                        <SelectItem value="SOA">SOA</SelectItem>
-                                        <SelectItem value="ptr">PTR</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
 
                         {errorMessage && (
                             <p className={`text-[10px] font-bold uppercase tracking-wider pl-2 pt-1 ${errorMessage.includes('Using 1.1.1.1') ? 'text-indigo-500/70 animate-pulse' : 'text-destructive animate-bounce'}`}>

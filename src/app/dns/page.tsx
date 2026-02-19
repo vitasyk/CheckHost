@@ -77,7 +77,14 @@ export default function DnsPage() {
                             onDnsTypeChange={setDnsType}
                         />
 
-                        {results && <ResultsDisplay results={results} checkType="dns" />}
+                        {results && (
+                            <ResultsDisplay
+                                results={results}
+                                checkType="dns"
+                                dnsType={dnsType}
+                                onDnsTypeChange={setDnsType}
+                            />
+                        )}
                     </div>
 
                     {/* Sidebar - AdSense placeholder */}

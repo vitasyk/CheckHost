@@ -48,9 +48,27 @@ export default async function middleware(req: NextRequest) {
     }
 
     // 3. Handle Admin Auth Protection
-    if (url.startsWith("/admin") || url.startsWith("/api/admin")) {
-        // @ts-ignore - Next-auth types mismatch with async middleware sometimes
-        return authMiddleware(req as any, null as any);
+    // For /admin pages, we use next-auth's default redirect behavior.
+    // For /api/admin routes, we return a JSON 401 instead of a redirect to avoid SyntaxError in browser console.
+    if (url.startsWith("/admin")) {
+        // @ts-ignore
+        return authMiddleware(req, null);
+    }
+
+    if (url.startsWith("/api/admin") && !url.includes("/settings")) {
+        // For API routes, we don't want a redirect (HTML), we want a 401 (JSON)
+        // Check for JWT token manually
+        const hasToken = !!(req.cookies.get("next-auth.session-token") || req.cookies.get("__Secure-next-auth.session-token"));
+
+        if (!hasToken) {
+            return new NextResponse(
+                JSON.stringify({ error: "Unauthorized. Please login as admin." }),
+                {
+                    status: 401,
+                    headers: { "Content-Type": "application/json" }
+                }
+            );
+        }
     }
 
     return NextResponse.next();

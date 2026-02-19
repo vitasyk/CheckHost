@@ -31,9 +31,10 @@ interface ResultsDisplayProps {
     isLoading?: boolean;
     onRefresh?: () => void;
     isRefreshing?: boolean;
+    onDnsTypeChange?: (type: string) => void;
 }
 
-export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {}, onPingIp, dnsType, targetHost, isLoading, onRefresh, isRefreshing }: ResultsDisplayProps) {
+export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {}, onPingIp, dnsType, onDnsTypeChange, targetHost, isLoading, onRefresh, isRefreshing }: ResultsDisplayProps) {
     const [groupBy, setGroupBy] = useState<'none' | 'region'>('none');
     const [searchQuery, setSearchQuery] = useState('');
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -640,6 +641,7 @@ export function ResultsDisplay({ results, checkType, nodes = {}, activeNodes = {
                             result={entries[0][1]}
                             nodeCity={entries[0][0] ? getLocationInfo(entries[0][0]).city : undefined}
                             filterType={dnsType}
+                            onFilterTypeChange={onDnsTypeChange}
                             onRefresh={onRefresh}
                             isRefreshing={isRefreshing}
                         />

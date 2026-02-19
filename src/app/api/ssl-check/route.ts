@@ -3,7 +3,7 @@ import * as tls from 'tls';
 import * as dns from 'dns';
 import { promisify } from 'util';
 
-const resolve4 = promisify(dns.resolve4);
+const lookup = promisify(dns.lookup);
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
@@ -65,9 +65,9 @@ export async function GET(request: NextRequest) {
 async function checkSsl(host: string, port: number = 443): Promise<any> {
     let hostIp = '';
     try {
-        const ips = await resolve4(host);
-        if (ips && ips.length > 0) {
-            hostIp = ips[0];
+        const lookupResult = await lookup(host);
+        if (lookupResult && lookupResult.address) {
+            hostIp = lookupResult.address;
         }
     } catch (e) {
         // Fallback or ignore

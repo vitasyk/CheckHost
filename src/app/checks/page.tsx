@@ -1030,7 +1030,16 @@ function ChecksPageContent() {
                                             </div>
                                         )}
                                         {(dnsResults || Object.keys(dnsNodes).length > 0 || activeChecks.has('dns')) && (
-                                            <ResultsDisplay results={dnsResults || {}} checkType="dns" nodes={nodes} activeNodes={dnsNodes} dnsType={dnsType} targetHost={host} isLoading={activeChecks.has('dns')} />
+                                            <ResultsDisplay
+                                                results={dnsResults || {}}
+                                                checkType="dns"
+                                                nodes={nodes}
+                                                activeNodes={dnsNodes}
+                                                dnsType={dnsType}
+                                                onDnsTypeChange={setDnsType}
+                                                targetHost={host}
+                                                isLoading={activeChecks.has('dns')}
+                                            />
                                         )}
                                     </div>
                                 </TabsContent>
@@ -1128,6 +1137,7 @@ function ChecksPageContent() {
                                                     nodes={nodes}
                                                     activeNodes={dnsInfoNodes}
                                                     dnsType={dnsType}
+                                                    onDnsTypeChange={setDnsType}
                                                     targetHost={host}
                                                     isLoading={activeChecks.has('dns-all')}
                                                     onRefresh={() => runCheck('dns-all', host, true)}
