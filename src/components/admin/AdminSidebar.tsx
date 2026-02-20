@@ -7,7 +7,8 @@ import {
     LogOut,
     BarChart3,
     Database,
-    Newspaper
+    Newspaper,
+    ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -19,6 +20,7 @@ export function AdminSidebar() {
     const menuItems = [
         { label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
         { label: 'Blog Posts', icon: Newspaper, href: '/admin/blog' },
+        { label: 'Access Control', icon: ShieldCheck, href: '/admin/access' },
         { label: 'Analytics', icon: BarChart3, href: '#', disabled: true },
         { label: 'API Logs', icon: Database, href: '#', disabled: true },
         { label: 'Settings', icon: Settings, href: '/admin/settings' },
@@ -32,8 +34,8 @@ export function AdminSidebar() {
                         variant="ghost"
                         disabled={item.disabled}
                         className={`w-full justify-start gap-3 p-6 font-medium rounded-xl transition-all duration-200 ${pathname === item.href
-                                ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400 font-semibold shadow-sm'
-                                : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900/40'
+                            ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400 font-semibold shadow-sm'
+                            : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900/40'
                             }`}
                     >
                         <item.icon className={`h-5 w-5 ${pathname === item.href ? 'text-indigo-600 dark:text-indigo-400' : ''}`} />
