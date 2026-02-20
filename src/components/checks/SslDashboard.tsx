@@ -106,50 +106,172 @@ export function SslDashboard({ data, host, isSharedView = false }: SslDashboardP
         }
     };
 
-    // Unified Empty State for Not Found / Refused domains
+    // Unified Empty State for SSL errors — contextual based on errorCode
     if (data.status === 'failed' || !certificate) {
+        const errorCode = data.errorCode || '';
+        const isNotFound = errorCode === 'ENOTFOUND';
+        const isTimeout = errorCode === 'ETIMEDOUT';
+        const isRefused = errorCode === 'ECONNREFUSED' || (!errorCode && !certificate);
+
+        // Determine state visuals
+        const stateColor = isNotFound ? 'rose' : 'amber';
+        const stripeClass = isNotFound ? 'bg-rose-500' : 'bg-amber-500';
+        const iconBg = isNotFound
+            ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-500'
+            : 'bg-amber-50 dark:bg-amber-500/10 text-amber-500';
+        const dotClass = isNotFound ? 'bg-rose-500' : 'bg-amber-500';
+        const textColor = isNotFound ? 'text-rose-500' : 'text-amber-500';
+        const badgeClass = isNotFound
+            ? 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20'
+            : 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20';
+
+        // Title + description + badges
+        const title = isNotFound
+            ? 'Domain Not Reachable'
+            : isTimeout
+                ? 'Connection Timed Out'
+                : 'SSL Not Configured';
+
+        const description = isNotFound
+            ? <>The domain <span className="text-indigo-600 dark:text-indigo-400 font-bold">{displayHost}</span> doesn&apos;t resolve to an IP. Check DNS configuration or WHOIS data.</>
+            : isTimeout
+                ? <>The connection to <span className="text-indigo-600 dark:text-indigo-400 font-bold">{displayHost}</span> timed out after 15 seconds. The server may be behind a firewall or down.</>
+                : <>No SSL certificate found on <span className="text-indigo-600 dark:text-indigo-400 font-bold">{displayHost}</span>. Port 443 may not be open or HTTPS is not configured.</>;
+
+        const badges: string[] = isNotFound
+            ? ['DNS FAILURE', 'NXDOMAIN', 'DOMAIN EXPIRED', 'NO RECORD']
+            : isTimeout
+                ? ['TIMEOUT', 'FIREWALL', 'RATE LIMITED', 'SERVER DOWN']
+                : ['NO HTTPS', 'PORT 443 CLOSED', 'CERT MISSING', 'HTTP ONLY'];
+
+        const infoTitle = isNotFound ? 'What does this mean?' : 'Possible Causes';
+        const infoPoints: string[][] = isNotFound
+            ? [
+                ['Domain has no A record in DNS', 'rose'],
+                ['Domain may have expired', 'rose'],
+                ['Verify DNS records in the DNS tab', 'slate'],
+                ['Check WHOIS in the Info tab', 'slate'],
+            ]
+            : isTimeout
+                ? [
+                    ['Server may be behind a firewall', 'amber'],
+                    ['Port 443 may be blocked', 'amber'],
+                    ['CDN or proxy may be too slow', 'amber'],
+                    ['Try again in a few minutes', 'slate'],
+                ]
+                : [
+                    ['HTTPS may not be enabled on server', 'amber'],
+                    ['SSL certificate may not be installed', 'amber'],
+                    ['Site only serves over HTTP (port 80)', 'amber'],
+                    ['Contact hosting provider for SSL setup', 'slate'],
+                ];
+
         return (
-            <div ref={dashboardRef} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 bg-slate-50 dark:bg-slate-900 rounded-2xl p-8 text-center border-2 border-dashed border-slate-200 dark:border-white/5">
-                <div className="max-w-md mx-auto space-y-6">
-                    <div className="relative mx-auto w-24 h-24 rounded-3xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center">
-                        <AlertTriangle className="h-12 w-12 text-amber-500" />
-                        <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-white dark:bg-slate-900 border-2 border-amber-50 dark:border-amber-500/20 flex items-center justify-center">
-                            <XCircle className="h-4 w-4 text-red-500" />
-                        </div>
-                    </div>
+            <div ref={dashboardRef} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-white dark:bg-slate-950 rounded-2xl shadow-sm overflow-hidden border border-slate-200/60 dark:border-white/5">
+                    <div className={`h-1.5 w-full ${stripeClass}`} />
+                    <div className="p-6 flex flex-col sm:flex-row gap-6">
 
-                    <div className="space-y-2">
-                        <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
-                            No SSL Data Found
-                        </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                            We couldn&apos;t establish a secure connection with <span className="text-indigo-600 dark:text-indigo-400 font-bold">{displayHost}</span>.
-                            This typically happens when a domain is inactive or not configured for HTTPS.
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-3 text-left">
-                        <div className="p-4 rounded-xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-white/5 flex items-start gap-4">
-                            <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center shrink-0">
-                                <Info className="h-4 w-4 text-indigo-500" />
+                        {/* Left: Status + badges + buttons */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className={`relative shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center ${iconBg}`}>
+                                    <Lock className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <p className={`text-[10px] font-black uppercase tracking-widest leading-none flex items-center gap-1.5 mb-1 ${textColor}`}>
+                                        <span className={`inline-block w-1.5 h-1.5 rounded-full animate-pulse ${dotClass}`} />
+                                        SSL Certificate Status
+                                    </p>
+                                    <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight leading-none">
+                                        {title}
+                                    </h3>
+                                </div>
                             </div>
-                            <div className="space-y-1">
-                                <p className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest">Diagnostic Tip</p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
-                                    {data.errorCode === 'ENOTFOUND'
-                                        ? "The domain name doesn't resolve to any IP address. Verify the domain registration and DNS records."
-                                        : data.errorCode === 'ETIMEDOUT'
-                                            ? "The connection timed out after 15 seconds. The server might be behind a firewall, or the service is too slow to respond."
-                                            : "The server is active but refusing connections on port 443. Ensure an SSL certificate is installed and the web server is running."}
-                                </p>
+
+                            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                                {description}
+                            </p>
+
+                            {/* Cause badges */}
+                            <div className="flex flex-wrap gap-2 mb-5">
+                                {badges.map(label => (
+                                    <span key={label} className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black border tracking-widest ${badgeClass}`}>
+                                        {label}
+                                    </span>
+                                ))}
+                            </div>
+
+                            {/* Action buttons */}
+                            <div className="flex flex-wrap gap-2">
+                                {isNotFound ? (
+                                    <>
+                                        <a
+                                            href={`/checks?tab=dns&host=${encodeURIComponent(displayHost)}`}
+                                            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors duration-150 shadow-sm"
+                                        >
+                                            <Globe className="h-4 w-4" />
+                                            Check DNS Records
+                                        </a>
+                                        <a
+                                            href={`/checks?tab=info&host=${encodeURIComponent(displayHost)}`}
+                                            className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors duration-150 shadow-sm"
+                                        >
+                                            <Server className="h-4 w-4" />
+                                            View WHOIS
+                                        </a>
+                                    </>
+                                ) : isTimeout ? (
+                                    <>
+                                        <a
+                                            href={`/checks?tab=ping&host=${encodeURIComponent(displayHost)}`}
+                                            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors duration-150 shadow-sm"
+                                        >
+                                            <Timer className="h-4 w-4" />
+                                            Run Ping Test
+                                        </a>
+                                        <a
+                                            href={`/checks?tab=http&host=${encodeURIComponent(displayHost)}`}
+                                            className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors duration-150 shadow-sm"
+                                        >
+                                            <Globe className="h-4 w-4" />
+                                            Check HTTP
+                                        </a>
+                                    </>
+                                ) : (
+                                    <>
+                                        <a
+                                            href={`/checks?tab=http&host=${encodeURIComponent(displayHost)}`}
+                                            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors duration-150 shadow-sm"
+                                        >
+                                            <Globe className="h-4 w-4" />
+                                            Check HTTP Instead
+                                        </a>
+                                        <a
+                                            href={`/checks?tab=dns&host=${encodeURIComponent(displayHost)}`}
+                                            className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-800 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors duration-150 shadow-sm"
+                                        >
+                                            <Server className="h-4 w-4" />
+                                            Check DNS
+                                        </a>
+                                    </>
+                                )}
                             </div>
                         </div>
-                    </div>
 
-                    <div className="pt-4">
-                        <Badge variant="outline" className="px-4 py-1.5 rounded-full border-amber-200 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 text-[11px] uppercase font-black tracking-widest bg-amber-50/50 dark:bg-amber-900/10">
-                            Status: {data.errorCode || 'Inactive'}
-                        </Badge>
+                        {/* Right: Info panel */}
+                        <div className="sm:w-64 shrink-0 border-t sm:border-t-0 sm:border-l border-slate-100 dark:border-white/5 pt-4 sm:pt-0 sm:pl-6">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none flex items-center gap-1.5 mb-3">
+                                <Info className="h-3 w-3" />
+                                {infoTitle}
+                            </p>
+                            <div className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
+                                {infoPoints.map(([point], i) => (
+                                    <p key={i}>• <span className="font-semibold text-slate-700 dark:text-slate-300">{point}</span></p>
+                                ))}
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>

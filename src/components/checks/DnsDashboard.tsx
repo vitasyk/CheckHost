@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -38,6 +38,17 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTyp
     const [textCopied, setTextCopied] = useState(false);
     const [isSharing, setIsSharing] = useState(false);
     const [shareCopied, setShareCopied] = useState(false);
+    const [dnsEmptyConfig, setDnsEmptyConfig] = useState({
+        showAvailabilityButton: true,
+        availabilityUrl: 'https://www.namecheap.com/domains/registration/results/?domain='
+    });
+
+    useEffect(() => {
+        fetch('/api/admin/settings?key=dns_empty_state')
+            .then(r => r.ok ? r.json() : null)
+            .then(data => { if (data) setDnsEmptyConfig(data); })
+            .catch(() => { });
+    }, []);
 
     const handleShare = async () => {
         if (isSharing) return;
@@ -163,45 +174,150 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTyp
 
     // Unified Empty State for Not Found / Refused DNS
     if (!data || !data.records || data.records.length === 0 || data.status === 'failed') {
+        const domain = data?.domain || 'this host';
+        // Distinguish NXDOMAIN (completely absent) from empty-zone / propagation issues
+        // If data exists but records is an empty array, it could be propagation. 
+        // If data is null/undefined or status=failed → NXDOMAIN.
+        const isNxdomain = !data || data.status === 'failed' || !data.records;
+
+        const nxdomainBadges = ['NXDOMAIN', 'DOMAIN EXPIRED', 'NEVER REGISTERED', 'DELETED'];
+        const emptyZoneBadges = ['NS TIMEOUT', 'EMPTY ZONE', 'PROPAGATION PENDING', 'MISCONFIGURED'];
+        const badges = isNxdomain ? nxdomainBadges : emptyZoneBadges;
+
         return (
-            <div ref={dashboardRef} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 bg-slate-50 dark:bg-slate-900 rounded-2xl p-1 border border-slate-200/60 dark:border-white/5">
-                <div className="bg-white dark:bg-slate-900 rounded-2xl p-12 text-center shadow-sm">
-                    <div className="max-w-md mx-auto space-y-6">
-                        <div className="relative mx-auto w-24 h-24 rounded-3xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">
-                            <Globe className="h-12 w-12 text-indigo-500" />
-                            <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-white dark:bg-slate-900 border-2 border-indigo-50 dark:border-indigo-500/20 flex items-center justify-center">
-                                <AlertTriangle className="h-4 w-4 text-amber-500" />
-                            </div>
-                        </div>
+            <div ref={dashboardRef} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-white dark:bg-slate-950 rounded-2xl shadow-sm overflow-hidden border border-slate-200/60 dark:border-white/5">
+                    {/* Colored stripe */}
+                    <div className={cn('h-1.5 w-full', isNxdomain ? 'bg-rose-500' : 'bg-amber-500')} />
 
-                        <div className="space-y-2">
-                            <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
-                                No DNS Records Found
-                            </h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                                We couldn&apos;t find any public DNS records for <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data?.domain || 'this host'}</span>.
-                                This domain might be newly registered, private, or non-existent.
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-3 text-left">
-                            <div className="p-4 rounded-xl bg-slate-50/50 dark:bg-slate-800/40 border border-slate-100 dark:border-white/5 flex items-start gap-4">
-                                <div className="h-8 w-8 rounded-lg bg-white dark:bg-slate-900 flex items-center justify-center shrink-0 shadow-sm">
-                                    <Clock className="h-4 w-4 text-amber-500" />
+                    <div className="p-6 flex flex-col sm:flex-row gap-6">
+                        {/* Left: Status + badges + buttons */}
+                        <div className="flex-1 min-w-0">
+                            {/* Header */}
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className={cn(
+                                    'relative shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center',
+                                    isNxdomain
+                                        ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-500'
+                                        : 'bg-amber-50 dark:bg-amber-500/10 text-amber-500'
+                                )}>
+                                    <Globe className="h-6 w-6" />
                                 </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest">Propagation delay</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                                        If you recently updated DNS settings, it may take up to 48 hours to propagate globally.
+                                <div>
+                                    <p className={cn(
+                                        'text-[10px] font-black uppercase tracking-widest leading-none flex items-center gap-1.5 mb-1',
+                                        isNxdomain ? 'text-rose-500' : 'text-amber-500'
+                                    )}>
+                                        <span className={cn(
+                                            'inline-block w-1.5 h-1.5 rounded-full animate-pulse',
+                                            isNxdomain ? 'bg-rose-500' : 'bg-amber-500'
+                                        )} />
+                                        DNS Resolution Status
                                     </p>
+                                    <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight leading-none">
+                                        {isNxdomain ? 'Domain Not Found' : 'No Records Returned'}
+                                    </h3>
                                 </div>
+                            </div>
+
+                            {/* Description */}
+                            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                                {isNxdomain
+                                    ? <>The domain <span className="text-indigo-600 dark:text-indigo-400 font-bold">{domain}</span> doesn&apos;t exist in public DNS. It may have expired, been deleted, or never registered.</>
+                                    : <>The domain <span className="text-indigo-600 dark:text-indigo-400 font-bold">{domain}</span> has nameservers but returned no DNS records. This could be due to propagation delay or a zone configuration issue.</>
+                                }
+                            </p>
+
+                            {/* Cause badges */}
+                            <div className="flex flex-wrap gap-2 mb-5">
+                                {badges.map(label => (
+                                    <span key={label} className={cn(
+                                        'inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black border tracking-widest',
+                                        isNxdomain
+                                            ? 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20'
+                                            : 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20'
+                                    )}>
+                                        {label}
+                                    </span>
+                                ))}
+                            </div>
+
+                            {/* Action buttons */}
+                            <div className="flex flex-wrap gap-2">
+                                {isNxdomain ? (
+                                    <>
+                                        {/* WHOIS lookup in Info tab */}
+                                        <a
+                                            href={`/checks?tab=info&host=${encodeURIComponent(domain)}`}
+                                            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors duration-150 shadow-sm"
+                                        >
+                                            <Server className="h-4 w-4" />
+                                            Check WHOIS
+                                            <AlertTriangle className="h-3.5 w-3.5 opacity-70" />
+                                        </a>
+                                        {/* Domain availability */}
+                                        {dnsEmptyConfig.showAvailabilityButton && (
+                                            <a
+                                                href={`${dnsEmptyConfig.availabilityUrl}${encodeURIComponent(domain)}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors duration-150 shadow-sm"
+                                            >
+                                                <Globe className="h-4 w-4" />
+                                                Check Availability
+                                                <Layers className="h-3.5 w-3.5 opacity-70" />
+                                            </a>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        {/* Retry DNS lookup */}
+                                        {onRefresh && (
+                                            <button
+                                                onClick={onRefresh}
+                                                disabled={isRefreshing}
+                                                className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors duration-150 shadow-sm disabled:opacity-50"
+                                            >
+                                                {isRefreshing
+                                                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                                                    : <Clock className="h-4 w-4" />
+                                                }
+                                                {isRefreshing ? 'Retrying...' : 'Retry Lookup'}
+                                            </button>
+                                        )}
+                                        {/* Check from info tab */}
+                                        <a
+                                            href={`/checks?tab=info&host=${encodeURIComponent(domain)}`}
+                                            className="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-800 active:bg-slate-900 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors duration-150 shadow-sm"
+                                        >
+                                            <Server className="h-4 w-4" />
+                                            View WHOIS Data
+                                        </a>
+                                    </>
+                                )}
                             </div>
                         </div>
 
-                        <div className="pt-4">
-                            <Badge variant="outline" className="px-4 py-1.5 rounded-full border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 text-xs uppercase font-black tracking-widest bg-slate-100/50 dark:bg-white/5">
-                                Status: Unresolved
-                            </Badge>
+                        {/* Right: Info panel */}
+                        <div className="sm:w-64 shrink-0 border-t sm:border-t-0 sm:border-l border-slate-100 dark:border-white/5 pt-4 sm:pt-0 sm:pl-6">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none flex items-center gap-1.5 mb-3">
+                                <AlertTriangle className="h-3 w-3" />
+                                {isNxdomain ? 'What does this mean?' : 'Possible Causes'}
+                            </p>
+                            {isNxdomain ? (
+                                <div className="space-y-2.5 text-xs text-slate-500 dark:text-slate-400">
+                                    <p>• Domain may have <span className="font-bold text-slate-700 dark:text-slate-300">expired</span> and been removed from DNS</p>
+                                    <p>• Domain was <span className="font-bold text-slate-700 dark:text-slate-300">never registered</span> under this TLD</p>
+                                    <p>• Registrar may have <span className="font-bold text-slate-700 dark:text-slate-300">suspended</span> it</p>
+                                    <p>• You may want to <span className="font-bold text-slate-700 dark:text-slate-300">double-check the spelling</span></p>
+                                </div>
+                            ) : (
+                                <div className="space-y-2.5 text-xs text-slate-500 dark:text-slate-400">
+                                    <p>• DNS changes can take up to <span className="font-bold text-slate-700 dark:text-slate-300">48 hours to propagate</span></p>
+                                    <p>• Nameservers may be <span className="font-bold text-slate-700 dark:text-slate-300">temporarily unreachable</span></p>
+                                    <p>• Zone file may be <span className="font-bold text-slate-700 dark:text-slate-300">empty or misconfigured</span></p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -242,9 +358,9 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTyp
     const hasAuthority = nsRecords.length > 0 || soaRecords.length > 0;
     const hasVerification = otherTxtRecords.length > 0 || ptrRecords.length > 0;
 
-    // Count by type for stats
+    // Count by type for stats (always use full data.records so all buttons stay visible)
     const typeCounts: Record<string, number> = {};
-    records.forEach(r => {
+    data.records.forEach(r => {
         typeCounts[r.type] = (typeCounts[r.type] || 0) + 1;
     });
 

@@ -222,17 +222,25 @@ export function ResultsDisplay({
                 return 'success';
             }
 
-            // Ping results - last check to avoid catching MTR partials
-            if (Array.isArray(firstResult) && checkType === 'ping') {
-                return 'success';
+            // HTTP Array Format (HTTP redirects/successes sometimes come back as an array)
+            // Format check: [ [successCode, time, message, httpCode, ip] ]
+            if (Array.isArray(firstResult)) {
+                if (firstResult.length >= 4 && !isNaN(parseFloat(firstResult[1])) && !isNaN(parseInt(firstResult[3]))) {
+                    return 'success';
+                }
+
+                // Ping results - last check to avoid catching MTR partials
+                if (checkType === 'ping') {
+                    // Check if there are any OK packets
+                    const flatFirst = Array.isArray(firstResult[0]) ? firstResult : [firstResult];
+                    const hasOk = flatFirst.some((r: any) => Array.isArray(r) && String(r[0]).toUpperCase() === 'OK');
+                    if (hasOk) return 'success';
+                }
             }
         }
 
-        // HTTP/TCP/UDP results
-        if (typeof firstResult === 'object' && firstResult !== null) {
-            // If it's an array (Ping style results) but checkType isn't ping, handle as success
-            if (Array.isArray(firstResult)) return 'success';
-
+        // HTTP/TCP/UDP results (Object format)
+        if (typeof firstResult === 'object' && !Array.isArray(firstResult) && firstResult !== null) {
             // If it has error property
             if ('error' in firstResult && (firstResult as any).error) return 'error';
 
@@ -467,9 +475,24 @@ export function ResultsDisplay({
             // Handle string results
             if (typeof firstResult === 'string') return firstResult;
 
-            // Ping results
+            // Array format handles both Ping and HTTP (Redirects/Responses)
             if (Array.isArray(firstResult)) {
-                const okResults = firstResult.filter((r: any) => Array.isArray(r) && r[0] === 'OK');
+                // If it looks like CheckHost HTTP format: [successCode, time, message, httpCode, ip]
+                // Example: [1, 0.31, "Permanent Redirect", "308", "193.162.131.1"]
+                if (firstResult.length >= 4 && !isNaN(parseFloat(firstResult[1])) && !isNaN(parseInt(firstResult[3]))) {
+                    const httpCode = parseInt(firstResult[3]);
+                    const isOk = httpCode >= 200 && httpCode < 400; // 3xx are redirects, considered success here
+                    return (
+                        <span className={cn("font-medium", isOk ? "text-green-600 dark:text-green-400" : "text-amber-600")}>
+                            {httpCode} {firstResult[2] || ''}
+                        </span>
+                    );
+                }
+
+                // If it looks like CheckHost Ping format: [["OK", time, ip], ...]
+                const flatFirst = Array.isArray(firstResult[0]) ? firstResult : [firstResult];
+                const okResults = flatFirst.filter((r: any) => Array.isArray(r) && String(r[0]).toUpperCase() === 'OK');
+
                 if (okResults.length > 0) {
                     const avgTime = okResults.reduce((sum: number, r: any) => sum + r[1], 0) / okResults.length;
                     return (
@@ -479,7 +502,11 @@ export function ResultsDisplay({
                         </span>
                     );
                 }
-                return <span className="text-destructive">All packets lost</span>;
+
+                // If it was supposed to be a ping but failed
+                if (checkType === 'ping') {
+                    return <span className="text-destructive">All packets lost</span>;
+                }
             }
 
             // HTTP results
@@ -496,6 +523,12 @@ export function ResultsDisplay({
             // TCP/UDP results
             if (typeof firstResult === 'object' && firstResult !== null && 'address' in firstResult) {
                 if (firstResult.error) return <span className="text-destructive">Error: {firstResult.error}</span>;
+
+                // If it's UDP, we show specific text
+                if (checkType === 'udp') {
+                    return <span>Open or filtered</span>; // Since address comes back, it reached it
+                }
+
                 return (
                     <span>
                         Connected to <span className="font-mono">{firstResult.address}</span>
@@ -544,20 +577,28 @@ export function ResultsDisplay({
 
             if (firstResult === null) return '-';
 
-            // Ping
+            // Array format handles both Ping and HTTP (Redirects/Responses)
             if (Array.isArray(firstResult)) {
-                const okResults = firstResult.filter((r: any) => Array.isArray(r) && r[0] === 'OK');
+                // If it looks like CheckHost HTTP format: [successCode, time, message, httpCode, ip]
+                if (firstResult.length >= 4 && !isNaN(parseFloat(firstResult[1])) && !isNaN(parseInt(firstResult[3]))) {
+                    return `${parseFloat(firstResult[1]).toFixed(3)} s`;
+                }
+
+                // Ping
+                const flatFirst = Array.isArray(firstResult[0]) ? firstResult : [firstResult];
+                const okResults = flatFirst.filter((r: any) => Array.isArray(r) && String(r[0]).toUpperCase() === 'OK');
                 if (okResults.length > 0) {
                     const avgTime = okResults.reduce((sum: number, r: any) => sum + r[1], 0) / okResults.length;
-                    return `${avgTime.toFixed(0)}ms`;
+                    return `${avgTime.toFixed(0)} ms`;
                 }
             }
-            // HTTP time
-            if (typeof firstResult === 'object' && firstResult !== null && 'time' in firstResult) {
-                return `${(firstResult.time).toFixed(3)}s`;
+
+            // HTTP time (Object format)
+            if (typeof firstResult === 'object' && !Array.isArray(firstResult) && firstResult !== null && 'time' in firstResult) {
+                return `${(firstResult.time).toFixed(3)} s`;
             }
             // DNS results
-            if (typeof firstResult === 'object' && firstResult !== null && 'TTL' in firstResult) {
+            if (typeof firstResult === 'object' && !Array.isArray(firstResult) && firstResult !== null && 'TTL' in firstResult) {
                 return formatTTL(firstResult.TTL);
             }
         }
@@ -768,7 +809,21 @@ export function ResultsDisplay({
                                                         <TableHead className="w-10"></TableHead>
                                                     </Fragment>
                                                 )}
-                                                {checkType !== 'ping' && checkType !== 'mtr' && (
+                                                {checkType === 'http' && (
+                                                    <Fragment>
+                                                        <TableHead>Result</TableHead>
+                                                        <TableHead>Time</TableHead>
+                                                        <TableHead>Code</TableHead>
+                                                        <TableHead className="text-right">IP Address</TableHead>
+                                                    </Fragment>
+                                                )}
+                                                {checkType === 'udp' && (
+                                                    <Fragment>
+                                                        <TableHead>Result</TableHead>
+                                                        <TableHead className="text-right">IP Address</TableHead>
+                                                    </Fragment>
+                                                )}
+                                                {checkType !== 'ping' && checkType !== 'mtr' && checkType !== 'http' && checkType !== 'udp' && (
                                                     <Fragment>
                                                         <TableHead>Result</TableHead>
                                                         <TableHead className="text-right w-[140px]">
@@ -864,23 +919,65 @@ export function ResultsDisplay({
                                                                     </div>
                                                                 </div>
                                                             </TableCell>
-                                                            <TableCell className="font-mono text-sm">
-                                                                {isLoading ? (
-                                                                    <span className="text-muted-foreground animate-pulse">Checking...</span>
-                                                                ) : checkType === 'mtr' ? (
-                                                                    result === null || processMtrData(result).length === 0 ? (
-                                                                        <span className="text-[10px] font-bold text-indigo-500/60 animate-pulse tracking-tight">
-                                                                            {targetHost && /^[0-9.]+$/.test(targetHost) ? 'PROBING...' : 'RESOLVING...'}
-                                                                        </span>
-                                                                    ) : (
-                                                                        <span className="text-sm font-medium">{getMtrSummary(result)?.count} hops</span>
-                                                                    )
-                                                                ) : (
-                                                                    renderResult(result)
-                                                                )}
-                                                            </TableCell>
-                                                            {checkType === 'mtr' ? (
+                                                            {checkType === 'http' ? (
                                                                 <Fragment>
+                                                                    <TableCell className="font-mono text-sm">
+                                                                        {isLoading ? (
+                                                                            <span className="text-muted-foreground animate-pulse">Checking...</span>
+                                                                        ) : (
+                                                                            <span className={cn("font-medium", status === 'success' ? "text-green-600 dark:text-green-400" : "text-destructive")}>
+                                                                                {status === 'success' ? 'OK' : 'Error'}
+                                                                            </span>
+                                                                        )}
+                                                                    </TableCell>
+                                                                    <TableCell className="font-mono text-sm text-slate-500 dark:text-slate-400">
+                                                                        {isLoading ? '-' : ttl}
+                                                                    </TableCell>
+                                                                    <TableCell className="font-mono text-sm">
+                                                                        {isLoading ? '-' : (
+                                                                            Array.isArray(result) && result.length > 0 && Array.isArray(result[0]) ? (
+                                                                                <span className={cn(status === 'success' ? "text-green-600 dark:text-green-400" : "text-amber-600")}>
+                                                                                    {result[0][3] ? `${result[0][3]} ${result[0][2] ? `(${result[0][2]})` : ''}` : (result[0][2] || '')}
+                                                                                </span>
+                                                                            ) : renderResult(result) // Fallback for errors
+                                                                        )}
+                                                                    </TableCell>
+                                                                    <TableCell className="text-right font-mono text-sm text-slate-600 dark:text-slate-300">
+                                                                        {isLoading ? '-' : (
+                                                                            Array.isArray(result) && result.length > 0 && Array.isArray(result[0]) && result[0][4] ? (
+                                                                                result[0][4]
+                                                                            ) : '-'
+                                                                        )}
+                                                                    </TableCell>
+                                                                </Fragment>
+                                                            ) : checkType === 'udp' ? (
+                                                                <Fragment>
+                                                                    <TableCell className="font-mono text-sm">
+                                                                        {isLoading ? (
+                                                                            <span className="text-muted-foreground animate-pulse">Checking...</span>
+                                                                        ) : renderResult(result)}
+                                                                    </TableCell>
+                                                                    <TableCell className="text-right font-mono text-sm text-slate-600 dark:text-slate-300">
+                                                                        {isLoading ? '-' : (
+                                                                            Array.isArray(result) && result.length > 0 && typeof result[0] === 'object' && result[0] !== null && 'address' in result[0] ? (
+                                                                                result[0].address
+                                                                            ) : '-'
+                                                                        )}
+                                                                    </TableCell>
+                                                                </Fragment>
+                                                            ) : checkType === 'mtr' ? (
+                                                                <Fragment>
+                                                                    <TableCell className="font-mono text-sm">
+                                                                        {isLoading ? (
+                                                                            <span className="text-muted-foreground animate-pulse">Checking...</span>
+                                                                        ) : result === null || processMtrData(result).length === 0 ? (
+                                                                            <span className="text-[10px] font-bold text-indigo-500/60 animate-pulse tracking-tight">
+                                                                                {targetHost && /^[0-9.]+$/.test(targetHost) ? 'PROBING...' : 'RESOLVING...'}
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="text-sm font-medium">{getMtrSummary(result)?.count} hops</span>
+                                                                        )}
+                                                                    </TableCell>
                                                                     <TableCell className="font-mono text-xs text-slate-500 dark:text-slate-400">
                                                                         {getMtrSummary(result)?.avgText}
                                                                     </TableCell>
@@ -894,9 +991,16 @@ export function ResultsDisplay({
                                                                     </TableCell>
                                                                 </Fragment>
                                                             ) : (
-                                                                <TableCell className="text-right text-muted-foreground whitespace-nowrap">
-                                                                    {ttl}
-                                                                </TableCell>
+                                                                <Fragment>
+                                                                    <TableCell className="font-mono text-sm">
+                                                                        {isLoading ? (
+                                                                            <span className="text-muted-foreground animate-pulse">Checking...</span>
+                                                                        ) : renderResult(result)}
+                                                                    </TableCell>
+                                                                    <TableCell className="text-right text-muted-foreground whitespace-nowrap">
+                                                                        {ttl}
+                                                                    </TableCell>
+                                                                </Fragment>
                                                             )}
                                                         </TableRow>
                                                         {checkType === 'mtr' && expandedRows.has(nodeId) && (

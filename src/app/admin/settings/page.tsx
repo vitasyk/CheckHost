@@ -16,7 +16,8 @@ import {
     SwitchCamera,
     Share2,
     Trash2,
-    Terminal
+    Terminal,
+    Globe
 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { useEffect, useState } from 'react';
@@ -51,6 +52,11 @@ interface ShareResultsConfig {
     ttlDays: number;
 }
 
+interface DnsEmptyStateConfig {
+    showAvailabilityButton: boolean;
+    availabilityUrl: string;
+}
+
 export default function AdminSettings() {
     const { data: session } = useSession();
     const [config, setConfig] = useState<AdSenseConfig | null>(null);
@@ -67,6 +73,10 @@ export default function AdminSettings() {
     });
     const [systemConfig, setSystemConfig] = useState({
         verboseLogging: false
+    });
+    const [dnsEmptyConfig, setDnsEmptyConfig] = useState<DnsEmptyStateConfig>({
+        showAvailabilityButton: true,
+        availabilityUrl: 'https://www.namecheap.com/domains/registration/results/?domain='
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -140,6 +150,13 @@ export default function AdminSettings() {
                     const data = await systemRes.json();
                     if (data) setSystemConfig(data);
                 }
+
+                // Fetch DNS Empty State Config
+                const dnsEmptyRes = await fetch('/api/admin/settings?key=dns_empty_state');
+                if (dnsEmptyRes.ok) {
+                    const data = await dnsEmptyRes.json();
+                    if (data) setDnsEmptyConfig(data);
+                }
             } catch (error) {
                 console.error('Failed to fetch configs:', error);
             } finally {
@@ -187,7 +204,14 @@ export default function AdminSettings() {
                 body: JSON.stringify(systemConfig),
             });
 
-            await Promise.all([p1, p2, p3, p4, p5]);
+            // Save DNS Empty State Config
+            const p6 = fetch('/api/admin/settings?key=dns_empty_state', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dnsEmptyConfig),
+            });
+
+            await Promise.all([p1, p2, p3, p4, p5, p6]);
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
         } catch (error) {
@@ -393,6 +417,46 @@ export default function AdminSettings() {
                                             <Switch disabled checked={false} />
                                         </div>
                                         <p className="text-xs text-slate-400">Enable deep trace logging for all API interactions (Coming soon).</p>
+                                    </Card>
+                                </div>
+                            </Card>
+                        </div>
+                        {/* DNS Empty State Config */}
+                        <div className="space-y-6">
+                            <Card className="p-8 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm relative overflow-hidden group">
+                                <Globe className="absolute -right-4 -bottom-4 h-24 w-24 text-indigo-500/5 group-hover:text-indigo-500/10 transition-colors" />
+
+                                <div className="space-y-1 mb-6">
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="text-xl font-bold font-display">DNS Empty State</h3>
+                                        <Badge variant="outline" className="text-[10px] py-0 border-slate-200 text-slate-500 bg-slate-50 dark:bg-slate-800/50">UI Behaviour</Badge>
+                                    </div>
+                                    <p className="text-sm text-slate-400">Configure what is shown when a domain has no DNS records (NXDOMAIN state).</p>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    {/* Toggle: Show Availability Button */}
+                                    <Card className="p-4 border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20 flex flex-col gap-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-sm font-bold">Check Availability Button</div>
+                                            <Switch
+                                                checked={dnsEmptyConfig.showAvailabilityButton}
+                                                onCheckedChange={(val) => setDnsEmptyConfig({ ...dnsEmptyConfig, showAvailabilityButton: val })}
+                                            />
+                                        </div>
+                                        <p className="text-xs text-slate-400">Show a "Check Availability" link on the DNS empty state when a domain doesn&apos;t exist (NXDOMAIN).</p>
+                                    </Card>
+
+                                    {/* URL: Registrar Base URL */}
+                                    <Card className="p-4 border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20 flex flex-col gap-3">
+                                        <div className="text-sm font-bold">Registrar URL Template</div>
+                                        <Input
+                                            value={dnsEmptyConfig.availabilityUrl}
+                                            onChange={(e) => setDnsEmptyConfig({ ...dnsEmptyConfig, availabilityUrl: e.target.value })}
+                                            placeholder="https://www.namecheap.com/domains/registration/results/?domain="
+                                            className="text-xs font-mono"
+                                        />
+                                        <p className="text-xs text-slate-400">The domain name will be appended to this URL. Example: <span className="font-mono text-indigo-500">{"<url>"}</span> + <span className="font-mono text-slate-500">example.com</span></p>
                                     </Card>
                                 </div>
                             </Card>

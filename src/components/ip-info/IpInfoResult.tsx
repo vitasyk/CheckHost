@@ -115,7 +115,8 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
 
     const hasRdap = !!data.rdapRawData;
     const rdap = hasRdap ? parseRdapData(data.rdapRawData) : null;
-    const isIP = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(data.ip || '');
+    // Check if the queried host is an IP Address (IPv4 or IPv6-like fallback)
+    const isIP = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^[0-9a-fA-F:]+$/.test(data.host || data.ip || '');
     const isUnresolved = data.status === 'failed';
 
     // Simplified check for "unresolved" state but NO early return here
@@ -311,66 +312,121 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
                     )}
                 </div>
 
-                {/* Intelligence Banner: Network info for IPs or status for unresolved domains */}
-                {(isUnresolved && !isIP) && (
+                {/* Intelligence Banner: Resolution Failed for unresolved domains / IPs */}
+                {isUnresolved && (
                     <div className="bg-white dark:bg-slate-950 rounded-2xl shadow-sm overflow-hidden flex flex-col border border-slate-200/60 dark:border-white/5">
-                        <div className={cn(
-                            "h-1.5 w-full",
-                            !hasRdap ? "bg-rose-500" : "bg-amber-500"
-                        )} />
-                        <div className="p-6">
-                            <div className="flex items-center gap-4">
-                                <div className={cn(
-                                    "relative shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center",
-                                    !hasRdap ? "bg-rose-50 dark:bg-rose-500/10 text-rose-500" : "bg-amber-50 dark:bg-amber-500/10 text-amber-500"
-                                )}>
-                                    <MapPin className="h-7 w-7" />
+                        <div className={cn("h-1.5 w-full", hasRdap ? "bg-amber-500" : "bg-rose-500")} />
+                        <div className="p-6 flex flex-col sm:flex-row gap-6">
+
+                            {/* Left side: Status + Description + Badges + Button */}
+                            <div className="flex-1 min-w-0">
+                                {/* Header */}
+                                <div className="flex items-center gap-3 mb-3">
                                     <div className={cn(
-                                        "absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-white dark:bg-slate-950 border-2 flex items-center justify-center",
-                                        !hasRdap ? "border-rose-50 dark:border-rose-500/20 text-rose-600" : "border-amber-50 dark:border-amber-500/20 text-orange-500"
+                                        "relative shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center",
+                                        hasRdap
+                                            ? "bg-amber-50 dark:bg-amber-500/10 text-amber-500"
+                                            : "bg-rose-50 dark:bg-rose-500/10 text-rose-500"
                                     )}>
-                                        <AlertTriangle className="h-3 w-3" />
+                                        <AlertTriangle className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <p className={cn(
+                                            "text-[10px] font-black uppercase tracking-widest leading-none flex items-center gap-1.5 mb-1",
+                                            hasRdap ? "text-amber-500" : "text-rose-500"
+                                        )}>
+                                            <span className={cn("inline-block w-1.5 h-1.5 rounded-full animate-pulse", hasRdap ? "bg-amber-500" : "bg-rose-500")} />
+                                            {isIP ? 'IP Address Status' : 'Resolution Status'}
+                                        </p>
+                                        <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight leading-none">
+                                            {hasRdap ? 'Partial Info Found' : (isIP ? 'Lookup Failed' : 'Resolution Failed')}
+                                        </h3>
                                     </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="text-lg font-black text-slate-900 dark:text-slate-100 tracking-tight">
-                                        IP Not Resolved
-                                    </h3>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                                        <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data.host || 'the host'}</span>
-                                        {' '}couldn&apos;t be resolved to an IP address. Some intelligence might still be available below.
-                                    </p>
-                                    {rdap && (rdap.organization || rdap.country) && (
-                                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                                            {rdap.organization && (
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500">
-                                                        <Building2 className="h-4 w-4" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">Organization</p>
-                                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-tight">{rdap.organization}</p>
-                                                    </div>
-                                                </div>
-                                            )}
-                                            {rdap.country && (
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500">
-                                                        <Flag className="h-4 w-4" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">Registration Country</p>
-                                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-tight">{rdap.country}</p>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
+
+                                {/* Description */}
+                                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                                    {isIP ? 'The IP address ' : 'The domain '}
+                                    <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data.host || 'this host'}</span>
+                                    {isIP ? ' currently doesn\'t have public info or might be a private/invalid address.' : ' currently doesn\'t resolve to a valid IP address.'}
+                                </p>
+
+                                {/* Possible cause badges */}
+                                <div className="flex flex-wrap gap-2 mb-5">
+                                    {(isIP ? [
+                                        { label: 'PRIVATE IP', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
+                                        { label: 'INVALID FORMAT', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
+                                        { label: 'NO RECORD', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
+                                    ] : [
+                                        { label: 'DNS ERROR', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
+                                        { label: 'DOMAIN EXPIRED', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
+                                        { label: 'SERVER DOWN', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
+                                        { label: 'MAINTENANCE', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
+                                    ]).map(({ label, color }) => (
+                                        <span key={label} className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black border tracking-widest ${color}`}>
+                                            {label}
+                                        </span>
+                                    ))}
                                 </div>
-                                <Badge variant="outline" className="shrink-0 px-3 py-1 rounded-full border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 text-[11px] uppercase font-black tracking-widest bg-slate-100/50 dark:bg-white/5">
-                                    Unresolved
-                                </Badge>
+
+                                {/* DNS Diagnostic button (only for domains) */}
+                                {!isIP && (
+                                    <a
+                                        href={`/checks?tab=dns&host=${encodeURIComponent(data.host || '')}`}
+                                        className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors duration-150 shadow-sm"
+                                    >
+                                        <Globe className="h-4 w-4" />
+                                        Full DNS Diagnostic
+                                        <ArrowUpRight className="h-4 w-4" />
+                                    </a>
+                                )}
                             </div>
+
+                            {/* Right side: Cached RDAP data if available */}
+                            {rdap && (rdap.organization || rdap.country || rdap.registrar) && (
+                                <div className="sm:w-64 shrink-0 border-t sm:border-t-0 sm:border-l border-slate-100 dark:border-white/5 pt-4 sm:pt-0 sm:pl-6">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none flex items-center gap-1.5 mb-3">
+                                        <Database className="h-3 w-3" />
+                                        Cached Repository Data
+                                    </p>
+                                    <div className="space-y-3">
+                                        {rdap.registrar && (
+                                            <div>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-1">Registrar</p>
+                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{rdap.registrar}</p>
+                                            </div>
+                                        )}
+                                        {rdap.organization && (
+                                            <div>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-1">Registry Info</p>
+                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{rdap.organization}</p>
+                                            </div>
+                                        )}
+                                        {!rdap.registrar && !rdap.organization && (
+                                            <p className="text-xs text-slate-400 italic">No public WHOIS organization data found.</p>
+                                        )}
+                                        {rdap.country && (
+                                            <div>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-1">Registration Country</p>
+                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{rdap.country}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                            {(!rdap || (!rdap.organization && !rdap.country && !rdap.registrar)) && (
+                                <div className="sm:w-64 shrink-0 border-t sm:border-t-0 sm:border-l border-slate-100 dark:border-white/5 pt-4 sm:pt-0 sm:pl-6">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none flex items-center gap-1.5 mb-3">
+                                        <Database className="h-3 w-3" />
+                                        Cached Repository Data
+                                    </p>
+                                    <p className="text-xs text-slate-400 italic flex items-center gap-1.5">
+                                        <Server className="h-3 w-3 shrink-0" />
+                                        No public WHOIS organization data found.
+                                    </p>
+                                </div>
+                            )}
+
                         </div>
                     </div>
                 )}
