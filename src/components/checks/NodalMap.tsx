@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Node } from '@/types/checkhost';
@@ -16,20 +16,49 @@ interface NodalMapProps {
     onToggleNode: (nodeId: string) => void;
 }
 
-// Fix for default marker icons in Leaflet with Next.js
-const defaultIcon = L.icon({
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-});
+// Icon factory for Apple-style nodes with integrated tooltips (avoids Leaflet jumping bug)
+const createNodeIcon = (node: any, isSelected: boolean) => {
+    const iconUrl = isSelected
+        ? 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png'
+        : 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
 
-const selectedIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-});
+    return L.divIcon({
+        className: 'apple-node-icon',
+        html: `
+            <div class="marker-root ${isSelected ? 'is-selected' : ''}">
+                <div class="marker-main">
+                    <img src="${iconUrl}" class="marker-img" />
+                </div>
+                
+                <div class="apple-glass-card">
+                    <div class="card-top">
+                        <span class="card-city">${node.city}, ${node.country}</span>
+                        <span class="card-badge">${node.countryCode}</span>
+                    </div>
+                    <div class="card-divider"></div>
+                    <div class="card-info">
+                        <div class="info-row">
+                            <span class="info-label">Node</span>
+                            <span class="info-value">#${node.id}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">ASN</span>
+                            <span class="info-value">${node.asn}</span>
+                        </div>
+                    </div>
+                    ${isSelected ? `
+                        <div class="card-footer-selected">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <span>SELECTED</span>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+    });
+};
 
 export default function NodalMap({ nodes, selectedNodeIds, onToggleNode }: NodalMapProps) {
     const { theme } = useTheme();
@@ -76,58 +105,11 @@ export default function NodalMap({ nodes, selectedNodeIds, onToggleNode }: Nodal
                     <Marker
                         key={node.id}
                         position={[node.lat, node.lng]}
-                        icon={selectedNodeIds.includes(node.id) ? selectedIcon : defaultIcon}
+                        icon={createNodeIcon(node, selectedNodeIds.includes(node.id))}
                         eventHandlers={{
                             click: () => onToggleNode(node.id),
                         }}
-                    >
-                        <Popup className="custom-popup">
-                            <div className="p-2 space-y-2 min-w-[180px]">
-                                <div className="flex items-center justify-between">
-                                    <h4 className="font-bold text-sm text-slate-900 dark:text-white">{node.city}, {node.country}</h4>
-                                    <Badge variant="outline" className="text-[10px] uppercase">{node.countryCode}</Badge>
-                                </div>
-                                <div className="pt-2 border-t border-slate-100 dark:border-white/10 flex flex-col gap-1">
-                                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                                        <Info className="h-3 w-3" />
-                                        <span>Node ID: {node.id}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                                        <Globe className="h-3 w-3" />
-                                        <span>ASN: {node.asn}</span>
-                                    </div>
-                                </div>
-                                {selectedNodeIds.includes(node.id) ? (
-                                    <div className="mt-2 flex items-center justify-between py-1.5 px-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200/60 dark:border-emerald-500/20">
-                                        <div className="flex items-center gap-1.5">
-                                            <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
-                                            <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">Selected</span>
-                                        </div>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onToggleNode(node.id);
-                                            }}
-                                            className="text-[10px] font-medium text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors cursor-pointer underline underline-offset-2"
-                                        >
-                                            remove
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onToggleNode(node.id);
-                                        }}
-                                        className="w-full mt-2 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400"
-                                    >
-                                        <MapPin className="h-3 w-3" />
-                                        Select Node
-                                    </button>
-                                )}
-                            </div>
-                        </Popup>
-                    </Marker>
+                    />
                 ))}
             </MapContainer>
 
@@ -181,24 +163,153 @@ export default function NodalMap({ nodes, selectedNodeIds, onToggleNode }: Nodal
                     background-color: #334155 !important;
                     color: #818cf8 !important;
                 }
-                .custom-popup .leaflet-popup-content-wrapper {
-                    background: rgba(255, 255, 255, 0.95);
+                .custom-tooltip {
+                    background: rgba(255, 255, 255, 0.75);
                     border-radius: 12px;
-                    border: 1px solid rgba(226, 232, 240, 0.6);
-                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                    border: 1px solid rgba(255, 255, 255, 0.5);
+                    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+                    backdrop-filter: saturate(180%) blur(20px);
+                    -webkit-backdrop-filter: saturate(180%) blur(20px);
+                    padding: 8px 10px;
+                    color: inherit;
+                    transition: opacity 0.2s ease, transform 0.2s ease;
+                    pointer-events: none;
                 }
-                .dark .custom-popup .leaflet-popup-content-wrapper {
-                    background: rgba(15, 23, 42, 0.95);
-                    border: 1px solid rgba(255, 255, 255, 0.05);
+                .dark .custom-tooltip {
+                    background: rgba(15, 23, 42, 0.65);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
                 }
-                .custom-popup .leaflet-popup-tip {
-                    background: rgba(255, 255, 255, 0.95);
+                .leaflet-tooltip-top.custom-tooltip:before {
+                    border-top-color: rgba(255, 255, 255, 0.75);
+                    margin-bottom: -1px;
                 }
-                .dark .custom-popup .leaflet-popup-tip {
-                    background: rgba(15, 23, 42, 0.95);
+                .apple-node-icon {
+                    background: none !important;
+                    border: none !important;
                 }
-                .custom-popup .leaflet-popup-content {
-                    margin: 0;
+                .marker-root {
+                    position: relative;
+                    width: 25px;
+                    height: 41px;
+                    display: flex;
+                    justify-content: center;
+                }
+                .marker-img {
+                    width: 25px;
+                    height: 41px;
+                    display: block;
+                    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+                }
+                .marker-root:hover .marker-img {
+                    transform: scale(1.1);
+                }
+                .is-selected .marker-img {
+                    animation: markerPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+                    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.3));
+                }
+                
+                /* Apple Glass Card - Integrated Tooltip */
+                .apple-glass-card {
+                    position: absolute;
+                    bottom: 45px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 210px;
+                    background: rgba(255, 255, 255, 0.9);
+                    backdrop-filter: blur(12px) saturate(180%);
+                    -webkit-backdrop-filter: blur(12px) saturate(180%);
+                    border: 1px solid rgba(255, 255, 255, 1);
+                    border-radius: 14px;
+                    padding: 12px;
+                    box-shadow: 
+                        0 4px 12px rgba(0, 0, 0, 0.08),
+                        0 0 1px rgba(0, 0, 0, 0.1);
+                    opacity: 0;
+                    pointer-events: none;
+                    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+                    z-index: 5000;
+                    visibility: hidden;
+                }
+                .dark .apple-glass-card {
+                    background: rgba(30, 41, 59, 0.8);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+                }
+                .marker-root:hover .apple-glass-card {
+                    opacity: 1;
+                    visibility: visible;
+                    transform: translateX(-50%) translateY(-5px);
+                }
+                
+                .card-top {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 8px;
+                    margin-bottom: 6px;
+                }
+                .card-city {
+                    font-size: 13px;
+                    font-weight: 800;
+                    color: #1e293b;
+                    letter-spacing: -0.02em;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                .dark .card-city { color: #f1f5f9; }
+                .card-badge {
+                    font-size: 9px;
+                    font-weight: 900;
+                    background: rgba(0, 0, 0, 0.05);
+                    padding: 2px 4px;
+                    border-radius: 4px;
+                    color: #64748b;
+                }
+                .dark .card-badge { background: rgba(255, 255, 255, 0.05); color: #94a3b8; }
+                .card-divider {
+                    height: 1px;
+                    background: rgba(0, 0, 0, 0.05);
+                    margin-bottom: 6px;
+                }
+                .dark .card-divider { background: rgba(255, 255, 255, 0.05); }
+                .card-info {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                }
+                .info-row {
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 10px;
+                    font-weight: 500;
+                    color: #64748b;
+                }
+                .dark .info-row { color: #94a3b8; }
+                .info-value { font-family: monospace; color: #334155; }
+                .dark .info-value { color: #cbd5e1; }
+                
+                .card-footer-selected {
+                    margin-top: 8px;
+                    background: rgba(16, 185, 129, 0.1);
+                    color: #059669;
+                    font-size: 9px;
+                    font-weight: 900;
+                    letter-spacing: 0.05em;
+                    padding: 4px;
+                    border-radius: 6px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 4px;
+                }
+                .card-footer-selected svg { width: 10px; height: 10px; }
+
+                @keyframes markerPop {
+                    0% { transform: scale(0.6) translateY(10px); filter: brightness(1.5); }
+                    50% { transform: scale(1.1) translateY(-6px); }
+                    100% { transform: scale(1) translateY(0); filter: brightness(1); }
                 }
             `}</style>
         </div>

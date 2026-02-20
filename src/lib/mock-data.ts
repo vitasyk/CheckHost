@@ -238,6 +238,7 @@ export async function getMockIpInfo(host: string): Promise<IpInfoResponse> {
             } : undefined
         },
         rdapRawData: rdapData,
+        nameservers: dnsNameservers,
         host: host
     };
 }

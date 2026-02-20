@@ -421,7 +421,7 @@ export function SslDashboard({ data, host, isSharedView = false }: SslDashboardP
                                 icon={<Clock className="h-4 w-4" />}
                                 label="Validity"
                                 value={isExpired ? "Expired" : `${daysRemaining} days`}
-                                subtext={new Date(certificate.valid_to).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                subtext={new Date(certificate.valid_to).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                 color={isExpired ? "red" : isExpiringSoon ? "amber" : "emerald"}
                             />
                             <DiagnosticStat
@@ -623,7 +623,7 @@ export function SslDashboard({ data, host, isSharedView = false }: SslDashboardP
                                                         <div className="space-y-1.5">
                                                             <InfoRow
                                                                 label="Validity Window"
-                                                                value={`${new Date(cert.valid_from).toLocaleDateString()} — ${new Date(cert.valid_to).toLocaleDateString()}`}
+                                                                value={`${new Date(cert.valid_from).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })} — ${new Date(cert.valid_to).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`}
                                                                 mono
                                                             />
                                                             {(cert.subject.L || cert.subject.ST || cert.subject.C) && (

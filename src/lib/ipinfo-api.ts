@@ -277,25 +277,67 @@ export async function resolveIpToHost(ip: string): Promise<string | null> {
 }
 
 /**
- * Fetch Name Servers for a domain using DNS-over-HTTPS
+ * Clean a domain/host string for DNS lookups
+ */
+function cleanDomainForDns(domain: string): string {
+    return domain
+        .replace(/^https?:\/\//i, '') // Remove protocol
+        .split('/')[0]                // Remove path/query
+        .split(':')[0]                // Remove port if present
+        .replace(/\.$/, '')          // Remove trailing dot
+        .trim();
+}
+
+/**
+ * Fetch Name Servers for a domain using DNS-over-HTTPS.
+ * Now includes "climbing" logic to find NS for parent domains if the host is a subdomain.
  */
 export async function resolveNameservers(domain: string): Promise<string[]> {
-    try {
-        const response = await fetch(`https://dns.google/resolve?name=${domain}&type=NS`, {
-            signal: AbortSignal.timeout(3000)
-        });
+    const cleanedDomain = cleanDomainForDns(domain);
+    if (!cleanedDomain || cleanedDomain.split('.').length < 2) return [];
 
-        if (!response.ok) return [];
+    // Try parent domains up to 3 levels (e.g. self, parent, grand-parent)
+    const parts = cleanedDomain.split('.');
+    for (let i = 0; i < Math.min(parts.length - 1, 3); i++) {
+        const currentTarget = parts.slice(i).join('.');
 
-        const data = await response.json();
-        if (data.Answer && data.Answer.length > 0) {
-            // NS record is type 2
-            return data.Answer
-                .filter((ans: any) => ans.type === 2)
-                .map((ans: any) => ans.data.replace(/\.$/, ''));
+        try {
+            const response = await fetch(`https://dns.google/resolve?name=${currentTarget}&type=NS`, {
+                signal: AbortSignal.timeout(4000)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.Answer && data.Answer.length > 0) {
+                    const ns = data.Answer
+                        .filter((ans: any) => ans.type === 2)
+                        .map((ans: any) => ans.data.replace(/\.$/, ''));
+
+                    if (ns.length > 0) return ns;
+                }
+            }
+
+            // Fallback: Try SOA at this level if NS failed
+            try {
+                const soaResponse = await fetch(`https://dns.google/resolve?name=${currentTarget}&type=SOA`, {
+                    signal: AbortSignal.timeout(3000)
+                });
+                if (soaResponse.ok) {
+                    const soaData = await soaResponse.json();
+                    if (soaData.Answer && soaData.Answer.length > 0) {
+                        const soaRecord = soaData.Answer.find((ans: any) => ans.type === 6);
+                        if (soaRecord && soaRecord.data) {
+                            const primaryNs = soaRecord.data.split(' ')[0].replace(/\.$/, '');
+                            if (primaryNs) return [primaryNs];
+                        }
+                    }
+                }
+            } catch (soaErr) {
+                // Ignore SOA fail at this level and keep climbing
+            }
+        } catch (error) {
+            console.error(`Nameserver resolution attempt failed for ${currentTarget}:`, error);
         }
-    } catch (error) {
-        console.error(`Nameserver resolution failed for ${domain}:`, error);
     }
 
     return [];

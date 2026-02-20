@@ -21,7 +21,7 @@ const resolvers = [googleResolver, cloudflareResolver, quad9Resolver];
  * Uses Promise.any to ensure we return the first SUCCESSFUL result.
  */
 async function fastResolve<T>(method: keyof dns.promises.Resolver, domain: string): Promise<T | null> {
-    const timeoutMs = 2500;
+    const timeoutMs = 4000; // Increased timeout for better reliability
 
     // Create an abort controller for the timeout
     const controller = new AbortController();
@@ -169,8 +169,18 @@ export async function GET(request: Request) {
             }
 
             // NS records
-            if (ns) {
+            if (ns && (ns as string[]).length > 0) {
                 (ns as string[]).forEach(n => records.push({ type: 'NS', value: n }));
+            } else if (soa) {
+                // Fallback: Use primary nameserver from SOA record if direct NS lookup failed
+                const soaRec = soa as dns.SoaRecord;
+                if (soaRec.nsname) {
+                    records.push({
+                        type: 'NS',
+                        value: soaRec.nsname,
+                        auxiliary: 'from SOA (fallback)'
+                    });
+                }
             }
 
             // SOA record

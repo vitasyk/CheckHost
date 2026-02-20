@@ -812,21 +812,21 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
                                         <div className="space-y-1">
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-muted-foreground">Registered:</span>
-                                                <span className="font-medium">{rdap.registrationDate ? new Date(rdap.registrationDate).toLocaleDateString() : 'N/A'}</span>
+                                                <span className="font-medium">{rdap.registrationDate ? new Date(rdap.registrationDate).toLocaleDateString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric' }) : 'N/A'}</span>
                                             </div>
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-muted-foreground">Expires:</span>
-                                                <span className="font-medium text-amber-600 dark:text-amber-400">{rdap.expirationDate ? new Date(rdap.expirationDate).toLocaleDateString() : 'N/A'}</span>
+                                                <span className="font-medium text-amber-600 dark:text-amber-400">{rdap.expirationDate ? new Date(rdap.expirationDate).toLocaleDateString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric' }) : 'N/A'}</span>
                                             </div>
                                             {rdap.transferDate && (
                                                 <div className="flex justify-between text-sm">
                                                     <span className="text-muted-foreground">Transfer:</span>
-                                                    <span className="font-medium text-blue-500">{new Date(rdap.transferDate).toLocaleDateString()}</span>
+                                                    <span className="font-medium text-blue-500">{new Date(rdap.transferDate).toLocaleDateString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric' })}</span>
                                                 </div>
                                             )}
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-muted-foreground">Last Update:</span>
-                                                <span className="font-medium text-slate-500">{rdap.lastChangedDate ? new Date(rdap.lastChangedDate).toLocaleDateString() : 'N/A'}</span>
+                                                <span className="font-medium text-slate-500">{rdap.lastChangedDate ? new Date(rdap.lastChangedDate).toLocaleDateString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric' }) : 'N/A'}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -858,9 +858,20 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
                                             <Database className="h-3 w-3" /> Nameservers
                                         </div>
                                         <div className="space-y-1">
-                                            {rdap.nameservers && rdap.nameservers.length > 0 ? rdap.nameservers.map((ns, i) => (
-                                                <div key={i} className="text-sm font-mono text-slate-500 dark:text-slate-400">{ns}</div>
-                                            )) : <span className="text-sm">N/A</span>}
+                                            {(() => {
+                                                const nsList = (rdap.nameservers && rdap.nameservers.length > 0)
+                                                    ? rdap.nameservers
+                                                    : (data.nameservers && data.nameservers.length > 0)
+                                                        ? data.nameservers
+                                                        : [];
+
+                                                if (nsList.length > 0) {
+                                                    return nsList.map((ns, i) => (
+                                                        <div key={i} className="text-sm font-mono text-slate-500 dark:text-slate-400">{ns}</div>
+                                                    ));
+                                                }
+                                                return <span className="text-sm">N/A</span>;
+                                            })()}
                                         </div>
                                     </div>
                                 </div>
