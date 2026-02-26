@@ -61,8 +61,11 @@ interface AiConfig {
     geminiEnabled: boolean;
     openaiEnabled: boolean;
     claudeEnabled: boolean;
+    groqEnabled: boolean;
     browserEnabled: boolean;
-    preferredProvider: 'gemini' | 'openai' | 'claude' | 'browser';
+    groqKey: string;
+    groqModel: string;
+    preferredProvider: 'gemini' | 'openai' | 'claude' | 'groq' | 'browser';
     masterPrompt: string;
 }
 
@@ -99,7 +102,10 @@ export default function AdminSettings() {
         geminiEnabled: true,
         openaiEnabled: true,
         claudeEnabled: false,
+        groqEnabled: false,
         browserEnabled: false,
+        groqKey: '',
+        groqModel: 'llama-3.3-70b-versatile',
         preferredProvider: 'gemini',
         masterPrompt: ''
     });
@@ -491,6 +497,7 @@ export default function AdminSettings() {
                                     <option value="gemini">Google Gemini (Recommended)</option>
                                     <option value="openai">OpenAI (ChatGPT/GPT-4o-mini)</option>
                                     <option value="claude">Anthropic Claude (Best Quality)</option>
+                                    <option value="groq">Groq (Llama 3.3 70B - Fastest Free)</option>
                                     <option value="browser">Browser Auth (Personal Session)</option>
                                 </select>
                                 <p className="text-[10px] text-slate-400">This provider will be tried first. If it fails or is disabled, system will use fallbacks.</p>
@@ -619,6 +626,57 @@ export default function AdminSettings() {
                                                 className="bg-white dark:bg-slate-950 font-mono text-xs h-9"
                                             />
                                             <p className="text-[10px] text-slate-400">Optional: used as a high-quality fallback provider.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Groq */}
+                            <div className={`rounded-xl border transition-all duration-200 overflow-hidden ${aiConfig.groqEnabled ? 'border-orange-200 dark:border-orange-500/30 bg-orange-50/40 dark:bg-orange-900/10' : 'border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/30'}`}>
+                                <div className="flex items-center justify-between px-4 py-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold transition-colors ${aiConfig.groqEnabled ? 'bg-orange-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>Q</div>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-semibold">Groq</span>
+                                                <Badge className="text-[9px] px-1.5 py-0 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-0">Free Tier</Badge>
+                                                <Badge variant="secondary" className="text-[9px] px-1.5 py-0">Llama 3.3</Badge>
+                                            </div>
+                                            <p className="text-[10px] text-slate-400">14,400 req/day free — fastest inference on Llama 3.3 70B</p>
+                                        </div>
+                                    </div>
+                                    <Switch
+                                        checked={aiConfig.groqEnabled}
+                                        onCheckedChange={(val) => setAiConfig(prev => ({ ...prev, groqEnabled: val }))}
+                                    />
+                                </div>
+                                <div className={`transition-all duration-200 ${aiConfig.groqEnabled ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'} overflow-hidden`}>
+                                    <div className="px-4 pb-4 space-y-3 border-t border-orange-100 dark:border-orange-500/20 pt-3">
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-medium text-slate-600 dark:text-slate-300">API Keys (One per line for load balancing)</label>
+                                            <textarea
+                                                value={aiConfig.groqKey || ''}
+                                                onChange={(e) => setAiConfig(prev => ({ ...prev, groqKey: e.target.value }))}
+                                                placeholder="gsk_..."
+                                                className="w-full h-24 p-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-md font-mono text-xs focus:ring-2 focus:ring-orange-500/50 outline-none resize-none"
+                                            />
+                                            <p className="text-[10px] text-slate-400">
+                                                Add multiple keys to bypass rate limits (14k RPD per key). Free at{' '}
+                                                <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-orange-500 hover:underline">console.groq.com</a>
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Model</label>
+                                            <select
+                                                className="w-full h-9 px-3 rounded-md bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 text-xs focus:ring-2 focus:ring-orange-500/50 outline-none"
+                                                value={aiConfig.groqModel || 'llama-3.3-70b-versatile'}
+                                                onChange={(e) => setAiConfig(prev => ({ ...prev, groqModel: e.target.value }))}
+                                            >
+                                                <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile — Best quality, 14k req/day ✅</option>
+                                                <option value="llama-3.1-8b-instant">llama-3.1-8b-instant — Ultrafast, high quota</option>
+                                                <option value="mixtral-8x7b-32768">mixtral-8x7b-32768 — 32k context window</option>
+                                                <option value="gemma2-9b-it">gemma2-9b-it — Google Gemma 2, compact</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>

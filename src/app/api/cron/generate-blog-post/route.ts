@@ -112,7 +112,7 @@ async function generateArticleWithGemini(
     const model = genAI.getGenerativeModel({
         model: geminiModel,
         generationConfig: { responseMimeType: 'application/json', temperature: 0.75 },
-    });
+    }, { apiVersion: 'v1' });
 
     const langName = LANGUAGE_NAMES[locale] || 'English';
     logDebug(`Calling Gemini for locale: ${locale}`);
@@ -214,6 +214,53 @@ async function generateArticleWithOpenAI(
     }, locale, 'OpenAI');
 }
 
+async function generateArticleWithGroq(
+    compiledPrompt: string,
+    locale: string,
+    groqKey: string,
+    groqModel: string = 'llama-3.3-70b-versatile'
+): Promise<{ title: string; slug: string; excerpt: string; content: string } | null> {
+    logDebug(`Calling Groq (${groqModel}) for locale: ${locale}`);
+
+    return retryRequest(async () => {
+        // Split keys and pick a random one for load balancing
+        const keys = groqKey.split('\n').map(k => k.trim()).filter(k => k.length > 0);
+        const activeKey = keys[Math.floor(Math.random() * keys.length)] || '';
+
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${activeKey}`,
+            },
+            body: JSON.stringify({
+                model: groqModel,
+                response_format: { type: 'json_object' },
+                temperature: 0.75,
+                max_tokens: 8192,
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are a senior IT engineer and expert SEO content writer. Always respond with a valid JSON object only.',
+                    },
+                    {
+                        role: 'user',
+                        content: compiledPrompt,
+                    },
+                ],
+            }),
+        });
+
+        if (!response.ok) {
+            const err = await response.text();
+            throw new Error(`Groq error: ${response.status} - ${err}`);
+        }
+        const data = await response.json();
+        const responseText = data.choices[0]?.message?.content || '{}';
+        return JSON.parse(responseText);
+    }, locale, 'Groq');
+}
+
 async function generateArticleWithBrowser(
     compiledPrompt: string,
     keyword: string,
@@ -310,11 +357,18 @@ export async function GET(request: Request) {
 
     const geminiKey = (aiConfig as any)?.geminiKey || process.env.GEMINI_API_KEY || '';
     const openaiKey = (aiConfig as any)?.openaiKey || process.env.OPENAI_API_KEY || '';
+    const groqKey = (aiConfig as any)?.groqKey || process.env.GROQ_API_KEY || '';
+    const groqModel = (aiConfig as any)?.groqModel || 'llama-3.3-70b-versatile';
+
     // Use geminiModel from DB config, but reject known-bad values and default to gemini-2.0-flash
-    const SAFE_GEMINI_MODEL = 'gemini-2.0-flash';
-    const rawModel = (aiConfig as any)?.geminiModel || '';
-    const geminiModel = (rawModel && rawModel !== 'gemini-flash-latest' && rawModel !== 'gemini-1.5-flash-latest') ? rawModel : SAFE_GEMINI_MODEL;
-    logDebug(`Using Gemini model: ${geminiModel}`);
+    let rawModel = (aiConfig as any)?.geminiModel || 'gemini-2.0-flash';
+
+    // Normalize Gemini model names (some might have -latest suffix which is deprecated in some versions)
+    if (rawModel.includes('gemini-1.5-flash')) rawModel = 'gemini-1.5-flash';
+    if (rawModel.includes('gemini-2.0-flash')) rawModel = 'gemini-2.0-flash';
+
+    const geminiModel = rawModel;
+    logDebug(`Using Gemini model: ${geminiModel}, Groq model: ${groqModel}`);
 
     const useBrowser = aiConfig.useBrowserAuth || aiConfig.browserEnabled;
     const preferredProvider = aiConfig.preferredProvider || 'gemini';
@@ -358,7 +412,7 @@ export async function GET(request: Request) {
             // 4. Generate articles in each locale and save as DRAFT
             // We build an execution chain based on 'preferred' and 'enabled' settings
             const providerChain: string[] = [];
-            const allProviders = ['gemini', 'openai', 'claude', 'browser'];
+            const allProviders = ['gemini', 'openai', 'claude', 'groq', 'browser'];
 
             // Add preferred first
             if (allProviders.includes(preferredProvider)) {
@@ -369,6 +423,7 @@ export async function GET(request: Request) {
             if (aiConfig.geminiEnabled && !providerChain.includes('gemini')) providerChain.push('gemini');
             if (aiConfig.openaiEnabled && !providerChain.includes('openai')) providerChain.push('openai');
             if (aiConfig.claudeEnabled && !providerChain.includes('claude')) providerChain.push('claude');
+            if (aiConfig.groqEnabled && !providerChain.includes('groq')) providerChain.push('groq');
             if (aiConfig.browserEnabled && !providerChain.includes('browser')) providerChain.push('browser');
 
             logDebug(`Provider chain for ${locale}: ${providerChain.join(' -> ')}`);
@@ -390,6 +445,9 @@ export async function GET(request: Request) {
                     }
                     else if (provider === 'openai' && openaiKey) {
                         articleData = await generateArticleWithOpenAI(localePrompt, locale, openaiKey);
+                    }
+                    else if (provider === 'groq' && groqKey) {
+                        articleData = await generateArticleWithGroq(localePrompt, locale, groqKey, groqModel);
                     }
                     else if (provider === 'claude' && (aiConfig.claudeKey || (aiConfig.browserEnabled && aiConfig.claudeSessionKey))) {
                         articleData = await generateArticleWithBrowser(localePrompt, keyword, locale, aiConfig);

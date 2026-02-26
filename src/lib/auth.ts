@@ -133,7 +133,7 @@ export const authOptions: NextAuthOptions = {
                         // Note: If they became an admin via Settings, we forcefully upgrade their role here. 
                         // If they were removed from settings, we downgrade them to 'user'.
                         const existingUser = existingUserRes.rows[0];
-                        const updatedRole = role === 'admin' ? 'admin' : (existingUser.role === 'admin' && role !== 'admin' ? 'user' : existingUser.role);
+                        const updatedRole = role === 'admin' ? 'admin' : (existingUser.role === 'admin' ? 'user' : existingUser.role);
 
                         await pgQuery(
                             'UPDATE users SET name = $1, image = $2, role = $3, last_login = CURRENT_TIMESTAMP WHERE email = $4',
@@ -162,7 +162,7 @@ export const authOptions: NextAuthOptions = {
                     // Decide whether to fail login if DB is down. 
                     // Considering SaaS nature, we should probably allow login but keep them as basic role if DB fails, 
                     // or reject. For now, we allow them in if they are admin, reject if user.
-                    if (!isAdmin) return false;
+                    if (role !== 'admin') return false;
                 }
 
                 return true;

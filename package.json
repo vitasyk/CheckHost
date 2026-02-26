@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
   },
   "keywords": [
     "monitoring",
@@ -50,6 +53,7 @@
     "react-dom": "^19.2.4",
     "react-leaflet": "^5.0.0",
     "recharts": "^3.7.0",
+    "sharp": "^0.33.5",
     "tailwind-merge": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^4.3.6"

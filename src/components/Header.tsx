@@ -5,7 +5,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import {
     Shield, ScanEye, Menu, X, Home as HomeIcon, Info as InfoIcon,
     Newspaper as BlogIcon, LayoutDashboard, Settings, LogOut,
-    BarChart3, Database, ShieldCheck, History, Megaphone
+    BarChart3, Database, ShieldCheck, History, Megaphone, LogIn
 } from 'lucide-react';
 import { VisitorIpInfo } from '@/components/VisitorIpInfo';
 import { useSession, signOut } from 'next-auth/react';
@@ -87,7 +87,7 @@ function MobileUnifiedNav() {
                                     </h2>
                                     <div className="h-1 w-6 bg-indigo-500 rounded-full opacity-50" />
                                 </div>
-                                {isAdminRoute && (
+                                {isAdminRoute && session?.user?.role === 'admin' && (
                                     <div className="flex gap-2">
                                         <Button
                                             variant={isXRayActive ? "default" : "outline"}
@@ -172,27 +172,36 @@ function MobileUnifiedNav() {
                                                 </Link>
                                             </DialogPrimitive.Close>
                                         ))}
-                                        {/* Dashboard/Admin link if authenticated */}
-                                        {isAuthenticated && (
-                                            <>
-                                                <div className="mx-3 my-1 h-px bg-slate-100 dark:bg-white/5" />
-                                                <DialogPrimitive.Close asChild>
-                                                    <Link href={session?.user?.role === 'admin' ? "/admin" : "/dashboard"} className="w-full">
-                                                        <Button variant="ghost" className={navItemStyle(false)}>
-                                                            <div className={iconStyle(false)}>
-                                                                {session?.user?.role === 'admin' ? (
-                                                                    <Shield className="h-4 w-4 text-indigo-500" />
-                                                                ) : (
-                                                                    <LayoutDashboard className="h-4 w-4 text-indigo-500" />
-                                                                )}
-                                                            </div>
-                                                            <span className="text-sm font-bold tracking-tight">
-                                                                {session?.user?.role === 'admin' ? 'Admin Panel' : 'Dashboard'}
-                                                            </span>
-                                                        </Button>
-                                                    </Link>
-                                                </DialogPrimitive.Close>
-                                            </>
+                                        {/* Dashboard/Admin link if authenticated, Login if not */}
+                                        <div className="mx-3 my-1 h-px bg-slate-100 dark:bg-white/5" />
+                                        {isAuthenticated ? (
+                                            <DialogPrimitive.Close asChild>
+                                                <Link href={session?.user?.role === 'admin' ? "/admin" : "/dashboard"} className="w-full">
+                                                    <Button variant="ghost" className={`${navItemStyle(false)} bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30`}>
+                                                        <div className="h-8 w-8 shrink-0 rounded-lg flex items-center justify-center border border-indigo-200 dark:border-indigo-500/30 bg-white dark:bg-indigo-900/20">
+                                                            {session?.user?.role === 'admin' ? (
+                                                                <Shield className="h-4 w-4 text-indigo-500" />
+                                                            ) : (
+                                                                <LayoutDashboard className="h-4 w-4 text-indigo-500" />
+                                                            )}
+                                                        </div>
+                                                        <span className="text-sm font-bold tracking-tight">
+                                                            {session?.user?.role === 'admin' ? 'Admin Panel' : 'Dashboard'}
+                                                        </span>
+                                                    </Button>
+                                                </Link>
+                                            </DialogPrimitive.Close>
+                                        ) : (
+                                            <DialogPrimitive.Close asChild>
+                                                <Link href="/auth/signin" className="w-full">
+                                                    <Button className="w-full justify-start items-center gap-3 px-3 h-12 rounded-[1.2rem] bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all duration-200">
+                                                        <div className="h-8 w-8 shrink-0 rounded-lg flex items-center justify-center bg-white/20">
+                                                            <LogIn className="h-4 w-4" />
+                                                        </div>
+                                                        <span className="text-sm font-bold tracking-tight">Sign In</span>
+                                                    </Button>
+                                                </Link>
+                                            </DialogPrimitive.Close>
                                         )}
                                     </>
                                 )}
@@ -265,10 +274,13 @@ export function Header() {
     const isAuthenticated = status === 'authenticated';
     const { isXRayActive, toggleXRay } = useXRay();
 
+    const pathname = usePathname();
+    const isAdminPage = pathname.includes('/admin');
+    const isDashboardPage = pathname.includes('/dashboard');
+
     return (
         <header className="sticky top-0 z-50 w-full border-b border-slate-200/50 bg-white/80 backdrop-blur-xl dark:bg-slate-950/80 dark:border-white/5">
             {/* Header Main Container */}
-
             <div className="max-w-[1440px] mx-auto px-4 sm:px-8">
                 <div className="flex h-20 items-center justify-between relative group/header">
                     {/* Logo Area */}
@@ -295,9 +307,9 @@ export function Header() {
 
                     {/* Right side actions */}
                     <div className="flex-1 flex items-center justify-end gap-3 sm:gap-6">
-                        {/* X-Ray button */}
+                        {/* X-Ray button — admin only */}
                         <div className="hidden sm:flex items-center gap-2 transition-all duration-300">
-                            {isAuthenticated && (
+                            {isAuthenticated && session?.user?.role === 'admin' && (
                                 <Button
                                     variant={isXRayActive ? "default" : "outline"}
                                     size="sm"
@@ -311,19 +323,42 @@ export function Header() {
                             )}
                         </div>
 
-                        {/* Admin/Dashboard + Language Switcher */}
-                        <div className="flex items-center gap-1 sm:gap-2 min-h-[44px] min-w-[44px] justify-end">
-                            {isAuthenticated && (
-                                <Button asChild variant="ghost" size="sm" className="h-10 px-3 gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-indigo-600 dark:text-slate-400 bg-slate-100/80 dark:bg-slate-800/50 sm:bg-transparent sm:dark:bg-transparent rounded-[10px] border border-slate-200/80 dark:border-white/10 sm:border-transparent sm:dark:border-transparent transition-all">
-                                    <Link href={session?.user?.role === 'admin' ? "/admin" : "/dashboard"} className="flex items-center">
+                        {/* Admin/Dashboard pill button + Login — desktop only (mobile uses burger menu) */}
+                        <div className="hidden lg:flex items-center gap-2 min-h-[44px] justify-end">
+                            {isAuthenticated ? (
+                                <Button
+                                    asChild
+                                    size="sm"
+                                    className={`h-9 px-3 gap-2 text-xs font-bold rounded-xl transition-all duration-200 shadow-sm cursor-pointer ${session?.user?.role === 'admin'
+                                        ? (isAdminPage
+                                            ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-500/20'
+                                            : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/25 border-none')
+                                        : (isDashboardPage
+                                            ? 'bg-indigo-50/50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/40 dark:text-indigo-300 border border-indigo-200/40 dark:border-indigo-500/10'
+                                            : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/25 border-none')
+                                        }`}
+                                >
+                                    <Link href={session?.user?.role === 'admin' ? "/admin" : "/dashboard"} className="flex items-center gap-1.5">
                                         {session?.user?.role === 'admin' ? (
-                                            <Shield className="h-4 w-4 text-indigo-500" />
+                                            <Shield className="h-3.5 w-3.5" />
                                         ) : (
-                                            <LayoutDashboard className="h-4 w-4 text-indigo-500" />
+                                            <LayoutDashboard className="h-3.5 w-3.5" />
                                         )}
-                                        <span className="hidden sm:inline-block">
+                                        <span className="hidden sm:inline">
                                             {session?.user?.role === 'admin' ? 'Admin' : 'Dashboard'}
                                         </span>
+                                    </Link>
+                                </Button>
+                            ) : (
+                                <Button
+                                    asChild
+                                    size="sm"
+                                    className="h-9 px-4 gap-2 text-xs font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 border-none transition-all duration-200 cursor-pointer"
+                                    aria-label="Sign in to your account"
+                                >
+                                    <Link href="/auth/signin" className="flex items-center gap-1.5">
+                                        <LogIn className="h-3.5 w-3.5" />
+                                        <span className="hidden sm:inline">Sign In</span>
                                     </Link>
                                 </Button>
                             )}
