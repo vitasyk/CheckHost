@@ -1,31 +1,38 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Node } from '@/types/checkhost';
 import { geocodeNode } from '@/lib/node-geocoder';
-import { Badge } from '@/components/ui/badge';
-import { MapPin, Globe, Check, Info } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 interface NodalMapProps {
     nodes: Record<string, Node>;
     selectedNodeIds: string[];
     onToggleNode: (nodeId: string) => void;
+    activeNodeIds?: string[];
 }
 
 // Icon factory for Apple-style nodes with integrated tooltips (avoids Leaflet jumping bug)
-const createNodeIcon = (node: any, isSelected: boolean) => {
+const createNodeIcon = (node: any, isSelected: boolean, isActive: boolean) => {
     const iconUrl = isSelected
         ? 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png'
         : 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
 
+    // Only selected+active nodes get the pulse bounce
+    const classes = [
+        'marker-root',
+        isSelected ? 'is-selected' : '',
+        isSelected && isActive ? 'is-active' : '',
+    ].filter(Boolean).join(' ');
+
     return L.divIcon({
         className: 'apple-node-icon',
         html: `
-            <div class="marker-root ${isSelected ? 'is-selected' : ''}">
+            <div class="${classes}">
                 <div class="marker-main">
                     <img src="${iconUrl}" class="marker-img" />
                 </div>
@@ -60,7 +67,7 @@ const createNodeIcon = (node: any, isSelected: boolean) => {
     });
 };
 
-export default function NodalMap({ nodes, selectedNodeIds, onToggleNode }: NodalMapProps) {
+export default function NodalMap({ nodes, selectedNodeIds, onToggleNode, activeNodeIds = [] }: NodalMapProps) {
     const { theme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
@@ -103,9 +110,9 @@ export default function NodalMap({ nodes, selectedNodeIds, onToggleNode }: Nodal
 
                 {nodeMarkers.map(node => (
                     <Marker
-                        key={node.id}
+                        key={`${node.id}-${selectedNodeIds.includes(node.id)}-${activeNodeIds.includes(node.id)}`}
                         position={[node.lat, node.lng]}
-                        icon={createNodeIcon(node, selectedNodeIds.includes(node.id))}
+                        icon={createNodeIcon(node, selectedNodeIds.includes(node.id), activeNodeIds.includes(node.id))}
                         eventHandlers={{
                             click: () => onToggleNode(node.id),
                         }}
@@ -205,8 +212,14 @@ export default function NodalMap({ nodes, selectedNodeIds, onToggleNode }: Nodal
                     transform: scale(1.1);
                 }
                 .is-selected .marker-img {
+                    /* One-shot bounce on first selection */
                     animation: markerPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-                    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.3));
+                    filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.4));
+                }
+                /* During active check: only selected markers pulse, overrides markerPop */
+                .is-selected.is-active .marker-img {
+                    animation: markerPulse 3s cubic-bezier(0.34, 1.56, 0.64, 1) infinite !important;
+                    filter: none;
                 }
                 
                 /* Apple Glass Card - Integrated Tooltip */
@@ -307,9 +320,22 @@ export default function NodalMap({ nodes, selectedNodeIds, onToggleNode }: Nodal
                 .card-footer-selected svg { width: 10px; height: 10px; }
 
                 @keyframes markerPop {
-                    0% { transform: scale(0.6) translateY(10px); filter: brightness(1.5); }
-                    50% { transform: scale(1.1) translateY(-6px); }
+                    0%   { transform: scale(0.6) translateY(10px); filter: brightness(1.5); }
+                    50%  { transform: scale(1.1) translateY(-6px); }
                     100% { transform: scale(1) translateY(0); filter: brightness(1); }
+                }
+                /* 3s total: quick bounce in first 16%, then perfectly still for 84% */
+                @keyframes markerPulse {
+                    0%   { transform: scale(1) translateY(0);      filter: drop-shadow(0 0 6px rgba(139,92,246,0.4)); }
+                    6%   { transform: scale(1.14) translateY(-9px); filter: drop-shadow(0 0 14px rgba(139,92,246,0.9)); }
+                    12%  { transform: scale(1.04) translateY(-2px); filter: drop-shadow(0 0 8px rgba(139,92,246,0.6)); }
+                    16%  { transform: scale(1) translateY(0);      filter: drop-shadow(0 0 6px rgba(139,92,246,0.4)); }
+                    100% { transform: scale(1) translateY(0);      filter: drop-shadow(0 0 6px rgba(139,92,246,0.4)); }
+                }
+                .is-active .marker-img {
+                    animation: markerPulse 3s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+                    /* delay each marker slightly to feel organic, not synchronized */
+                    animation-delay: calc(var(--node-idx, 0) * 0.15s);
                 }
             `}</style>
         </div>

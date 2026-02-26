@@ -1,79 +1,50 @@
-import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "next-auth/middleware";
-import { diagnosticLimiter, generalLimiter } from "@/lib/rate-limit";
+import createIntlMiddleware from 'next-intl/middleware';
+import { NextRequest } from 'next/server';
+import { routing } from './i18n/routing';
 
-// Define the auth middleware part
-const authMiddleware = withAuth({
-    callbacks: {
-        authorized: ({ token }) => !!token,
-    },
-});
+const intlMiddleware = createIntlMiddleware(routing);
+
+import { getToken } from 'next-auth/jwt';
+import { NextResponse } from 'next/server';
 
 export default async function middleware(req: NextRequest) {
-    const url = req.nextUrl.pathname;
-    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "anonymous";
+    const adminPathnameRegex = RegExp(
+        `^(/(${routing.locales.join('|')}))?/admin(/.*)?$`,
+        'i'
+    );
+    const dashboardPathnameRegex = RegExp(
+        `^(/(${routing.locales.join('|')}))?/dashboard(/.*)?$`,
+        'i'
+    );
 
-    // 1. Check Rate Limiting for Diagnostic APIs
-    if (url.startsWith("/api/check/")) {
-        const result = diagnosticLimiter.check(null, 10, ip);
-        if (result.isRateLimited) {
-            return new NextResponse(
-                JSON.stringify({ error: "Too many requests. Please try again in a minute." }),
-                {
-                    status: 429,
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-RateLimit-Limit": result.limit.toString(),
-                        "X-RateLimit-Remaining": result.remaining.toString(),
-                    }
-                }
-            );
+    const isAdminPage = adminPathnameRegex.test(req.nextUrl.pathname);
+    const isDashboardPage = dashboardPathnameRegex.test(req.nextUrl.pathname);
+
+    if (isAdminPage || isDashboardPage) {
+        // Only fetch token if it's a protected route
+        const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
+        if (!token) {
+            const signInUrl = new URL(`/auth/signin?callbackUrl=${encodeURIComponent(req.nextUrl.pathname)}`, req.url);
+            return NextResponse.redirect(signInUrl);
         }
-    }
 
-    // 2. Check Rate Limiting for General APIs (Blog, etc.)
-    if (url.startsWith("/api/") && !url.startsWith("/api/admin/") && !url.startsWith("/api/auth/")) {
-        const result = generalLimiter.check(null, 60, ip);
-        if (result.isRateLimited) {
-            return new NextResponse(
-                JSON.stringify({ error: "Rate limit exceeded." }),
-                {
-                    status: 429,
-                    headers: {
-                        "Content-Type": "application/json",
-                    }
-                }
-            );
+        if (isAdminPage && token.role !== 'admin') {
+            // Unsuspecting users who login from the default callbackUrl (/admin) will be silently redirected to their dash
+            const dashboardUrl = new URL('/dashboard', req.url);
+            return NextResponse.redirect(dashboardUrl);
         }
+
+        // At this point, it's either an admin accessing /admin, 
+        // or a user/admin accessing /dashboard. Both are allowed.
+        return intlMiddleware(req);
     }
 
-    // 3. Handle Admin Auth Protection
-    // For /admin pages, we use next-auth's default redirect behavior.
-    // For /api/admin routes, we return a JSON 401 instead of a redirect to avoid SyntaxError in browser console.
-    if (url.startsWith("/admin")) {
-        // @ts-ignore
-        return authMiddleware(req, null);
-    }
-
-    if (url.startsWith("/api/admin") && !url.includes("/settings")) {
-        // For API routes, we don't want a redirect (HTML), we want a 401 (JSON)
-        // Check for JWT token manually
-        const hasToken = !!(req.cookies.get("next-auth.session-token") || req.cookies.get("__Secure-next-auth.session-token"));
-
-        if (!hasToken) {
-            return new NextResponse(
-                JSON.stringify({ error: "Unauthorized. Please login as admin." }),
-                {
-                    status: 401,
-                    headers: { "Content-Type": "application/json" }
-                }
-            );
-        }
-    }
-
-    return NextResponse.next();
+    return intlMiddleware(req);
 }
 
 export const config = {
-    matcher: ["/admin/:path*", "/api/:path*"],
+    // Match only internationalized pathnames
+    matcher: ['/', '/(en|uk|es|de|fr|ru|nl|pl|it)/:path*', '/((?!api|_next|_vercel|.*\\..*).*)']
 };
+

@@ -1,0 +1,40 @@
+{
+    "Index": {
+        "title": "Monitora le prestazioni globali del tuo sito web",
+        "subtitle": "Testa uptime, latenza e risoluzione DNS da oltre 20 località mondiali. Monitoraggio di rete veloce, gratuito e affidabile.",
+        "startMonitoring": "Inizia il monitoraggio",
+        "viewDocs": "Visualizza la documentazione"
+    },
+    "Navigation": {
+        "home": "Home",
+        "dashboard": "Dashboard",
+        "blog": "Blog",
+        "about": "Chi siamo"
+    },
+    "Tools": {
+        "ping": "Test Ping",
+        "http": "Controllo HTTP",
+        "dns": "Ricerca DNS",
+        "ipinfo": "Info IP"
+    },
+    "Metadata": {
+        "pingTitle": "Ping Online - Controlla la connettività in tutto il mondo",
+        "pingDesc": "Testa il ping ICMP verso qualsiasi host o IP da più località globali. Controlla la latenza e la perdita di pacchetti in tempo reale.",
+        "httpTitle": "Controllo HTTP - Monitora uptime e prestazioni",
+        "httpDesc": "Verifica lo stato HTTP e i tempi di risposta da oltre 20 località mondiali. Monitoraggio veloce e affidabile del tempo di attività.",
+        "dnsTitle": "Ricerca DNS - Controlla i record DNS globali",
+        "dnsDesc": "Verifica la propagazione DNS globale. Controlla istantaneamente i record A, AAAA, MX, CNAME e TXT su più server dei nomi.",
+        "ipinfoTitle": "Info IP e Geolocalizzazione - Dettagli di rete",
+        "ipinfoDesc": "Trova dati dettagliati di geolocalizzazione, ISP e rete per qualsiasi indirizzo IP o dominio. Confronto di più fornitori.",
+        "checksTitle": "Strumenti diagnostici - Monitoraggio globale del sito web",
+        "checksDesc": "Strumenti diagnostici completi per siti web, inclusi controlli Ping, HTTP, DNS, SSL e MTR. Analisi multimodale da oltre 20 località."
+    },
+    "Share": {
+        "snapshot": "Istantanea",
+        "expires": "Scade il",
+        "capturedOn": "Acquisito il",
+        "runLiveCheck": "Controlla di nuovo",
+        "installApp": "Installa app",
+        "monitorHost": "Monitora host"
+    }
+}

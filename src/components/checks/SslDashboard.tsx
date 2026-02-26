@@ -1,13 +1,10 @@
 'use client';
 
-import { CheckCircle2, ChevronRight, Globe, Lock, ShieldCheck, Timer, AlertTriangle, XCircle, Info, Clock, Layers, Calendar, Fingerprint, Shield, Cpu, ShieldAlert, ExternalLink, ChevronDown, Unlock, Server, FileText, Download, Share2, Link, Check, Loader2 } from "lucide-react";
+import { CheckCircle2, Globe, Lock, ShieldCheck, Timer, AlertTriangle, XCircle, Info, Clock, Layers, Fingerprint, Shield, Cpu, Server, Link, Check, Loader2 } from "lucide-react";
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-
-
+import React, { useState, useEffect, useRef } from 'react';
 interface SslCertInfo {
     subject: {
         CN: string;
@@ -105,16 +102,50 @@ export function SslDashboard({ data, host, isSharedView = false }: SslDashboardP
             setIsSharing(false);
         }
     };
+    const [revealLevel, setRevealLevel] = useState(0);
+    const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+    const reversedChain = React.useMemo(() => [...(chain || [])].reverse(), [chain]);
+
+    const toggleNode = (fingerprint: string) => {
+        setExpandedNodes(prev => {
+            const next = new Set(prev);
+            if (next.has(fingerprint)) next.delete(fingerprint);
+            else next.add(fingerprint);
+            return next;
+        });
+    };
+
+    const toggleAll = () => {
+        if (expandedNodes.size === reversedChain.length) {
+            setExpandedNodes(new Set());
+        } else {
+            setExpandedNodes(new Set(reversedChain.map(c => c.fingerprint)));
+        }
+    };
+
+    // Sequential reveal for the chain: Root -> Leaf
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setRevealLevel((prev: number) => {
+                if (prev >= reversedChain.length + 1) {
+                    clearInterval(timer);
+                    return prev;
+                }
+                return prev + 1;
+            });
+        }, 800);
+        return () => clearInterval(timer);
+    }, [reversedChain.length]);
 
     // Unified Empty State for SSL errors — contextual based on errorCode
     if (data.status === 'failed' || !certificate) {
         const errorCode = data.errorCode || '';
         const isNotFound = errorCode === 'ENOTFOUND';
         const isTimeout = errorCode === 'ETIMEDOUT';
-        const isRefused = errorCode === 'ECONNREFUSED' || (!errorCode && !certificate);
+        // const isRefused = errorCode === 'ECONNREFUSED' || (!errorCode && !certificate);
 
         // Determine state visuals
-        const stateColor = isNotFound ? 'rose' : 'amber';
+        // const stateColor = isNotFound ? 'rose' : 'amber';
         const stripeClass = isNotFound ? 'bg-rose-500' : 'bg-amber-500';
         const iconBg = isNotFound
             ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-500'
@@ -297,45 +328,11 @@ export function SslDashboard({ data, host, isSharedView = false }: SslDashboardP
     const status = getStatus();
     const isFullyTrusted = status.color === "emerald";
 
-    const [revealLevel, setRevealLevel] = useState(0);
-    const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-    const reversedChain = [...(chain || [])].reverse();
-
-    const toggleNode = (fingerprint: string) => {
-        setExpandedNodes(prev => {
-            const next = new Set(prev);
-            if (next.has(fingerprint)) next.delete(fingerprint);
-            else next.add(fingerprint);
-            return next;
-        });
-    };
-
-    const toggleAll = () => {
-        if (expandedNodes.size === reversedChain.length) {
-            setExpandedNodes(new Set());
-        } else {
-            setExpandedNodes(new Set(reversedChain.map(c => c.fingerprint)));
-        }
-    };
-
-    // Sequential reveal for the chain: Root -> Leaf
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setRevealLevel((prev: number) => {
-                if (prev >= reversedChain.length + 1) {
-                    clearInterval(timer);
-                    return prev;
-                }
-                return prev + 1;
-            });
-        }, 800);
-        return () => clearInterval(timer);
-    }, [reversedChain.length]);
 
     const allExpanded = expandedNodes.size === reversedChain.length;
 
     return (
-        <div ref={dashboardRef} className="animate-in fade-in slide-in-from-bottom-4 duration-500 bg-slate-100/80 dark:bg-slate-900/80 rounded-2xl relative group/screenshot pb-1 mt-8">
+        <div ref={dashboardRef} className="animate-in fade-in slide-in-from-bottom-4 duration-500 bg-slate-100/80 dark:bg-slate-900/80 rounded-2xl relative group/screenshot pb-2 mt-6">
             {!isSharedView && (
                 <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
                     <button
@@ -361,7 +358,7 @@ export function SslDashboard({ data, host, isSharedView = false }: SslDashboardP
                     isFullyTrusted ? "bg-emerald-500" : status.color === "red" ? "bg-red-500" : "bg-amber-500"
                 )} />
 
-                <div className="p-6">
+                <div className="px-6 py-4">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
                         {/* Main Identity Area */}
                         <div className="flex items-center gap-5">
@@ -444,10 +441,10 @@ export function SslDashboard({ data, host, isSharedView = false }: SslDashboardP
                 )}
             </Card>
 
-            <div className="mx-1 mt-2.5 space-y-2.5">
+            <div className="mx-1 mt-2 space-y-2">
                 {/* Certificate Chain Visualization - Wrapped in its own Card */}
                 <Card className="overflow-hidden border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm relative group">
-                    <div className="p-6 relative">
+                    <div className="px-6 py-4 relative">
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-3">
                                 <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center">

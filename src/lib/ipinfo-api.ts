@@ -1,5 +1,6 @@
 import { getIpInfoConfig } from './ipinfo-config';
 import { lookupLocalIpInfo, isLocalDbAvailable } from './ipinfo-local';
+import net from 'net';
 
 const IPINFO_API_BASE = 'https://ipinfo.io';
 
@@ -43,8 +44,8 @@ async function fetchFromApi(ip: string, token: string): Promise<IpInfoLiteRespon
         }
 
         return response.json();
-    } catch (error) {
-        console.warn('[Diagnostic] IPInfo fetch failed:', error);
+    } catch (_error) {
+        console.warn('[Diagnostic] IPInfo fetch failed:', _error);
         return null;
     }
 }
@@ -71,8 +72,8 @@ export async function fetchFromIpGeolocation(ip: string): Promise<any> {
         }
 
         return response.json();
-    } catch (error) {
-        console.warn('[Diagnostic] IPGeolocation fetch failed:', error);
+    } catch (_error) {
+        console.warn('[Diagnostic] IPGeolocation fetch failed:', _error);
         return null;
     }
 }
@@ -126,8 +127,8 @@ export async function fetchFromMaxMind(ip: string): Promise<any> {
     try {
         // As per user request, we use IPIz.net but keep it under the MaxMind label
         return await fetchFromIpiz(ip);
-    } catch (error) {
-        console.error('Failed to fetch from IPIz (MaxMind fallback):', error);
+    } catch (_error) {
+        console.error('Failed to fetch from IPIz (MaxMind fallback):', _error);
         return null;
     }
 }
@@ -158,14 +159,14 @@ export async function fetchIpInfo(ip: string): Promise<IpInfoLiteResponse | null
             console.warn('Local DB lookup failed and API fallback is disabled');
             return null;
 
-        case 'hybrid':
+        case 'hybrid': {
             // Try local first, then API
             if (isLocalDbAvailable()) {
                 try {
                     const localResult = await lookupLocalIpInfo(ip);
                     if (localResult) return localResult;
-                } catch (err) {
-                    console.warn('Local lookup error, trying API:', err);
+                } catch (_err) {
+                    console.warn('Local lookup error, trying API:', _err);
                 }
             }
 
@@ -173,6 +174,7 @@ export async function fetchIpInfo(ip: string): Promise<IpInfoLiteResponse | null
             if (hybridResult) return hybridResult;
             console.warn('Hybrid lookup failed: both local DB and API failed');
             return null;
+        }
 
         case 'api':
         default:
@@ -202,7 +204,7 @@ export async function fetchIpInfo(ip: string): Promise<IpInfoLiteResponse | null
 
 export async function resolveHostToIp(host: string): Promise<string | null> {
     // Basic sanitization: remove http://, https://, and trailing paths
-    let cleanedHost = host
+    const cleanedHost = host
         .replace(/^https?:\/\//i, '') // Remove protocol
         .split('/')[0]                // Remove path/query
         .split(':')[0]                // Remove port if present
@@ -235,8 +237,8 @@ export async function resolveHostToIp(host: string): Promise<string | null> {
                 return lastRecord.data.replace(/\.$/, '');
             }
         }
-    } catch (error) {
-        console.error('Failed to resolve hostname:', error);
+    } catch (_error) {
+        console.error('Failed to resolve hostname:', _error);
     }
 
     // Fallback: return null so the caller knows resolution failed
@@ -269,8 +271,8 @@ export async function resolveIpToHost(ip: string): Promise<string | null> {
                 return ptrRecord.data.replace(/\.$/, '');
             }
         }
-    } catch (error) {
-        console.error(`Reverse DNS lookup failed for ${ip}:`, error);
+    } catch (_error) {
+        console.error(`Reverse DNS lookup failed for ${ip}:`, _error);
     }
 
     return null;
@@ -332,11 +334,11 @@ export async function resolveNameservers(domain: string): Promise<string[]> {
                         }
                     }
                 }
-            } catch (soaErr) {
+            } catch {
                 // Ignore SOA fail at this level and keep climbing
             }
-        } catch (error) {
-            console.error(`Nameserver resolution attempt failed for ${currentTarget}:`, error);
+        } catch (_error) {
+            console.error(`Nameserver resolution attempt failed for ${currentTarget}:`, _error);
         }
     }
 
@@ -373,8 +375,8 @@ export async function fetchRdapInfo(query: string): Promise<any> {
                 const data = await response.json();
                 if (data && !data.error) return data;
             }
-        } catch (error) {
-            console.warn(`RDAP fetch failed for ${url}:`, error instanceof Error ? error.message : error);
+        } catch (_error) {
+            console.warn(`RDAP fetch failed for ${url}:`, _error instanceof Error ? _error.message : _error);
         }
     }
 
@@ -386,7 +388,6 @@ export async function fetchRdapInfo(query: string): Promise<any> {
  * Returns a structured object compatible with parseRdapData expectations.
  */
 export async function fetchWhoisInfo(domain: string): Promise<any> {
-    const net = require('net');
 
     // Map TLD to WHOIS server
     const tld = domain.split('.').pop()?.toLowerCase() || '';

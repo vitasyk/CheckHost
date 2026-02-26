@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getMockIpInfo } from '@/lib/mock-data';
 import { memoryCache } from '@/lib/cache';
+import { logSeoPage } from '@/lib/seo-logger';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
@@ -25,11 +26,20 @@ export async function GET(request: NextRequest) {
             isFallback = true;
         }
 
-        return NextResponse.json({
-            ip,
-            isFallback,
-            hostname: isFallback ? 'cloudflare-dns.com' : null,
-            providers: {}
+        const cacheKey = `ip-info:visitor:${ip}`;
+        const cachedData = memoryCache.get(cacheKey);
+        if (cachedData) {
+            return NextResponse.json({ ...cachedData, isFallback }, {
+                headers: { 'X-Cache': 'HIT' }
+            });
+        }
+
+        const data = await getMockIpInfo(ip);
+        const visitorData = { ...data, isFallback };
+        memoryCache.set(cacheKey, visitorData, 3600);
+
+        return NextResponse.json(visitorData, {
+            headers: { 'X-Cache': 'MISS' }
         });
     }
 
@@ -57,8 +67,8 @@ export async function GET(request: NextRequest) {
         const responseData = await memoryCache.deduplicate(cacheKey, async () => {
             const data = await getMockIpInfo(host!);
 
-            // If IP is null or equal to host (resolution failed), mark as failed but keep RDAP data
-            if (!data.ip || data.ip === host) {
+            // If IP is null (resolution failed for a domain), mark as failed but keep RDAP data
+            if (!data.ip) {
                 return {
                     host,
                     status: 'failed',
@@ -73,6 +83,9 @@ export async function GET(request: NextRequest) {
             // Cache successful response (TTL 3600s = 1h)
             const successData = { ...data, status: 'success' };
             memoryCache.set(cacheKey, successData, 3600);
+
+            // Log successful check for Programmatic SEO
+            logSeoPage(host!, 'ip-info').catch(console.error);
 
             return successData;
         });

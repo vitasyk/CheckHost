@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import dns from 'dns';
 import { getMockIpInfo } from '@/lib/mock-data';
 import { memoryCache } from '@/lib/cache';
+import { logSeoPage } from '@/lib/seo-logger';
 
 // Create multiple independent resolvers for parallel probing
 const googleResolver = new dns.promises.Resolver();
@@ -21,7 +22,7 @@ const resolvers = [googleResolver, cloudflareResolver, quad9Resolver];
  * Uses Promise.any to ensure we return the first SUCCESSFUL result.
  */
 async function fastResolve<T>(method: keyof dns.promises.Resolver, domain: string): Promise<T | null> {
-    const timeoutMs = 4000; // Increased timeout for better reliability
+    const timeoutMs = 6000; // Increased timeout for better reliability
 
     // Create an abort controller for the timeout
     const controller = new AbortController();
@@ -29,13 +30,8 @@ async function fastResolve<T>(method: keyof dns.promises.Resolver, domain: strin
 
     try {
         const promises = resolvers.map(async (r) => {
-            try {
-                // @ts-ignore - dynamic method access
-                return await r[method](domain);
-            } catch (e) {
-                // If one fails, wait for others
-                throw e;
-            }
+            // @ts-expect-error - dynamic method access
+            return await r[method](domain);
         });
 
         // Add a timeout promise that rejects
@@ -46,7 +42,7 @@ async function fastResolve<T>(method: keyof dns.promises.Resolver, domain: strin
         // Return the first successful one
         const result = await Promise.any([...promises, timeoutPromise]);
         return result as T;
-    } catch (error) {
+    } catch {
         // All resolvers failed or timeout reached
         return null;
     } finally {
@@ -243,7 +239,7 @@ export async function GET(request: Request) {
 
             // Also try to resolve mail A record (like quer.monster does) for primary MX records
             if (mx && (mx as dns.MxRecord[]).length > 0) {
-                for (const mxRecord of (mx as dns.MxRecord[])) {
+                await Promise.all((mx as dns.MxRecord[]).map(async (mxRecord) => {
                     const mailA = await fastResolve<string[]>('resolve4', mxRecord.exchange);
                     if (mailA) {
                         mailA.forEach(ip => records.push({
@@ -252,7 +248,7 @@ export async function GET(request: Request) {
                             auxiliary: `mail server (${mxRecord.exchange})`,
                         }));
                     }
-                }
+                }));
             }
 
             const data = {
@@ -267,17 +263,21 @@ export async function GET(request: Request) {
 
             // Cache successful response (TTL 600s = 10m)
             memoryCache.set(cacheKey, data, 600);
+
+            // Log successful search for Programmatic SEO
+            logSeoPage(cleanDomain, 'dns').catch(console.error);
+
             return data;
         });
 
         return NextResponse.json(responseData, {
             headers: { 'X-Cache': 'MISS' }
         });
-    } catch (error: any) {
-        console.error('DNS Lookup error:', error);
+    } catch (_error: any) {
+        console.error('DNS Lookup error:', _error);
 
         // Handle common DNS errors gracefully
-        if (error.code === 'ENOTFOUND' || error.message === 'DNS Timeout') {
+        if (_error.code === 'ENOTFOUND' || _error.message === 'DNS Timeout') {
             return NextResponse.json({
                 domain: cleanDomain,
                 records: [],
@@ -286,6 +286,6 @@ export async function GET(request: Request) {
             });
         }
 
-        return NextResponse.json({ error: 'DNS Lookup failed', detail: error.message }, { status: 500 });
+        return NextResponse.json({ error: 'DNS Lookup failed', detail: _error.message }, { status: 500 });
     }
 }

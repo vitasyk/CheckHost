@@ -51,3 +51,8 @@ export const generalLimiter = rateLimit({
     interval: 60 * 1000, // 1 minute
     uniqueTokenPerInterval: 500,
 });
+
+export const authLimiter = rateLimit({
+    interval: 5 * 60 * 1000, // 5 minutes
+    uniqueTokenPerInterval: 200,
+});

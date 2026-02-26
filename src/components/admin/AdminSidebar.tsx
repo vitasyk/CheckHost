@@ -8,26 +8,44 @@ import {
     BarChart3,
     Database,
     Newspaper,
-    ShieldCheck
+    ShieldCheck,
+    History,
+    Megaphone,
+    Home as HomeIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+const menuItems = [
+    { label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
+    { label: 'Blog Posts', icon: Newspaper, href: '/admin/blog' },
+    { label: 'Ads Management', icon: Megaphone, href: '/admin/ads' },
+    { label: 'Access Control', icon: ShieldCheck, href: '/admin/access' },
+    { label: 'Audit Logs', icon: History, href: '/admin/audit' },
+    { label: 'Analytics', icon: BarChart3, href: '#', disabled: true },
+    { label: 'API Logs', icon: Database, href: '#', disabled: true },
+    { label: 'Settings', icon: Settings, href: '/admin/settings' },
+];
+
 export function AdminSidebar() {
     const pathname = usePathname();
 
-    const menuItems = [
-        { label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-        { label: 'Blog Posts', icon: Newspaper, href: '/admin/blog' },
-        { label: 'Access Control', icon: ShieldCheck, href: '/admin/access' },
-        { label: 'Analytics', icon: BarChart3, href: '#', disabled: true },
-        { label: 'API Logs', icon: Database, href: '#', disabled: true },
-        { label: 'Settings', icon: Settings, href: '/admin/settings' },
-    ];
-
     return (
-        <aside className="w-full md:w-64 space-y-2">
+        <aside className="hidden lg:flex lg:flex-col lg:w-64 shrink-0 space-y-2">
+            {/* Back to site */}
+            <Link href="/">
+                <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-3 p-6 font-medium rounded-xl transition-all duration-200 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900/40"
+                >
+                    <HomeIcon className="h-5 w-5" />
+                    Back to Site
+                </Button>
+            </Link>
+
+            <hr className="my-2 border-slate-200 dark:border-white/5" />
+
             {menuItems.map((item) => (
                 <Link key={item.label} href={item.href}>
                     <Button
@@ -57,3 +75,5 @@ export function AdminSidebar() {
         </aside>
     );
 }
+
+

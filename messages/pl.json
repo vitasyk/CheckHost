@@ -1,0 +1,40 @@
+{
+    "Index": {
+        "title": "Monitoruj globalną wydajność swojej witryny",
+        "subtitle": "Testuj czas działania, opóźnienia i rozwiązywanie DNS z ponad 20 lokalizacji na świecie. Szybkie, bezpłatne i niezawodne monitorowanie.",
+        "startMonitoring": "Rozpocznij monitorowanie",
+        "viewDocs": "Zobacz dokumentację"
+    },
+    "Navigation": {
+        "home": "Strona główna",
+        "dashboard": "Panel sterowania",
+        "blog": "Blog",
+        "about": "O nas"
+    },
+    "Tools": {
+        "ping": "Test Ping",
+        "http": "Test HTTP",
+        "dns": "Wyszukiwanie DNS",
+        "ipinfo": "Informacje IP"
+    },
+    "Metadata": {
+        "pingTitle": "Ping Online - Sprawdź łączność witryny na całym świecie",
+        "pingDesc": "Testuj ping ICMP do dowolnego hosta lub adresu IP z wielu globalnych lokalizacji. Sprawdzaj opóźnienia i utratę pakietów w czasie rzeczywistym.",
+        "httpTitle": "Test HTTP - Monitoruj czas działania i wydajność witryny",
+        "httpDesc": "Weryfikuj status HTTP i czas odpowiedzi z ponad 20 lokalizacji na świecie. Szybkie i niezawodne monitorowanie czasu działania.",
+        "dnsTitle": "Wyszukiwanie DNS - Sprawdź globalne rekordy DNS",
+        "dnsDesc": "Weryfikuj globalną propagację DNS. Błyskawicznie sprawdzaj rekordy A, AAAA, MX, CNAME i TXT na wielu serwerach nazw.",
+        "ipinfoTitle": "Informacje IP i Geolokalizacja - Szczegółowe dane sieciowe",
+        "ipinfoDesc": "Znajdź szczegółowe dane geolokalizacyjne, ISP i sieciowe dla dowolnego adresu IP lub domeny. Porównanie wielu dostawców.",
+        "checksTitle": "Narzędzia diagnostyczne - Globalne monitorowanie wydajności",
+        "checksDesc": "Kompleksowe narzędzia diagnostyczne stron internetowych obejmujące testy Ping, HTTP, DNS, SSL i MTR. Wielomodalna analiza z ponad 20 lokalizacji."
+    },
+    "Share": {
+        "snapshot": "Migawka",
+        "expires": "Wygasa",
+        "capturedOn": "Przechwycono",
+        "runLiveCheck": "Sprawdź ponownie",
+        "installApp": "Zainstaluj aplikację",
+        "monitorHost": "Monitoruj hosta"
+    }
+}

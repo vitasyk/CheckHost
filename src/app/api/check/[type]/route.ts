@@ -4,6 +4,7 @@ import axios from 'axios';
 import { apiLogger } from '@/lib/api-logger';
 import { headers } from 'next/headers';
 import { memoryCache } from '@/lib/cache';
+import { logSeoPage } from '@/lib/seo-logger';
 
 export async function GET(
     request: Request,
@@ -68,6 +69,9 @@ export async function GET(
                 response_time_ms: duration,
                 status_code: 200
             });
+
+            // Log successful check for Programmatic SEO
+            logSeoPage(host, type).catch(console.error);
 
             // Remove check-host links
             if (data.permanent_link) {

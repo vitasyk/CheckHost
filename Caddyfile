@@ -1,0 +1,28 @@
+{
+    email admin@yourdomain.com
+}
+
+yourdomain.com, www.yourdomain.com {
+    reverse_proxy app:3000
+
+    # Gzip and Brotli compression
+    encode zstd gzip
+
+    # Static assets caching
+    handle /_next/static/* {
+        header Cache-Control "public, max-age=31536000, immutable"
+    }
+    handle /public/* {
+        header Cache-Control "public, max-age=31536000, immutable"
+    }
+
+    # Security headers
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-XSS-Protection "1; mode=block"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "no-referrer-when-downgrade"
+        Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    }
+}

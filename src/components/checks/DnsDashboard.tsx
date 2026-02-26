@@ -2,9 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { Globe, Mail, Server, Key, Clock, Copy, Check, FileText, AlertTriangle, Loader2, Layers, Share2, Link } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-
+import { Globe, Mail, Server, Key, Clock, Check, FileText, AlertTriangle, Loader2, Layers, Link } from 'lucide-react';
 interface DnsRecord {
     type: string;
     value: string;
@@ -33,7 +31,7 @@ interface DnsDashboardProps {
     isSharedView?: boolean;
 }
 
-export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTypeChange, onRefresh, isRefreshing, isSharedView = false }: DnsDashboardProps) {
+export function DnsDashboard({ result, nodeCity: _nodeCity, filterType = 'all', onFilterTypeChange, onRefresh, isRefreshing, isSharedView = false }: DnsDashboardProps) {
     const dashboardRef = useRef<HTMLDivElement>(null);
     const [textCopied, setTextCopied] = useState(false);
     const [isSharing, setIsSharing] = useState(false);
@@ -494,7 +492,7 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTyp
     };
 
     return (
-        <div ref={dashboardRef} className="bg-slate-100/80 dark:bg-slate-900/80 rounded-2xl relative group/screenshot pb-1 mt-8">
+        <div ref={dashboardRef} className="bg-slate-100/80 dark:bg-slate-900/80 rounded-2xl relative group/screenshot pb-2 mt-6">
             <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
                 <div className="flex bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 rounded-lg shadow-sm overflow-hidden">
                     {onRefresh && (
@@ -538,7 +536,7 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTyp
             <div className="rounded-2xl border border-slate-200/60 dark:border-white/5 bg-white dark:bg-slate-950 overflow-hidden shadow-sm mx-1 mt-1 flex flex-col">
                 <div className="h-1.5 w-full bg-emerald-500" />
                 {/* Summary Header - Balanced Professional Look */}
-                <div className="bg-slate-100/50 dark:bg-slate-950/30 border-b border-slate-200 dark:border-white/5 px-6 py-5 relative overflow-hidden">
+                <div className="bg-slate-100/50 dark:bg-slate-950/30 border-b border-slate-200 dark:border-white/5 px-6 py-4 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 dark:bg-indigo-400/5 blur-3xl -mr-20 -mt-20 rounded-full" />
                     <div className="relative flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -628,9 +626,9 @@ export function DnsDashboard({ result, nodeCity, filterType = 'all', onFilterTyp
                 </div>
             </div>
 
-            <div className="mx-1 mt-2.5">
+            <div className="mx-1 mt-2">
                 {/* Sections wrapped in their own Card */}
-                <Card className="overflow-hidden border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm relative group p-6 space-y-8">
+                <Card className="overflow-hidden border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm relative group px-6 py-4 space-y-6">
                     {/* Resolution Section */}
                     {hasResolution && (
                         <Section

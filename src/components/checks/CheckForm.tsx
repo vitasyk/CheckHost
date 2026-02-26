@@ -1,4 +1,6 @@
-import { useState, useCallback } from 'react';
+'use client';
+
+import { useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { useMutation } from '@tanstack/react-query';
 import { checkHostAPI } from '@/lib/checkhost-api';
@@ -9,10 +11,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Loader2, Play, ArrowLeftRight, Keyboard, User, MousePointerClick, Map as MapIcon, Globe, Globe2, X, ChevronDown, Settings2, MapPin } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import {
+    RefreshCw,
+    Activity,
+    Users,
+    MapPin,
+    Loader2,
+    X,
+    Settings2,
+} from 'lucide-react';
 
 interface CheckFormProps {
     type: CheckType;
@@ -36,6 +43,7 @@ interface CheckFormProps {
     onToggleMap?: () => void;
     onClearSelection?: () => void;
     isMapVisible?: boolean;
+    autoStart?: boolean;
 }
 
 export function CheckForm({
@@ -44,7 +52,7 @@ export function CheckForm({
     onCheckStart,
     onProgress,
     onCheckComplete,
-    nodes = {},
+    nodes: _nodes = {},
     host,
     onHostChange,
     errorMessage,
@@ -52,14 +60,15 @@ export function CheckForm({
     maxNodes,
     onMaxNodesChange,
     dnsType,
-    onDnsTypeChange,
+    onDnsTypeChange: _onDnsTypeChange,
     isReverseMtr = false,
     onReverseMtrToggle,
     selectedNodeCount = 0,
     selectedNodeIds = [],
     onToggleMap,
     onClearSelection,
-    isMapVisible = false
+    isMapVisible = false,
+    autoStart = false
 }: CheckFormProps) {
     // Smart parsing logic
     const sanitizeInput = useCallback((input: string) => {
@@ -151,6 +160,20 @@ export function CheckForm({
         }
     };
 
+    useEffect(() => {
+        if (autoStart && host) {
+            const cleanHost = sanitizeInput(host);
+            if (cleanHost && !isLoading) {
+                if (type === 'info' || type === 'ssl') {
+                    onCheckComplete(type);
+                } else {
+                    checkMutation.mutate(cleanHost);
+                }
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [autoStart]);
+
     const getPlaceholder = () => {
         switch (type) {
             case 'info':
@@ -173,61 +196,61 @@ export function CheckForm({
     };
 
     return (
-        <Card className="w-full border-slate-200/60 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm rounded-2xl overflow-hidden border transition-all duration-300">
-            <CardContent className="p-4">
+        <Card className="w-full bg-transparent border-none shadow-none overflow-visible">
+            <CardContent className="p-0 sm:p-2">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
                         {type === 'mtr' && (
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between px-1 mb-4 gap-3">
                                 <Label className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                     <div className="bg-indigo-500/10 dark:bg-indigo-500/5 p-1 rounded-md border border-indigo-500/10">
-                                        <ArrowLeftRight className={`h-3 w-3 ${isReverseMtr ? 'text-indigo-500 rotate-180' : 'text-slate-400'} transition-transform duration-500 ease-in-out`} />
+                                        <RefreshCw className={`h-3 w-3 ${isReverseMtr ? 'text-indigo-500 rotate-180' : 'text-slate-400'} transition-transform duration-500 ease-in-out`} />
                                     </div>
                                     Diagnostic Mode
                                 </Label>
 
-                                <div className="relative flex p-1 bg-slate-100/80 dark:bg-slate-900/80 rounded-xl border border-slate-200/60 dark:border-white/5 w-full sm:w-auto min-w-[300px] overflow-hidden">
+                                <div className="relative flex p-1 bg-white/80 dark:bg-slate-900/80 shadow-sm rounded-xl border border-slate-200/80 dark:border-white/5 w-full sm:w-auto min-w-[300px] overflow-hidden">
                                     {/* Sliding active background */}
                                     <div
-                                        className={`absolute inset-y-1 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) bg-white dark:bg-slate-800 shadow-sm rounded-lg border border-slate-200/50 dark:border-white/10 ${isReverseMtr ? 'left-[calc(50%+4px)] right-1' : 'left-1 right-[calc(50%+4px)]'}`}
+                                        className={`absolute inset-y-1 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) bg-indigo-50 dark:bg-slate-800 rounded-lg border border-indigo-100 dark:border-white/10 ${isReverseMtr ? 'left-[calc(50%+4px)] right-1' : 'left-1 right-[calc(50%+4px)]'}`}
                                     />
 
                                     <button
                                         type="button"
                                         onClick={() => onReverseMtrToggle?.(false)}
-                                        className={`relative flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-tight transition-all duration-300 z-10 whitespace-nowrap ${!isReverseMtr ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-500'}`}
+                                        className={`relative flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-tight transition-all duration-300 z-10 whitespace-nowrap ${!isReverseMtr ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
                                     >
-                                        <Keyboard className={`h-3.5 w-3.5 transition-all duration-300 ${!isReverseMtr ? 'scale-110' : 'scale-90 opacity-40 grayscale'}`} />
+                                        <Activity className={`h-3.5 w-3.5 transition-all duration-300 ${!isReverseMtr ? 'scale-110' : 'scale-90 opacity-40 grayscale'}`} />
                                         <span>Manual Target</span>
                                     </button>
 
                                     <button
                                         type="button"
                                         onClick={() => onReverseMtrToggle?.(true)}
-                                        className={`relative flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-tight transition-all duration-300 z-10 whitespace-nowrap ${isReverseMtr ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-500'}`}
+                                        className={`relative flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-tight transition-all duration-300 z-10 whitespace-nowrap ${isReverseMtr ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
                                     >
-                                        <User className={`h-3.5 w-3.5 transition-all duration-300 ${isReverseMtr ? 'scale-110' : 'scale-90 opacity-40 grayscale'}`} />
+                                        <RefreshCw className={`h-3.5 w-3.5 transition-all duration-300 ${isReverseMtr ? 'scale-110' : 'scale-90 opacity-40 grayscale'}`} />
                                         <span>Using My IP</span>
                                     </button>
                                 </div>
                             </div>
                         )}
 
-                        <div className="relative group">
+                        <div className="relative group shadow-sm hover:shadow-md focus-within:shadow-md focus-within:ring-4 focus-within:ring-indigo-500/10 transition-all duration-300 rounded-2xl">
                             <Input
                                 id="host"
                                 type="text"
                                 value={host}
                                 onChange={(e) => onHostChange(e.target.value)}
                                 placeholder={getPlaceholder()}
-                                className={`text-lg h-14 pl-6 pr-64 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-slate-950/60 focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all duration-300 ${errorMessage && !errorMessage.includes('Using 1.1.1.1') ? 'border-destructive ring-destructive' : ''} ${isReverseMtr ? 'border-indigo-500/30' : ''}`}
+                                className={`text-xl font-medium placeholder:text-slate-400/80 h-16 pl-6 pr-[280px] sm:pr-[310px] rounded-2xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-indigo-500/80 hover:border-slate-300 dark:hover:border-white/20 transition-all duration-300 ${errorMessage && !errorMessage.includes('Using 1.1.1.1') ? 'border-destructive' : ''} ${isReverseMtr ? 'border-indigo-500/50' : ''}`}
                                 autoFocus
                                 required
                             />
 
                             <div className="absolute right-2 top-2 bottom-2 flex items-center gap-2">
                                 {type !== 'dns-all' && type !== 'info' && type !== 'ssl' && (
-                                    <div className="flex items-center gap-1 bg-slate-100/10 dark:bg-slate-800/20 p-1 rounded-xl border border-slate-200 dark:border-white/5 backdrop-blur-sm">
+                                    <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200/50 dark:border-white/5 backdrop-blur-sm">
                                         {!isMapVisible ? (
                                             <>
                                                 {/* Nodes Picker Capsule */}
@@ -235,11 +258,11 @@ export function CheckForm({
                                                     <PopoverTrigger asChild>
                                                         <button
                                                             type="button"
-                                                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-all duration-200 group/pill"
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200 group/pill"
                                                         >
-                                                            <Globe className="h-4 w-4 text-slate-400 group-hover/pill:text-indigo-500 group-hover/pill:animate-[spin_2s_linear_infinite] transition-colors" />
+                                                            <Users className="h-4 w-4 text-slate-400 group-hover/pill:text-indigo-500 transition-colors" />
                                                             <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 tracking-tight">{maxNodes} Nodes</span>
-                                                            <ChevronDown className="h-3 w-3 text-slate-300 dark:text-slate-600" />
+                                                            <Settings2 className="h-3 w-3 text-slate-300 dark:text-slate-500" />
                                                         </button>
                                                     </PopoverTrigger>
                                                     <PopoverContent className="w-64 p-4 rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 shadow-2xl" align="end" sideOffset={8}>
@@ -269,10 +292,10 @@ export function CheckForm({
                                                         onToggleMap?.();
                                                     }}
                                                     className={cn(
-                                                        "flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all duration-200 group/map",
+                                                        "flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 group/map",
                                                         selectedNodeCount > 0
                                                             ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
-                                                            : "hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+                                                            : "hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
                                                     )}
                                                 >
                                                     <MapPin className={cn(
@@ -287,9 +310,9 @@ export function CheckForm({
                                                 </button>
                                             </>
                                         ) : (
-                                            <div className="flex items-center gap-2 pl-3 pr-1 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+                                            <div className="flex items-center gap-2 pl-3 pr-1 py-1 px-3 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20">
                                                 <div className="flex items-center gap-1.5">
-                                                    <Globe2 className="h-4 w-4 text-indigo-500 animate-pulse" />
+                                                    <Activity className="h-4 w-4 text-indigo-500 animate-pulse" />
                                                     <span className="text-[11px] font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-tight">
                                                         {selectedNodeCount > 0 ? `${selectedNodeCount} Nodes Selected` : 'Select on Map'}
                                                     </span>
@@ -300,7 +323,7 @@ export function CheckForm({
                                                         onClearSelection?.();
                                                         onToggleMap?.();
                                                     }}
-                                                    className="p-1 hover:bg-white dark:hover:bg-slate-800 rounded-md text-indigo-600 dark:text-indigo-400 transition-colors"
+                                                    className="p-1 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 rounded-md text-indigo-600 dark:text-indigo-400 transition-colors"
                                                     title="Close Map (Back to Auto)"
                                                 >
                                                     <X className="h-4 w-4" />
@@ -327,36 +350,38 @@ export function CheckForm({
                                     size="sm"
                                     disabled={checkMutation.isPending || isLoading || !host.trim() || (isMapVisible && selectedNodeCount === 0)}
                                     className={cn(
-                                        "h-10 px-6 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed",
-                                        isMapVisible && selectedNodeCount === 0 && "bg-slate-400 hover:bg-slate-400 shadow-none"
+                                        "h-10 px-6 sm:px-8 rounded-lg font-extrabold text-xs tracking-widest uppercase transition-all duration-300",
+                                        "shadow-md active:scale-[0.98]",
+                                        // Active state classes
+                                        "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/25 hover:shadow-indigo-500/40",
+                                        // Disabled state classes (Neutral gray for empty input / disabled action)
+                                        "disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:border border-slate-200 disabled:pointer-events-none dark:disabled:bg-slate-800 dark:disabled:border-slate-700 dark:disabled:text-slate-500",
+                                        isMapVisible && selectedNodeCount === 0 && "disabled:bg-slate-200 disabled:text-slate-400 disabled:border-slate-300"
                                     )}
                                 >
                                     {checkMutation.isPending || isLoading ? (
                                         <Loader2 className="h-4 w-4 animate-spin" />
                                     ) : (
-                                        <span className="font-extrabold text-xs tracking-widest uppercase">
-                                            {isMapVisible && selectedNodeCount === 0 ? 'Select Nodes' : 'CHECK'}
-                                        </span>
+                                        isMapVisible && selectedNodeCount === 0 ? 'Select Nodes' : 'CHECK'
                                     )}
                                 </Button>
                             </div>
                         </div>
 
-
                         {errorMessage && (
-                            <p className={`text-[10px] font-bold uppercase tracking-wider pl-2 pt-1 ${errorMessage.includes('Using 1.1.1.1') ? 'text-indigo-500/70 animate-pulse' : 'text-destructive animate-bounce'}`}>
+                            <p className={`text-[10px] font-bold uppercase tracking-wider pl-4 pt-1.5 ${errorMessage.includes('Using 1.1.1.1') ? 'text-indigo-500/70 animate-pulse' : 'text-destructive animate-bounce'}`}>
                                 {errorMessage}
                             </p>
                         )}
-                    </div>
 
-                    {checkMutation.isError && (
-                        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
-                            Error: {checkMutation.error?.message || 'Failed to perform check'}
-                        </div>
-                    )}
+                        {checkMutation.isError && (
+                            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+                                Error: {checkMutation.error?.message || 'Failed to perform check'}
+                            </div>
+                        )}
+                    </div>
                 </form>
             </CardContent>
-        </Card>
+        </Card >
     );
 }

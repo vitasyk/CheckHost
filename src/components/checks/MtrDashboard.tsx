@@ -1,9 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Network, ArrowRight, Camera, Copy, Check, FileText, Loader2, Activity } from 'lucide-react';
+import { Network, ArrowRight, Camera, Copy, Check, FileText, Loader2, } from 'lucide-react';
 import { toPng, toBlob } from 'html-to-image';
-import { Button } from '@/components/ui/button';
 import {
     Table,
     TableBody,
@@ -19,116 +18,6 @@ interface MtrDashboardProps {
     nodeCity?: string;
     onPingIp?: (ip: string) => void;
     targetHost?: string;
-}
-
-// Global cache to avoid duplicate PTR lookups across the same IPs in MTR
-const rdnsCache: Record<string, string> = {};
-const pendingLookups: Record<string, boolean> = {};
-const rdnsListeners: Record<string, Set<(name: string) => void>> = {};
-
-function MtrHopHost({ hop, onPingIp }: { hop: MtrHop, onPingIp?: (ip: string) => void }) {
-    const [rdns, setRdns] = useState<string | null>(rdnsCache[hop.ip] || null);
-
-    useEffect(() => {
-        if (!hop.ip) return;
-
-        // If CheckHost already provided a resolved hostname, cache and use it
-        if (hop.host && hop.host !== hop.ip && hop.host !== '???') {
-            rdnsCache[hop.ip] = hop.host;
-            setRdns(hop.host);
-            return;
-        }
-
-        // If we already successfully resolved it locally, use it
-        if (rdnsCache[hop.ip]) {
-            setRdns(rdnsCache[hop.ip]);
-            return;
-        }
-
-        // Filter out private/local IPs to reduce unnecessary network requests
-        const parts = hop.ip.split('.').map(Number);
-        if (
-            parts[0] === 10 || parts[0] === 127 || parts[0] === 0 ||
-            (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) ||
-            (parts[0] === 192 && parts[1] === 168) ||
-            (parts[0] === 169 && parts[1] === 254)
-        ) {
-            return;
-        }
-
-        // Register this component instance to listen for resolution updates for this IP
-        if (!rdnsListeners[hop.ip]) rdnsListeners[hop.ip] = new Set();
-        const callback = (name: string) => setRdns(name);
-        rdnsListeners[hop.ip].add(callback);
-
-        // Fetch if nobody else is currently fetching this IP
-        if (!pendingLookups[hop.ip]) {
-            pendingLookups[hop.ip] = true;
-            fetch(`/api/dns-lookup?domain=${hop.ip}`)
-                .then(res => res.json())
-                .then(data => {
-                    let name = '';
-                    if (data && data.records) {
-                        const ptr = data.records.find((r: any) => r.type === 'PTR');
-                        if (ptr && ptr.value) {
-                            name = ptr.value.replace(/\.$/, '');
-                        }
-                    }
-                    if (name) {
-                        rdnsCache[hop.ip] = name;
-                        rdnsListeners[hop.ip].forEach(cb => cb(name));
-                    }
-                })
-                .catch(() => {
-                    // silent failure, will just leave the IP as is
-                });
-        }
-
-        // Cleanup listener on unmount
-        return () => {
-            if (rdnsListeners[hop.ip]) {
-                rdnsListeners[hop.ip].delete(callback);
-            }
-        };
-    }, [hop.ip, hop.host]);
-
-    const displayHost = rdns || (hop.host && hop.host !== hop.ip && hop.host !== '???' ? hop.host : hop.ip) || '???';
-    const showIp = hop.ip && hop.ip !== displayHost;
-
-    return (
-        <div className="flex items-center gap-1.5 flex-wrap">
-            <span
-                className={cn(
-                    "font-medium text-slate-700 dark:text-slate-200 transition-colors",
-                    onPingIp && "cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline"
-                )}
-                onClick={(e) => {
-                    if (onPingIp && hop.ip) {
-                        e.stopPropagation();
-                        onPingIp(hop.ip);
-                    }
-                }}
-            >
-                {displayHost}
-            </span>
-            {showIp && (
-                <span
-                    className={cn(
-                        "text-xs text-muted-foreground transition-colors",
-                        onPingIp && "cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline"
-                    )}
-                    onClick={(e) => {
-                        if (onPingIp) {
-                            e.stopPropagation();
-                            onPingIp(hop.ip);
-                        }
-                    }}
-                >
-                    ({hop.ip})
-                </span>
-            )}
-        </div>
-    );
 }
 
 export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDashboardProps) {
@@ -149,14 +38,7 @@ export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDash
         if (Array.isArray(rawResult) && rawResult.length > 1 && rawResult[0] === null && typeof rawResult[1] === 'object' && rawResult[1] !== null && 'message' in rawResult[1]) {
             return [{
                 host: (rawResult[1] as any).message || 'Error',
-                ip: '',
-                loss: 100,
-                sent: 0,
-                last: 0,
-                avg: 0,
-                best: 0,
-                worst: 0,
-                stdev: 0
+                ip: '', loss: 100, sent: 0, last: 0, avg: 0, best: 0, worst: 0, stdev: 0
             }];
         }
 
@@ -189,10 +71,10 @@ export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDash
 
         if (!Array.isArray(rawHops)) return [];
 
-        return rawHops.map((hopProbes: any) => {
+        const hops = rawHops.map((hopProbes: any) => {
             if (!Array.isArray(hopProbes)) return null;
 
-            let allTimes: number[] = [];
+            const allTimes: number[] = [];
             let totalSent = 0;
             let totalLoss = 0;
             let lastHost = '???';
@@ -204,17 +86,12 @@ export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDash
                     totalLoss++;
                     return;
                 }
-
-                if (typeof probe === 'object') {
-                    if (probe.host) {
-                        lastHost = probe.host;
-                        lastIp = probe.host;
-                    }
-
+                if (typeof probe === 'object' && !Array.isArray(probe)) {
+                    if (probe.host) { lastHost = probe.host; lastIp = probe.host; }
                     if (Array.isArray(probe.query_times)) {
                         probe.query_times.forEach((t: any) => {
                             totalSent++;
-                            if (t === null || t === undefined || t === "-") {
+                            if (t === null || t === undefined || t === '-') {
                                 totalLoss++;
                             } else {
                                 const timeVal = parseFloat(t);
@@ -234,22 +111,7 @@ export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDash
                 else processProbe(p);
             });
 
-            if (totalSent === 0 && lastHost === '???') {
-                if (hopProbes.length > 0) {
-                    return {
-                        host: '???',
-                        ip: '',
-                        loss: 100,
-                        sent: 0,
-                        last: 0,
-                        avg: 0,
-                        best: 0,
-                        worst: 0,
-                        stdev: 0
-                    } as MtrHop;
-                }
-                return null;
-            }
+            if (totalSent === 0 && lastHost === '???') return null;
 
             const avg = allTimes.length > 0 ? allTimes.reduce((a, b) => a + b, 0) / allTimes.length : 0;
             const best = allTimes.length > 0 ? Math.min(...allTimes) : 0;
@@ -261,13 +123,17 @@ export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDash
                 ip: lastIp,
                 loss: totalSent > 0 ? (totalLoss / totalSent) * 100 : 0,
                 sent: totalSent,
-                last,
-                avg,
-                best,
-                worst,
-                stdev: 0
+                last, avg, best, worst, stdev: 0
             } as MtrHop;
         }).filter(h => h !== null) as MtrHop[];
+
+        // Обрізаємо хвостові хопи з host='???' (тайм-аути після кінцевого хоста).
+        // MTR продовжує надсилати пакети далі за ціль — ці хопи ніколи не відповідають.
+        let lastMeaningful = hops.length - 1;
+        while (lastMeaningful > 0 && hops[lastMeaningful].host === '???') {
+            lastMeaningful--;
+        }
+        return hops.slice(0, lastMeaningful + 1);
     };
 
     const hops = processMtrData(result);
@@ -334,7 +200,7 @@ export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDash
         );
     }
 
-    const maxLoss = Math.max(...hops.map(h => h.loss));
+    // const maxLoss = Math.max(...hops.map(h => parseFloat(h.Loss) || 0));
 
     return (
         <div className="mt-8">

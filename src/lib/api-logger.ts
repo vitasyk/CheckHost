@@ -17,7 +17,7 @@ async function isVerbose(): Promise<boolean> {
         cachedVerboseMode = config?.verboseLogging === true;
         lastCheckTime = now;
         return cachedVerboseMode;
-    } catch (e) {
+    } catch {
         return false;
     }
 }
@@ -70,8 +70,8 @@ export const apiLogger = {
 
                 if (error) throw error;
                 return result.id;
-            } catch (error) {
-                console.error('Failed to log check to Supabase:', error);
+            } catch (_error) {
+                console.error('Failed to log check to Supabase:', _error);
             }
         }
 
@@ -85,8 +85,8 @@ export const apiLogger = {
                 );
 
                 return result.rows[0].id;
-            } catch (error) {
-                console.error('Failed to log check to PostgreSQL:', error);
+            } catch (_error) {
+                console.error('Failed to log check to PostgreSQL:', _error);
             }
         }
 
@@ -105,8 +105,8 @@ export const apiLogger = {
 
                 if (error) throw error;
                 return;
-            } catch (error) {
-                console.error('Failed to log API usage to Supabase:', error);
+            } catch (_error) {
+                console.error('Failed to log API usage to Supabase:', _error);
             }
         }
 
@@ -117,8 +117,8 @@ export const apiLogger = {
                      VALUES ($1, $2, $3, $4)`,
                     [data.api_endpoint, data.check_id, data.response_time_ms, data.status_code]
                 );
-            } catch (error) {
-                console.error('Failed to log API usage to PostgreSQL:', error);
+            } catch (_error) {
+                console.error('Failed to log API usage to PostgreSQL:', _error);
             }
         }
     },
@@ -134,8 +134,8 @@ export const apiLogger = {
                     .update({ status, error_message: errorMessage })
                     .eq('id', id);
                 return;
-            } catch (error) {
-                console.error('Failed to update check status in Supabase:', error);
+            } catch (_error) {
+                console.error('Failed to update check status in Supabase:', _error);
             }
         }
 
@@ -145,8 +145,8 @@ export const apiLogger = {
                     `UPDATE check_logs SET status = $1, error_message = $2 WHERE id = $3`,
                     [status, errorMessage, id]
                 );
-            } catch (error) {
-                console.error('Failed to update check status in PostgreSQL:', error);
+            } catch (_error) {
+                console.error('Failed to update check status in PostgreSQL:', _error);
             }
         }
     }

@@ -1,0 +1,40 @@
+{
+    "Index": {
+        "title": "Monitor Your Website's Global Performance",
+        "subtitle": "Test uptime, latency, and DNS resolution from 20+ locations worldwide. Fast, free, and reliable network monitoring.",
+        "startMonitoring": "Start Monitoring",
+        "viewDocs": "View Documentation"
+    },
+    "Navigation": {
+        "home": "Home",
+        "dashboard": "Dashboard",
+        "blog": "Blog",
+        "about": "About"
+    },
+    "Tools": {
+        "ping": "Ping Check",
+        "http": "HTTP Check",
+        "dns": "DNS Lookup",
+        "ipinfo": "IP Info"
+    },
+    "Metadata": {
+        "pingTitle": "Ping Online - Check Website Connectivity Worldwide",
+        "pingDesc": "Test ICMP ping to any host or IP from multiple global locations. Check latency and packet loss in real-time.",
+        "httpTitle": "HTTP Check - Monitor Website Uptime & Performance",
+        "httpDesc": "Verify HTTP status and response times from 20+ global locations. Fast, reliable uptime monitoring for any website.",
+        "dnsTitle": "DNS Lookup - Check DNS Records Worldwide",
+        "dnsDesc": "Verify global DNS propagation. Check A, AAAA, MX, CNAME, and TXT records across multiple nameservers instantly.",
+        "ipinfoTitle": "IP Info & Geolocation - Detailed Network Intelligence",
+        "ipinfoDesc": "Find detailed geolocation, ISP, and network data for any IP address or domain. Multiple provider comparison.",
+        "checksTitle": "Diagnostic Tools - Global Website Performance Monitoring",
+        "checksDesc": "Comprehensive website diagnostic tools including Ping, HTTP, DNS, SSL, and MTR checks. Multimodal analysis from 20+ locations."
+    },
+    "Share": {
+        "snapshot": "Snapshot",
+        "expires": "Expires",
+        "capturedOn": "Captured On",
+        "runLiveCheck": "Check Again",
+        "installApp": "Install App",
+        "monitorHost": "Monitor Host"
+    }
+}

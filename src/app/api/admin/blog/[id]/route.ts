@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import pool, { isPostgresConfigured } from '@/lib/postgres';
+import { logAdminAction } from '@/lib/audit-logger';
 
 /**
  * Handle GET request for single post (Admin only)
@@ -94,6 +95,17 @@ export async function PATCH(
                 .single();
 
             if (error) throw error;
+
+            // Audit Logging
+            await logAdminAction({
+                adminEmail: session.user?.email || 'unknown',
+                action: 'UPDATE_POST',
+                entityType: 'post',
+                entityId: id,
+                details: { title: data.title, slug: data.slug },
+                ipAddress: request.headers.get('x-forwarded-for') || 'unknown'
+            });
+
             return NextResponse.json(data);
         }
 
@@ -110,7 +122,19 @@ export async function PATCH(
             if (result.rows.length === 0) {
                 return NextResponse.json({ error: 'Post not found' }, { status: 404 });
             }
-            return NextResponse.json(result.rows[0]);
+
+            const post = result.rows[0];
+            // Audit Logging
+            await logAdminAction({
+                adminEmail: session.user?.email || 'unknown',
+                action: 'UPDATE_POST',
+                entityType: 'post',
+                entityId: id,
+                details: { title: post.title, slug: post.slug },
+                ipAddress: request.headers.get('x-forwarded-for') || 'unknown'
+            });
+
+            return NextResponse.json(post);
         }
 
         return NextResponse.json({ error: 'No database configured' }, { status: 500 });
@@ -146,6 +170,16 @@ export async function DELETE(
         } else {
             return NextResponse.json({ error: 'No database configured' }, { status: 500 });
         }
+
+        // Audit Logging
+        await logAdminAction({
+            adminEmail: session.user?.email || 'unknown',
+            action: 'DELETE_POST',
+            entityType: 'post',
+            entityId: id,
+            details: { id },
+            ipAddress: request.headers.get('x-forwarded-for') || 'unknown'
+        });
 
         return NextResponse.json({ success: true });
     } catch (error) {

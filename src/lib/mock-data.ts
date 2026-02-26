@@ -23,7 +23,7 @@ export async function getMockIpInfo(host: string): Promise<IpInfoResponse> {
                 console.log(`[WHOIS Fallback] RDAP unavailable for ${host}, trying WHOIS...`);
                 rdapData = await fetchWhoisInfo(host).catch(() => null);
             }
-        } catch (e) {
+        } catch {
             // Silently ignore
         }
         return {

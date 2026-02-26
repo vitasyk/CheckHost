@@ -1,0 +1,31 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Brand-consistent Indigo to Violet gradient -->
+    <linearGradient id="logo_grad" x1="50" y1="50" x2="450" y2="450" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4F46E5"/> <!-- indigo-600 -->
+      <stop offset="1" stop-color="#7C3AED"/> <!-- violet-600 -->
+    </linearGradient>
+    <filter id="premium_glow" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="10" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  
+  <!-- Centered and Padded Group to prevent any edge clipping -->
+  <g transform="translate(256, 256) scale(0.95)" filter="url(#premium_glow)">
+    <g transform="translate(-256, -256)">
+      <!-- Outer Stylized 'C' - Abstract and Bold -->
+      <path d="M410 170C380 120 320 85 250 85C140 85 50 175 50 285C50 395 140 485 250 485C320 485 380 450 410 400" 
+            stroke="url(#logo_grad)" stroke-width="80" stroke-linecap="round" stroke-linejoin="round"/>
+            
+      <!-- Inner Dynamic Globe - Minimalist and Integrated -->
+      <g transform="translate(250, 285)" stroke="url(#logo_grad)" stroke-width="12" fill="none">
+        <circle r="60" stroke-opacity="0.8" />
+        <path d="M-60 0C-60 0 -28 60 0 60C28 60 60 0 60 0C60 0 28 -60 0 -60C-28 -60 -60 0 -60 0Z" stroke-opacity="0.6" />
+        <path d="M0 -60C0 -60 28 -28 28 0C28 28 0 60 0 60C0 60 -28 28 -28 0C-28 -28 0 -60 0 -60Z" stroke-opacity="0.6" />
+        <!-- Pulse Core -->
+        <circle cx="0" cy="0" r="15" fill="url(#logo_grad)" stroke="none" />
+      </g>
+    </g>
+  </g>
+</svg>

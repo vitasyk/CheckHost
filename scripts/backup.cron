@@ -1,0 +1,5 @@
+# CheckHost.top - Database Backup Cron
+# Run 'crontab -e' and paste the following line:
+# (Make sure to replace /path/to/checkhost with the actual absolute path)
+
+0 3 * * * cd /path/to/checkhost && /bin/bash scripts/backup-db.sh >> /path/to/checkhost/backups/db/backup.log 2>&1

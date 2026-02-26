@@ -1,0 +1,40 @@
+{
+    "Index": {
+        "title": "Bewaak de wereldwijde prestaties van uw website",
+        "subtitle": "Test uptime, latentie en DNS-resolutie vanaf 20+ wereldwijde locaties. Snelle, gratis en betrouwbare netwerkbewaking.",
+        "startMonitoring": "Start bewaking",
+        "viewDocs": "Bekijk documentatie"
+    },
+    "Navigation": {
+        "home": "Home",
+        "dashboard": "Dashboard",
+        "blog": "Blog",
+        "about": "Over ons"
+    },
+    "Tools": {
+        "ping": "Ping Controle",
+        "http": "HTTP Controle",
+        "dns": "DNS Opzoeken",
+        "ipinfo": "IP Info"
+    },
+    "Metadata": {
+        "pingTitle": "Ping Online - Wereldwijde website-connectiviteit controleren",
+        "pingDesc": "Test ICMP ping naar elke host of IP vanaf meerdere wereldwijde locaties. Controleer latentie en pakketverlies in realtime.",
+        "httpTitle": "HTTP Controle - Bewaak website uptime en prestaties",
+        "httpDesc": "Verifieer de HTTP-status en responstijden vanaf meer dan 20 wereldwijde locaties. Snelle en betrouwbare uptime-bewaking.",
+        "dnsTitle": "DNS Opzoeken - Controleer wereldwijde DNS-records",
+        "dnsDesc": "Verifieer wereldwijde DNS-propagatie. Controleer direct A-, AAAA-, MX-, CNAME- en TXT-records via meerdere nameservers.",
+        "ipinfoTitle": "IP Info & Geolocatie - Gedetailleerde netwerkintelligentie",
+        "ipinfoDesc": "Vind gedetailleerde geolocatie-, ISP- en netwerkgegevens voor elk IP-adres of domein. Vergelijking van meerdere providers.",
+        "checksTitle": "Diagnostische tools - Wereldwijde website prestatiemonitoring",
+        "checksDesc": "Uitgebreide diagnostische tools voor websites, waaronder Ping, HTTP, DNS, SSL en MTR-controles. Multimodale analyse van 20+ locaties."
+    },
+    "Share": {
+        "snapshot": "Momentopname",
+        "expires": "Verloopt op",
+        "capturedOn": "Vastgelegd op",
+        "runLiveCheck": "Opnieuw controleren",
+        "installApp": "App installeren",
+        "monitorHost": "Host monitoren"
+    }
+}

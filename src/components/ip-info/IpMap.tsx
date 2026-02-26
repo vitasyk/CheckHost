@@ -7,15 +7,6 @@ import L from 'leaflet';
 import { useTheme } from 'next-themes';
 
 // Fix Leaflet default icon issue in Next.js
-const icon = L.icon({
-    iconUrl: '/location-pin.png', // We'll need to grab a generic pin or use default
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowUrl: null as any,
-    shadowSize: [41, 41]
-});
-
 // Since we don't have local assets yet, let's use CDN for marker icons or custom SVG
 const customIcon = new L.Icon({
     iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',

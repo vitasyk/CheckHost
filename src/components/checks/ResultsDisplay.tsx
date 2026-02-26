@@ -5,7 +5,7 @@ import type { ResultsResponse, Node, MtrHop } from '@/types/checkhost';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { CheckCircle2, XCircle, Clock, Search, Grip, List as ListIcon, Loader2, ChevronDown, ChevronRight } from 'lucide-react';
+import { CheckCircle2, XCircle, Search, Grip, List as ListIcon, Loader2, ChevronDown, ChevronRight } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import { DnsRecordsTable } from './DnsRecordsTable';
 import { DnsDashboard } from './DnsDashboard';
 import { MtrDashboard } from './MtrDashboard';
-import { Link, Share2, Check } from 'lucide-react';
+import { Share2, Check } from 'lucide-react';
 
 interface ResultsDisplayProps {
     results: ResultsResponse;
@@ -54,7 +54,7 @@ export function ResultsDisplay({
     const [searchQuery, setSearchQuery] = useState('');
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
     const [isSharing, setIsSharing] = useState(false);
-    const [shareUrl, setShareUrl] = useState<string | null>(null);
+    const [_shareUrl, setShareUrl] = useState<string | null>(null);
     const [shareCopied, setShareCopied] = useState(false);
 
     const handleShare = async () => {
@@ -179,6 +179,7 @@ export function ResultsDisplay({
                 nodeId.toLowerCase().includes(query)
             );
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [entries, searchQuery, nodes, activeNodes]);
 
     // Memoize grouped results
@@ -191,6 +192,7 @@ export function ResultsDisplay({
                 return acc;
             }, {} as Record<string, typeof entries>)
             : { 'All Locations': filteredEntries };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filteredEntries, groupBy, nodes, activeNodes]);
 
     const getStatus = (result: any): 'success' | 'error' | 'loading' => {
@@ -266,42 +268,25 @@ export function ResultsDisplay({
         if (Array.isArray(rawResult) && rawResult.length > 1 && rawResult[0] === null && typeof rawResult[1] === 'object' && rawResult[1] !== null && 'message' in rawResult[1]) {
             return [{
                 host: (rawResult[1] as any).message || 'Error',
-                ip: '',
-                loss: 100,
-                sent: 0,
-                last: 0,
-                avg: 0,
-                best: 0,
-                worst: 0,
-                stdev: 0
+                ip: '', loss: 100, sent: 0, last: 0, avg: 0, best: 0, worst: 0, stdev: 0
             }];
         }
 
         if (!Array.isArray(rawResult)) return [];
 
-        // Deep traversal to find the hops list.
         const extractHops = (data: any, depth = 0): any[] | null => {
             if (!Array.isArray(data) || data.length === 0) return null;
-            if (depth > 5) return null; // Prevent stack overflow on circular structures
+            if (depth > 5) return null;
 
             for (const item of data) {
                 if (Array.isArray(item)) {
                     if (item.length > 0) {
                         const first = item[0];
-                        // If the first item is an object (or null!) and NOT an array, it's a probe!
-                        // This handles cases where the first probe is a timeout (null)
                         const isProbe = (v: any) => v === null || (typeof v === 'object' && !Array.isArray(v));
-
-                        if (isProbe(first)) {
-                            return data; // Found the list of hops (each hop is an array of probes)
-                        }
-
-                        // Recurse deeper
+                        if (isProbe(first)) return data;
                         const deeper = extractHops(item, depth + 1);
                         if (deeper) return deeper;
                     } else if (data.length > 1) {
-                        // Found array of empty arrays (placeholders) which might be a hops list of empty hops
-                        // But usually we want to keep looking for actual data
                         continue;
                     }
                 }
@@ -310,19 +295,16 @@ export function ResultsDisplay({
         };
 
         let rawHops = extractHops(rawResult);
-
-        // Ultimate fallback: if we have a deep array but extractHops failed (e.g. all nulls), 
-        // try to interpret the top level as hops if reasonable.
         if (!rawHops && rawResult.length > 0 && Array.isArray(rawResult[0])) {
             rawHops = rawResult;
         }
 
         if (!Array.isArray(rawHops)) return [];
 
-        return rawHops.map((hopProbes: any) => {
+        const hops = rawHops.map((hopProbes: any) => {
             if (!Array.isArray(hopProbes)) return null;
 
-            let allTimes: number[] = [];
+            const allTimes: number[] = [];
             let totalSent = 0;
             let totalLoss = 0;
             let lastHost = '???';
@@ -334,17 +316,12 @@ export function ResultsDisplay({
                     totalLoss++;
                     return;
                 }
-
-                if (typeof probe === 'object') {
-                    if (probe.host) {
-                        lastHost = probe.host;
-                        lastIp = probe.host;
-                    }
-
+                if (typeof probe === 'object' && !Array.isArray(probe)) {
+                    if (probe.host) { lastHost = probe.host; lastIp = probe.host; }
                     if (Array.isArray(probe.query_times)) {
                         probe.query_times.forEach((t: any) => {
                             totalSent++;
-                            if (t === null || t === undefined || t === "-") {
+                            if (t === null || t === undefined || t === '-') {
                                 totalLoss++;
                             } else {
                                 const timeVal = parseFloat(t);
@@ -359,32 +336,12 @@ export function ResultsDisplay({
                 }
             };
 
-            // Process probes (handling potential nesting like [[{host:...}]])
             hopProbes.forEach((p: any) => {
                 if (Array.isArray(p)) p.forEach(processProbe);
                 else processProbe(p);
             });
 
-            // Even if we found nothing (all nulls), we should return a "Loss 100%" row rather than null,
-            // so the user sees line items for every hop.
-            // Only return null if the hop structure itself was empty/invalid
-            if (totalSent === 0 && lastHost === '???') {
-                // Try to return a skeleton if possible, or null
-                if (hopProbes.length > 0) {
-                    return {
-                        host: '???',
-                        ip: '',
-                        loss: 100,
-                        sent: 0,
-                        last: 0,
-                        avg: 0,
-                        best: 0,
-                        worst: 0,
-                        stdev: 0
-                    } as MtrHop;
-                }
-                return null;
-            }
+            if (totalSent === 0 && lastHost === '???') return null;
 
             const avg = allTimes.length > 0 ? allTimes.reduce((a, b) => a + b, 0) / allTimes.length : 0;
             const best = allTimes.length > 0 ? Math.min(...allTimes) : 0;
@@ -396,14 +353,19 @@ export function ResultsDisplay({
                 ip: lastIp,
                 loss: totalSent > 0 ? (totalLoss / totalSent) * 100 : 0,
                 sent: totalSent,
-                last,
-                avg,
-                best,
-                worst,
-                stdev: 0
+                last, avg, best, worst, stdev: 0
             } as MtrHop;
         }).filter(h => h !== null) as MtrHop[];
+
+        // Обрізаємо хвостові хопи з host='???' — тайм-аути після кінцевого хоста.
+        // MTR надсилає пакети далі за ціль — вони ніколи не відповідають і показуються як ???.
+        let lastMeaningful = hops.length - 1;
+        while (lastMeaningful > 0 && hops[lastMeaningful].host === '???') {
+            lastMeaningful--;
+        }
+        return hops.slice(0, lastMeaningful + 1);
     };
+
 
 
     const formatTTL = (seconds: any): string => {
@@ -627,18 +589,17 @@ export function ResultsDisplay({
         // CheckHost Ping results: [ [["OK", time, ip], ["OK", time], ...] ]
         // firstResult is the array of packets
 
-        let packets: any[] = [];
-        let ip = '-';
-
         // Valid packets must be arrays with at least 2 elements [status, time]
         // We interpret "OK" status as success
-        packets = firstResult.filter((r: any) =>
+        const packets = firstResult.filter((r: any) =>
             Array.isArray(r) &&
             r.length >= 2 &&
             (String(r[0]).toUpperCase().includes('OK')) &&
             // Ensure time is valid number
             !isNaN(parseFloat(r[1])) && parseFloat(r[1]) > 0
         );
+
+        let ip = '-';
 
         // Find IP using Regex from any packet that has it within firstResult
         const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
@@ -678,10 +639,10 @@ export function ResultsDisplay({
     const totalCount = entries.length;
 
     return (
-        <div className="space-y-4 mt-8">
+        <div className="space-y-4 mt-6">
             {/* Controls Header (hidden for dns-all single-block view) */}
             {checkType !== 'dns-all' && (
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-white/5 shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
                             <h3 className="font-semibold">Results</h3>

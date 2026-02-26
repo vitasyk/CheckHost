@@ -21,7 +21,7 @@ export class CheckHostAPI {
             headers: {
                 Accept: 'application/json',
             },
-            timeout: 10000,
+            timeout: 30000,
         });
     }
 
@@ -79,7 +79,8 @@ export class CheckHostAPI {
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 throw new Error(
-                    `CheckHost API error: ${error.response?.data?.message || error.message}`
+                    `CheckHost API error: ${error.response?.data?.message || error.message}`,
+                    { cause: error }
                 );
             }
             throw error;
@@ -98,7 +99,8 @@ export class CheckHostAPI {
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 throw new Error(
-                    `Failed to get results: ${error.response?.data?.message || error.message}`
+                    `Failed to get results: ${error.response?.data?.message || error.message}`,
+                    { cause: error }
                 );
             }
             throw error;
@@ -117,7 +119,8 @@ export class CheckHostAPI {
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 throw new Error(
-                    `Failed to get extended results: ${error.response?.data?.message || error.message}`
+                    `Failed to get extended results: ${error.response?.data?.message || error.message}`,
+                    { cause: error }
                 );
             }
             throw error;
@@ -171,38 +174,72 @@ export class CheckHostAPI {
         type?: CheckType
     ): Promise<ResultsResponse> {
         let attempts = 0;
+        // Для MTR: відстежуємо попередню кількість хопів щоб визначити стабілізацію
+        let prevMtrHopCounts: Record<string, number> = {};
+        let stableCount = 0;
 
         while (attempts < MAX_POLL_ATTEMPTS) {
             const results = await this.getResults(requestId);
             const resultValues = Object.values(results);
 
-            // For MTR, we need to be more careful about completion.
-            // A result like [[null]] or [null] is just a placeholder.
-            const allComplete = resultValues.length > 0 && resultValues.every(
-                (result) => {
-                    if (result === null) return false;
-
-                    if (type === 'mtr') {
-                        // For MTR, if the result is an array, it must contain at least 
-                        // one non-null element somewhere in its structure to be considered "started".
-                        // However, we actually want to keep polling until it's finished.
-                        // Check-Host MTR results are complete when they are no longer just nested nulls.
-                        const isAllNull = (v: any): boolean => {
-                            if (v === null) return true;
-                            if (Array.isArray(v)) return v.length === 0 || v.every(isAllNull);
-                            return false;
-                        };
-
-                        if (isAllNull(result)) return false;
-                    }
-
-                    return true;
-                }
-            );
-
             if (onProgress) {
                 onProgress(results);
             }
+
+            if (resultValues.length === 0) {
+                await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+                attempts++;
+                continue;
+            }
+
+            if (type === 'mtr') {
+                // Для MTR визначаємо кількість хопів для кожного вузла.
+                // Правило: всі вузли повернули дані, і кількість хопів стабільна 2 опитування підряд.
+                const getHopCount = (r: any): number => {
+                    if (!r || !Array.isArray(r) || !Array.isArray(r[0])) return -1; // -1 = ще не готово
+                    return r[0].length;
+                };
+
+                // Перевіряємо, чи всі вузли вже дали ненульовий результат
+                const allStarted = resultValues.every(r => r !== null);
+                if (!allStarted) {
+                    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+                    attempts++;
+                    continue;
+                }
+
+                // Підраховуємо хопи для кожного вузла
+                const currentHopCounts: Record<string, number> = {};
+                const nodeIds = Object.keys(results);
+                nodeIds.forEach(nodeId => {
+                    currentHopCounts[nodeId] = getHopCount(results[nodeId]);
+                });
+
+                // Перевіряємо стабільність: всі вузли мають >0 хопів і число хопів не змінилось
+                const allHaveHops = nodeIds.every(id => currentHopCounts[id] > 0);
+                const isStable = allHaveHops && nodeIds.every(
+                    id => prevMtrHopCounts[id] === currentHopCounts[id]
+                );
+
+                prevMtrHopCounts = currentHopCounts;
+
+                if (isStable) {
+                    stableCount++;
+                    if (stableCount >= 2) {
+                        // Два підряд стабільних опитування — вважаємо завершеним
+                        return results;
+                    }
+                } else {
+                    stableCount = 0;
+                }
+
+                await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+                attempts++;
+                continue;
+            }
+
+            // Для всіх інших типів: стандартна перевірка "всі ненульові"
+            const allComplete = resultValues.every(result => result !== null);
 
             if (allComplete) {
                 return results;
@@ -213,7 +250,7 @@ export class CheckHostAPI {
             attempts++;
         }
 
-        // Timeout - return partial results
+        // Timeout — повертаємо часткові результати
         const results = await this.getResults(requestId);
         return results;
     }
@@ -253,7 +290,8 @@ export class CheckHostAPI {
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 throw new Error(
-                    `DNS lookup failed: ${error.response?.data?.error || error.message}`
+                    `DNS lookup failed: ${error.response?.data?.error || error.message}`,
+                    { cause: error }
                 );
             }
             throw error;

@@ -1,0 +1,40 @@
+{
+    "Index": {
+        "title": "Überwachen Sie die globale Leistung Ihrer Website",
+        "subtitle": "Testen Sie Verfügbarkeit, Latenz und DNS-Auflösung von über 20 weltweiten Standorten. Schnelle, kostenlose und zuverlässige Netzwerküberwachung.",
+        "startMonitoring": "Überwachung starten",
+        "viewDocs": "Dokumentation anzeigen"
+    },
+    "Navigation": {
+        "home": "Startseite",
+        "dashboard": "Dashboard",
+        "blog": "Blog",
+        "about": "Über uns"
+    },
+    "Tools": {
+        "ping": "Ping-Prüfung",
+        "http": "HTTP-Prüfung",
+        "dns": "DNS-Abfrage",
+        "ipinfo": "IP-Info"
+    },
+    "Metadata": {
+        "pingTitle": "Ping Online - Website-Konnektivität weltweit prüfen",
+        "pingDesc": "Testen Sie ICMP-Pings zu jedem Host oder IP von mehreren globalen Standorten aus. Überprüfen Sie Latenz und Paketverlust in Echtzeit.",
+        "httpTitle": "HTTP-Prüfung - Website-Verfügbarkeit & Leistung überwachen",
+        "httpDesc": "Überprüfen Sie den HTTP-Status und die Antwortzeiten von über 20 weltweiten Standorten. Schnelle und zuverlässige Verfügbarkeitsüberwachung.",
+        "dnsTitle": "DNS-Abfrage - Globale DNS-Einträge prüfen",
+        "dnsDesc": "Überprüfen Sie die weltweite DNS-Verbreitung. Prüfen Sie sofort A-, AAAA-, MX-, CNAME- und TXT-Einträge auf verschiedenen Nameservern.",
+        "ipinfoTitle": "IP-Info & Standorterfassung - Detaillierte Netzwerkinformationen",
+        "ipinfoDesc": "Finden Sie detaillierte Geolokalisierungs-, ISP- und Netzwerkdaten für jede IP-Adresse oder Domäne. Vergleich mehrerer Anbieter.",
+        "checksTitle": "Diagnosetools - Globale Überwachung der Website-Leistung",
+        "checksDesc": "Umfassende Diagnose-Tools für Websites, einschließlich Ping-, HTTP-, DNS-, SSL- und MTR-Prüfungen. Multimodale Analyse von über 20 Standorten."
+    },
+    "Share": {
+        "snapshot": "Snapshot",
+        "expires": "Läuft ab",
+        "capturedOn": "Aufgezeichnet am",
+        "runLiveCheck": "Erneut prüfen",
+        "installApp": "App installieren",
+        "monitorHost": "Host überwachen"
+    }
+}

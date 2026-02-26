@@ -1,0 +1,40 @@
+{
+    "Index": {
+        "title": "Monitorea el rendimiento global de tu sitio web",
+        "subtitle": "Prueba el tiempo de actividad, la latencia y la resolución DNS desde más de 20 ubicaciones mundiales. Monitoreo de red rápido, gratuito y confiable.",
+        "startMonitoring": "Iniciar monitoreo",
+        "viewDocs": "Ver documentación"
+    },
+    "Navigation": {
+        "home": "Inicio",
+        "dashboard": "Panel de control",
+        "blog": "Blog",
+        "about": "Acerca de"
+    },
+    "Tools": {
+        "ping": "Prueba de Ping",
+        "http": "Prueba HTTP",
+        "dns": "Búsqueda DNS",
+        "ipinfo": "Info de IP"
+    },
+    "Metadata": {
+        "pingTitle": "Ping Online - Comprobar conectividad global",
+        "pingDesc": "Pruebe el ping ICMP a cualquier host o IP desde múltiples ubicaciones globales. Verifique la latencia y la pérdida de paquetes en tiempo real.",
+        "httpTitle": "Prueba HTTP - Monitorear tiempo de actividad y rendimiento",
+        "httpDesc": "Verifique el estado HTTP y los tiempos de respuesta desde más de 20 ubicaciones mundiales. Monitoreo rápido y confiable para cualquier sitio web.",
+        "dnsTitle": "Búsqueda DNS - Comprobar registros DNS",
+        "dnsDesc": "Verifique la propagación DNS global. Verifique registros A, AAAA, MX, CNAME y TXT en múltiples servidores de nombres al instante.",
+        "ipinfoTitle": "Info de IP y Geolocalización - Inteligencia de red",
+        "ipinfoDesc": "Encuentre datos detallados de geolocalización, ISP y de red para cualquier dirección IP o dominio. Comparación de múltiples proveedores.",
+        "checksTitle": "Herramientas de diagnóstico - Monitoreo global de rendimiento",
+        "checksDesc": "Completas herramientas de diagnóstico web que incluyen pruebas de Ping, HTTP, DNS, SSL y MTR. Análisis multimodal desde más de 20 ubicaciones."
+    },
+    "Share": {
+        "snapshot": "Instantánea",
+        "expires": "Expira el",
+        "capturedOn": "Capturado el",
+        "runLiveCheck": "Volver a comprobar",
+        "installApp": "Instalar aplicación",
+        "monitorHost": "Monitorear host"
+    }
+}

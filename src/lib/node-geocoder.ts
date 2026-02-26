@@ -1,5 +1,5 @@
 
-interface NodeCoords {
+interface _NodeCoords {
     lat: number;
     lng: number;
     city: string;

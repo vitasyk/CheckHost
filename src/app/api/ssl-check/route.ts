@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as tls from 'tls';
 import * as dns from 'dns';
 import { promisify } from 'util';
+import crypto from 'crypto';
+import { logSeoPage } from '@/lib/seo-logger';
 
 const lookup = promisify(dns.lookup);
 
@@ -18,6 +20,10 @@ export async function GET(request: NextRequest) {
 
     try {
         const result = await checkSsl(host);
+
+        // Log successful check for Programmatic SEO
+        logSeoPage(host, 'ssl').catch(console.error);
+
         return NextResponse.json(result);
     } catch (error: any) {
         // Map internal error codes to user-friendly messages
@@ -69,7 +75,7 @@ async function checkSsl(host: string, port: number = 443): Promise<any> {
         if (lookupResult && lookupResult.address) {
             hostIp = lookupResult.address;
         }
-    } catch (e) {
+    } catch {
         // Fallback or ignore
     }
 
@@ -97,13 +103,12 @@ async function checkSsl(host: string, port: number = 443): Promise<any> {
             const chain: any[] = [];
             let current: any = cert;
             const seen = new Set();
-            const crypto = require('crypto');
 
             while (current && !seen.has(current.fingerprint)) {
                 seen.add(current.fingerprint);
 
                 let sigalg = (current as any).sigalg;
-                let pubkeyType = '';
+                const _pubkeyType = '';
 
                 // Use X509Certificate if available for more detailed info (Node 15.6+)
                 if (current.raw && crypto.X509Certificate) {
@@ -113,8 +118,8 @@ async function checkSsl(host: string, port: number = 443): Promise<any> {
                         // Construct a descriptive algorithm string if possible
                         if (!sigalg && x509.publicKey) {
                             const keyInfo = x509.publicKey.asymmetricKeyDetails;
-                            const keyType = x509.publicKey.asymmetricKeyType.toUpperCase();
-                            sigalg = `${keyType} ${keyInfo?.modulusLength || current.bits || ''}`;
+                            const keyType = x509.publicKey.asymmetricKeyType?.toUpperCase();
+                            sigalg = `${keyType || 'Unknown'} ${keyInfo?.modulusLength || current.bits || ''}`;
                         }
                     } catch (e) {
                         console.error('X509 parsing error:', e);
@@ -165,7 +170,7 @@ async function checkSsl(host: string, port: number = 443): Promise<any> {
                     });
                     clearTimeout(id);
                     serverType = response.headers.get('server') || 'Unknown';
-                } catch (e) {
+                } catch {
                     // Ignore errors for header fetching
                 }
             };

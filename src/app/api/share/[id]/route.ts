@@ -16,15 +16,22 @@ export async function GET(
         let snapshot: any = null;
 
         if (isPostgresConfigured) {
-            const res = await pool.query(
-                `SELECT * FROM result_snapshots WHERE id = $1`,
-                [id]
-            );
-            if (res.rows.length > 0) {
-                snapshot = res.rows[0];
+            try {
+                const res = await pool.query(
+                    `SELECT * FROM result_snapshots WHERE id = $1`,
+                    [id]
+                );
+                if (res.rows.length > 0) {
+                    snapshot = res.rows[0];
+                }
+            } catch (dbError) {
+                console.error('[API Share] Postgres query failed, falling back to Supabase if possible:', dbError);
+                // Continue to Supabase check if snapshot still null
             }
-        } else if (isSupabaseConfigured) {
-            const { data, error } = await supabase
+        }
+
+        if (!snapshot && isSupabaseConfigured) {
+            const { data, error: _error } = await supabase
                 .from('result_snapshots')
                 .select('*')
                 .eq('id', id)
@@ -47,8 +54,8 @@ export async function GET(
 
         return NextResponse.json(snapshot);
 
-    } catch (error: any) {
-        console.error('Error fetching snapshot:', error);
+    } catch (_error) {
+        console.error('Error fetching snapshot:', _error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

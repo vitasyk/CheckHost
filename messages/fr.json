@@ -1,0 +1,40 @@
+{
+    "Index": {
+        "title": "Surveillez les performances mondiales de votre site web",
+        "subtitle": "Testez la disponibilité, la latence et la résolution DNS depuis plus de 20 emplacements dans le monde. Surveillance de réseau rapide, gratuite et fiable.",
+        "startMonitoring": "Démarrer la surveillance",
+        "viewDocs": "Voir la documentation"
+    },
+    "Navigation": {
+        "home": "Accueil",
+        "dashboard": "Tableau de bord",
+        "blog": "Blog",
+        "about": "À propos"
+    },
+    "Tools": {
+        "ping": "Vérification Ping",
+        "http": "Vérification HTTP",
+        "dns": "Recherche DNS",
+        "ipinfo": "Infos IP"
+    },
+    "Metadata": {
+        "pingTitle": "Ping en ligne - Vérifier la connectivité mondiale",
+        "pingDesc": "Testez le ping ICMP vers n'importe quel hôte ou IP depuis plusieurs emplacements mondiaux. Vérifiez la latence et la perte de paquets en temps réel.",
+        "httpTitle": "Test HTTP - Surveiller la disponibilité et les performances",
+        "httpDesc": "Vérifiez l'état HTTP et les temps de réponse depuis plus de 20 emplacements. Surveillance de la disponibilité rapide et fiable.",
+        "dnsTitle": "Recherche DNS - Vérifier les enregistrements DNS mondiaux",
+        "dnsDesc": "Vérifiez la propagation DNS mondiale. Interrogez les enregistrements A, AAAA, MX, CNAME et TXT sur plusieurs serveurs de noms instantanément.",
+        "ipinfoTitle": "Info IP & Géolocalisation - Renseignement réseau",
+        "ipinfoDesc": "Trouvez des données de géolocalisation, de FAI et réseau détaillées pour toute adresse IP ou domaine. Comparaison de plusieurs fournisseurs.",
+        "checksTitle": "Outils de diagnostic - Surveillance mondiale des performances",
+        "checksDesc": "Des outils complets de diagnostic de site web comprenant des vérifications Ping, HTTP, DNS, SSL et MTR. Analyse multimodale depuis 20+ emplacements."
+    },
+    "Share": {
+        "snapshot": "Instantané",
+        "expires": "Expire le",
+        "capturedOn": "Capturé le",
+        "runLiveCheck": "Re-vérifier",
+        "installApp": "Installer l'application",
+        "monitorHost": "Surveiller l'hôte"
+    }
+}

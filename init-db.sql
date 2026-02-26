@@ -60,6 +60,16 @@ CREATE TABLE IF NOT EXISTS result_snapshots (
     metadata JSONB
 );
 
+-- Table for Programmatic SEO (Dynamically Generated Pages)
+CREATE TABLE IF NOT EXISTS seo_pages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    host VARCHAR(255) NOT NULL,
+    tool VARCHAR(50) NOT NULL,
+    last_checked TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    check_count INTEGER DEFAULT 1,
+    UNIQUE(host, tool)
+);
+
 -- Indexing for performance
 CREATE INDEX IF NOT EXISTS idx_result_snapshots_expires_at ON result_snapshots(expires_at);
 CREATE INDEX IF NOT EXISTS idx_check_logs_created_at ON check_logs(created_at);
@@ -83,3 +93,29 @@ VALUES ('adsense', '{
     "snapshot_ttl_days": 30
 }')
 ON CONFLICT (key) DO NOTHING;
+
+-- Table for User Accounts (SaaS)
+CREATE TABLE IF NOT EXISTS users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255),
+    image TEXT,
+    role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+    plan VARCHAR(20) DEFAULT 'free' CHECK (plan IN ('free', 'pro', 'enterprise')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP WITH TIME ZONE
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+-- Table for Auto-Blogger Keywords
+CREATE TABLE IF NOT EXISTS blog_keywords (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    keyword VARCHAR(255) UNIQUE NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
+    language VARCHAR(10) DEFAULT 'en',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    processed_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE INDEX IF NOT EXISTS idx_blog_keywords_status ON blog_keywords(status);

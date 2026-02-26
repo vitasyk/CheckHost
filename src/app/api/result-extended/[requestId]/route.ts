@@ -3,18 +3,6 @@ import { NextResponse } from 'next/server';
 import axios from 'axios';
 import { apiLogger } from '@/lib/api-logger';
 
-function sanitizeId(id: string): string {
-    return id.replace('.node.check-host.net', '');
-}
-
-function sanitizeKeys(obj: Record<string, any>): Record<string, any> {
-    if (!obj) return obj;
-    return Object.keys(obj).reduce((acc, key) => {
-        acc[sanitizeId(key)] = obj[key];
-        return acc;
-    }, {} as Record<string, any>);
-}
-
 export async function GET(
     request: Request,
     context: { params: Promise<{ requestId: string }> }
