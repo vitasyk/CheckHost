@@ -136,15 +136,17 @@ export function AdSlot({ slotType, className = "", alignment: propsAlignment }: 
         router.push(`${pathname}?${params.toString()}`);
     };
 
-    return (
+    const isSticky = slotConfig?.sticky && slotType.includes('sidebar');
+
+    const adContent = (
         <div
-            className={`ad-container my-8 relative ${alignmentClasses} ${className} transition-all duration-300 ${isXRayActive ? 'ring-2 ring-indigo-500/50 hover:ring-indigo-500 rounded-xl overflow-hidden cursor-pointer' : ''}`}
+            className={`ad-container relative ${alignmentClasses} ${className} transition-all duration-300 ${isXRayActive ? 'ring-2 ring-indigo-500/50 hover:ring-indigo-500 rounded-xl overflow-hidden cursor-pointer' : ''}`}
             style={{
                 minHeight: slotConfig?.height ? `${slotConfig.height}px` : defaultMinHeight,
                 width: slotConfig?.width ? `${slotConfig.width}px` : '100%',
                 maxWidth: '100%',
                 clear: alignment !== 'center' ? 'none' : 'both',
-                margin: alignment === 'center' ? '2rem auto' : undefined
+                margin: alignment === 'center' ? (slotType.includes('sidebar') ? '0' : '2rem auto') : undefined
             }}
             onClick={isXRayActive ? handleEditClick : undefined}
             title={isXRayActive ? `Edit ${slotType}` : undefined}
@@ -186,6 +188,16 @@ export function AdSlot({ slotType, className = "", alignment: propsAlignment }: 
             )}
         </div>
     );
+
+    if (slotType.includes('sidebar')) {
+        return (
+            <div className={`site-sidebar-ad-wrapper ${isSticky ? 'sticky top-[100px]' : ''}`}>
+                {adContent}
+            </div>
+        );
+    }
+
+    return adContent;
 }
 
 declare global {

@@ -1,3 +1,4 @@
+import { getCountryCoords } from './country-coords';
 
 interface _NodeCoords {
     lat: number;
@@ -121,51 +122,7 @@ const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
     'Melbourne': { lat: -37.8136, lng: 144.9631 },
 };
 
-const COUNTRY_COORDS: Record<string, { lat: number; lng: number }> = {
-    'UA': { lat: 48.3794, lng: 31.1656 },
-    'DE': { lat: 51.1657, lng: 10.4515 },
-    'FR': { lat: 46.2276, lng: 2.2137 },
-    'US': { lat: 37.0902, lng: -95.7129 },
-    'NL': { lat: 52.1326, lng: 5.2913 },
-    'GB': { lat: 55.3781, lng: -3.4360 },
-    'PL': { lat: 51.9194, lng: 19.1451 },
-    'CZ': { lat: 49.8175, lng: 15.4730 },
-    'FI': { lat: 61.9241, lng: 25.7482 },
-    'SE': { lat: 60.1282, lng: 18.6435 },
-    'CH': { lat: 46.8182, lng: 8.2275 },
-    'AT': { lat: 47.5162, lng: 14.5501 },
-    'SK': { lat: 48.6690, lng: 19.6990 },
-    'RO': { lat: 45.9432, lng: 24.9668 },
-    'BG': { lat: 42.7339, lng: 25.4858 },
-    'HU': { lat: 47.1625, lng: 19.5033 },
-    'IT': { lat: 41.8719, lng: 12.5674 },
-    'ES': { lat: 40.4637, lng: -3.7492 },
-    'PT': { lat: 39.3999, lng: -8.2245 },
-    'GR': { lat: 39.0742, lng: 21.8243 },
-    'TR': { lat: 38.9637, lng: 35.2433 },
-    'RS': { lat: 44.0165, lng: 21.0059 },
-    'HR': { lat: 45.1000, lng: 15.2000 },
-    'SI': { lat: 46.1512, lng: 14.9955 },
-    'EE': { lat: 58.5953, lng: 25.0136 },
-    'LV': { lat: 56.8796, lng: 24.6032 },
-    'LT': { lat: 55.1694, lng: 23.8813 },
-    'IE': { lat: 53.1424, lng: -7.6921 },
-    'NO': { lat: 60.4720, lng: 8.4689 },
-    'DK': { lat: 56.2639, lng: 9.5018 },
-    'RU': { lat: 61.5240, lng: 105.3188 },
-    'KZ': { lat: 48.0196, lng: 66.9237 },
-    'IL': { lat: 31.0461, lng: 34.8516 },
-    'AE': { lat: 23.4241, lng: 53.8478 },
-    'SG': { lat: 1.3521, lng: 103.8198 },
-    'JP': { lat: 36.2048, lng: 138.2529 },
-    'HK': { lat: 22.3193, lng: 114.1694 },
-    'IN': { lat: 20.5937, lng: 78.9629 },
-    'CA': { lat: 56.1304, lng: -106.3468 },
-    'BR': { lat: -14.2350, lng: -51.9253 },
-    'ZA': { lat: -30.5595, lng: 22.9375 },
-    'AU': { lat: -25.2744, lng: 133.7751 },
-    'MD': { lat: 47.4116, lng: 28.3699 },
-};
+
 
 /**
  * Resolves coordinates for a node based on its city and country
@@ -186,10 +143,10 @@ export function geocodeNode(city: string, country: string, countryCode: string):
     }
 
     // 3. Try country code match
-    if (trimmedCountryCode && COUNTRY_COORDS[trimmedCountryCode]) return COUNTRY_COORDS[trimmedCountryCode];
-
-    // 4. Try country name match
-    if (trimmedCountry && COUNTRY_COORDS[trimmedCountry]) return COUNTRY_COORDS[trimmedCountry];
+    if (trimmedCountryCode) {
+        const coords = getCountryCoords(trimmedCountryCode.toUpperCase());
+        if (coords) return { lat: coords[0], lng: coords[1] };
+    }
 
     // 5. Default - Log warning and return generic point
     console.warn(`[NodeGeocoder] Unknown location: City="${city}", Country="${country}", Code="${countryCode}"`);

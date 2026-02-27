@@ -234,15 +234,15 @@ export default async function RootLayout({
                                             <AdSlot slotType="blog_top" className="w-full site-global-ad" />
                                         </Suspense>
 
-                                        <main className="flex-1 w-full overflow-x-hidden">
-                                            <div className={`${isFullWidthPage ? 'w-full px-4 sm:px-6' : 'max-w-[1440px] mx-auto px-4 sm:px-8'} flex flex-col md:flex-row gap-6 relative site-main-container`}>
+                                        <main className="flex-1 w-full relative flex flex-col min-h-screen">
+                                            <div className={`${isFullWidthPage ? 'w-full px-4 sm:px-6' : 'max-w-[1440px] mx-auto w-full px-4 sm:px-8'} flex flex-col md:flex-row gap-6 relative site-main-container flex-1`}>
                                                 {/* Left Sidebar Ad */}
                                                 {!isFullWidthPage && (
-                                                    <aside className="hidden lg:block w-40 shrink-0 sticky top-4 h-fit site-sidebar-ad">
+                                                    <div className="hidden lg:block w-40 shrink-0">
                                                         <Suspense fallback={<div className="h-[600px] w-full bg-slate-100/50 dark:bg-white/5 rounded-xl animate-pulse" />}>
                                                             <AdSlot slotType="sidebar_left" />
                                                         </Suspense>
-                                                    </aside>
+                                                    </div>
                                                 )}
 
                                                 <div className="flex-1 min-w-0 site-content-wrapper">
@@ -253,11 +253,11 @@ export default async function RootLayout({
 
                                                 {/* Right Sidebar Ad */}
                                                 {!isFullWidthPage && (
-                                                    <aside className="hidden xl:block w-40 shrink-0 sticky top-4 h-fit site-sidebar-ad">
+                                                    <div className="hidden xl:block w-40 shrink-0">
                                                         <Suspense fallback={<div className="h-[600px] w-full bg-slate-100/50 dark:bg-white/5 rounded-xl animate-pulse" />}>
                                                             <AdSlot slotType="sidebar_right" />
                                                         </Suspense>
-                                                    </aside>
+                                                    </div>
                                                 )}
                                             </div>
                                         </main>

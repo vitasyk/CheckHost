@@ -45,8 +45,8 @@ const defaultSlots = {
     blog_top: { id: '', enabled: false, width: undefined, height: undefined, alignment: 'center' },
     blog_bottom: { id: '', enabled: false, width: undefined, height: undefined, alignment: 'center' },
     homepage_bottom: { id: '', enabled: false, width: undefined, height: undefined, alignment: 'center' },
-    sidebar_left: { id: '', enabled: false, width: 160, height: 600, alignment: 'center' },
-    sidebar_right: { id: '', enabled: false, width: 160, height: 600, alignment: 'center' },
+    sidebar_left: { id: '', enabled: false, width: 160, height: 600, alignment: 'center', sticky: true },
+    sidebar_right: { id: '', enabled: false, width: 160, height: 600, alignment: 'center', sticky: true },
     share_content: { id: '', enabled: false, width: undefined, height: undefined, alignment: 'center' },
     error_page_content: { id: '', enabled: false, width: undefined, height: undefined, alignment: 'center' }
 };
@@ -295,6 +295,15 @@ export default function AdminAdsPage() {
                                                 onCheckedChange={(val) => updateSlot(selectedZone, { enabled: val })}
                                             />
                                         </div>
+                                        {selectedZone.includes('sidebar') && (
+                                            <div className="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5">
+                                                <span className="text-sm font-medium">{t('sticky')}</span>
+                                                <Switch
+                                                    checked={config.slots[selectedZone].sticky ?? false}
+                                                    onCheckedChange={(val) => updateSlot(selectedZone, { sticky: val })}
+                                                />
+                                            </div>
+                                        )}
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Slot ID (Google)</label>
                                             <Input
