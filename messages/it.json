@@ -36,5 +36,48 @@
         "runLiveCheck": "Controlla di nuovo",
         "installApp": "Installa app",
         "monitorHost": "Monitora host"
+    },
+    "Dashboard": {
+        "userDashboard": "Dashboard utente",
+        "welcomeBack": "Bentornato, {name}.",
+        "activeMonitors": "Monitor attivi",
+        "comingSoon": "Prossimamente",
+        "activeMonitorsDesc": "Configura il monitoraggio automatico dell'uptime e delle prestazioni per i tuoi domini.",
+        "apiUsage": "Utilizzo API",
+        "freePlan": "Piano gratuito",
+        "apiUsageDesc": "Controlla i limiti e monitora il consumo dell'API CheckHost.",
+        "accessLevel": "Livello di accesso",
+        "adminAccessLevelDesc": "Hai effettuato l'accesso come Amministratore. Hai accesso completo al pannello di controllo amministrativo.",
+        "userAccessLevelDesc": "Hai effettuato l'accesso come utente standard. Non hai accesso al pannello di controllo amministrativo.",
+        "role": "Ruolo: {role}",
+        "goToAdminPanel": "Vai al pannello di amministrazione →"
+    },
+    "GlobalActivityFeed": {
+        "title": "Feed attività globale",
+        "subtitle": "Richieste di controllo recenti dagli utenti dell'intera piattaforma.",
+        "type": "Tipo",
+        "allTypes": "Tutti i tipi",
+        "status": "Stato",
+        "allStatuses": "Tutti gli stati",
+        "success": "Successo",
+        "error": "Errore",
+        "targetHost": "Host di destinazione",
+        "searchHost": "Cerca host...",
+        "userIp": "IP utente",
+        "searchIp": "Cerca IP...",
+        "dateTime": "Data e ora",
+        "loading": "Caricamento attività...",
+        "noActivityFound": "Nessuna attività trovata con i filtri selezionati.",
+        "pageOf": "Pagina {page} di {totalPages}",
+        "prev": "Precedente",
+        "next": "Successiva"
+    },
+    "DashboardSidebar": {
+        "backToSite": "Torna al sito",
+        "overview": "Panoramica",
+        "monitors": "Monitor",
+        "apiUsage": "Utilizzo API",
+        "settings": "Impostazioni",
+        "logout": "Esci"
     }
 }

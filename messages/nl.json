@@ -36,5 +36,48 @@
         "runLiveCheck": "Opnieuw controleren",
         "installApp": "App installeren",
         "monitorHost": "Host monitoren"
+    },
+    "Dashboard": {
+        "userDashboard": "Gebruikersdashboard",
+        "welcomeBack": "Welkom terug, {name}.",
+        "activeMonitors": "Actieve monitors",
+        "comingSoon": "Binnenkort",
+        "activeMonitorsDesc": "Stel geautomatiseerde uptime- en prestatiebewaking in voor uw domeinen.",
+        "apiUsage": "API-gebruik",
+        "freePlan": "Gratis plan",
+        "apiUsageDesc": "Controleer limieten en volg uw CheckHost API-verbruik.",
+        "accessLevel": "Toegangsniveau",
+        "adminAccessLevelDesc": "U bent ingelogd als Beheerder. U heeft volledige toegang tot het beheerderspaneel.",
+        "userAccessLevelDesc": "U bent ingelogd als standaardgebruiker. U heeft geen toegang tot het beheerderspaneel.",
+        "role": "Rol: {role}",
+        "goToAdminPanel": "Naar het beheerderspaneel →"
+    },
+    "GlobalActivityFeed": {
+        "title": "Globale activiteitsfeed",
+        "subtitle": "Recente controleverzoeken van gebruikers op het hele platform.",
+        "type": "Type",
+        "allTypes": "Alle typen",
+        "status": "Status",
+        "allStatuses": "Alle statussen",
+        "success": "Succes",
+        "error": "Fout",
+        "targetHost": "Doelhost",
+        "searchHost": "Host zoeken...",
+        "userIp": "Gebruikers-IP",
+        "searchIp": "IP zoeken...",
+        "dateTime": "Datum & tijd",
+        "loading": "Activiteit laden...",
+        "noActivityFound": "Geen activiteit gevonden voor uw filters.",
+        "pageOf": "Pagina {page} van {totalPages}",
+        "prev": "Vorige",
+        "next": "Volgende"
+    },
+    "DashboardSidebar": {
+        "backToSite": "Terug naar site",
+        "overview": "Overzicht",
+        "monitors": "Monitors",
+        "apiUsage": "API-gebruik",
+        "settings": "Instellingen",
+        "logout": "Uitloggen"
     }
 }

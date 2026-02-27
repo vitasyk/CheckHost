@@ -36,5 +36,48 @@
         "runLiveCheck": "Volver a comprobar",
         "installApp": "Instalar aplicación",
         "monitorHost": "Monitorear host"
+    },
+    "Dashboard": {
+        "userDashboard": "Panel de usuario",
+        "welcomeBack": "Bienvenido de nuevo, {name}.",
+        "activeMonitors": "Monitores activos",
+        "comingSoon": "Próximamente",
+        "activeMonitorsDesc": "Configura el seguimiento automático del tiempo de actividad y rendimiento de tus dominios.",
+        "apiUsage": "Uso de API",
+        "freePlan": "Plan gratuito",
+        "apiUsageDesc": "Consulta los límites y rastrea el consumo de la API de CheckHost.",
+        "accessLevel": "Nivel de acceso",
+        "adminAccessLevelDesc": "Has iniciado sesión como Administrador. Tienes acceso completo al panel de control administrativo.",
+        "userAccessLevelDesc": "Has iniciado sesión como usuario estándar. No tienes acceso al panel de control administrativo.",
+        "role": "Rol: {role}",
+        "goToAdminPanel": "Ir al panel de administración →"
+    },
+    "GlobalActivityFeed": {
+        "title": "Feed de actividad global",
+        "subtitle": "Solicitudes de verificación recientes de usuarios de toda la plataforma.",
+        "type": "Tipo",
+        "allTypes": "Todos los tipos",
+        "status": "Estado",
+        "allStatuses": "Todos los estados",
+        "success": "Éxito",
+        "error": "Error",
+        "targetHost": "Host objetivo",
+        "searchHost": "Buscar host...",
+        "userIp": "IP del usuario",
+        "searchIp": "Buscar IP...",
+        "dateTime": "Fecha y hora",
+        "loading": "Cargando actividad...",
+        "noActivityFound": "No se encontró actividad con los filtros aplicados.",
+        "pageOf": "Página {page} de {totalPages}",
+        "prev": "Anterior",
+        "next": "Siguiente"
+    },
+    "DashboardSidebar": {
+        "backToSite": "Volver al sitio",
+        "overview": "Resumen",
+        "monitors": "Monitores",
+        "apiUsage": "Uso de API",
+        "settings": "Configuración",
+        "logout": "Cerrar sesión"
     }
 }

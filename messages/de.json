@@ -36,5 +36,48 @@
         "runLiveCheck": "Erneut prüfen",
         "installApp": "App installieren",
         "monitorHost": "Host überwachen"
+    },
+    "Dashboard": {
+        "userDashboard": "Benutzer-Dashboard",
+        "welcomeBack": "Willkommen zurück, {name}.",
+        "activeMonitors": "Aktive Monitore",
+        "comingSoon": "Demnächst",
+        "activeMonitorsDesc": "Richten Sie automatisches Uptime- und Leistungsmonitoring für Ihre Domains ein.",
+        "apiUsage": "API-Nutzung",
+        "freePlan": "Kostenloser Plan",
+        "apiUsageDesc": "Überprüfen Sie Limits und verfolgen Sie Ihre CheckHost API-Nutzung.",
+        "accessLevel": "Zugriffsebene",
+        "adminAccessLevelDesc": "Sie sind als Administrator angemeldet. Sie haben vollen Zugriff auf das Admin-Panel.",
+        "userAccessLevelDesc": "Sie sind als Standardbenutzer angemeldet. Sie haben keinen Zugriff auf das Admin-Panel.",
+        "role": "Rolle: {role}",
+        "goToAdminPanel": "Zum Admin-Panel →"
+    },
+    "GlobalActivityFeed": {
+        "title": "Globaler Aktivitäts-Feed",
+        "subtitle": "Aktuelle Prüfanfragen von Benutzern auf der gesamten Plattform.",
+        "type": "Typ",
+        "allTypes": "Alle Typen",
+        "status": "Status",
+        "allStatuses": "Alle Status",
+        "success": "Erfolg",
+        "error": "Fehler",
+        "targetHost": "Zielhost",
+        "searchHost": "Host suchen...",
+        "userIp": "Benutzer-IP",
+        "searchIp": "IP suchen...",
+        "dateTime": "Datum & Uhrzeit",
+        "loading": "Aktivität wird geladen...",
+        "noActivityFound": "Keine Aktivität für Ihre Filter gefunden.",
+        "pageOf": "Seite {page} von {totalPages}",
+        "prev": "Zurück",
+        "next": "Weiter"
+    },
+    "DashboardSidebar": {
+        "backToSite": "Zurück zur Website",
+        "overview": "Übersicht",
+        "monitors": "Monitore",
+        "apiUsage": "API-Nutzung",
+        "settings": "Einstellungen",
+        "logout": "Abmelden"
     }
 }

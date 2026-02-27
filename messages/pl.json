@@ -36,5 +36,48 @@
         "runLiveCheck": "Sprawdź ponownie",
         "installApp": "Zainstaluj aplikację",
         "monitorHost": "Monitoruj hosta"
+    },
+    "Dashboard": {
+        "userDashboard": "Panel użytkownika",
+        "welcomeBack": "Witaj ponownie, {name}.",
+        "activeMonitors": "Aktywne monitory",
+        "comingSoon": "Wkrótce",
+        "activeMonitorsDesc": "Skonfiguruj automatyczne monitorowanie czasu działania i wydajności swoich domen.",
+        "apiUsage": "Użycie API",
+        "freePlan": "Plan bezpłatny",
+        "apiUsageDesc": "Sprawdzaj limity i śledź zużycie API CheckHost.",
+        "accessLevel": "Poziom dostępu",
+        "adminAccessLevelDesc": "Jesteś zalogowany jako Administrator. Masz pełny dostęp do panelu administracyjnego.",
+        "userAccessLevelDesc": "Jesteś zalogowany jako standardowy użytkownik. Nie masz dostępu do panelu administracyjnego.",
+        "role": "Rola: {role}",
+        "goToAdminPanel": "Przejdź do panelu administracyjnego →"
+    },
+    "GlobalActivityFeed": {
+        "title": "Globalny kanał aktywności",
+        "subtitle": "Ostatnie żądania sprawdzenia od użytkowników na całej platformie.",
+        "type": "Typ",
+        "allTypes": "Wszystkie typy",
+        "status": "Status",
+        "allStatuses": "Wszystkie statusy",
+        "success": "Sukces",
+        "error": "Błąd",
+        "targetHost": "Host docelowy",
+        "searchHost": "Szukaj hosta...",
+        "userIp": "IP użytkownika",
+        "searchIp": "Szukaj IP...",
+        "dateTime": "Data i godzina",
+        "loading": "Ładowanie aktywności...",
+        "noActivityFound": "Nie znaleziono aktywności pasującej do filtrów.",
+        "pageOf": "Strona {page} z {totalPages}",
+        "prev": "Poprzednia",
+        "next": "Następna"
+    },
+    "DashboardSidebar": {
+        "backToSite": "Wróć do strony",
+        "overview": "Przegląd",
+        "monitors": "Monitory",
+        "apiUsage": "Użycie API",
+        "settings": "Ustawienia",
+        "logout": "Wyloguj się"
     }
 }

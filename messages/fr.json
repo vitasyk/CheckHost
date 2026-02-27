@@ -36,5 +36,48 @@
         "runLiveCheck": "Re-vérifier",
         "installApp": "Installer l'application",
         "monitorHost": "Surveiller l'hôte"
+    },
+    "Dashboard": {
+        "userDashboard": "Tableau de bord utilisateur",
+        "welcomeBack": "Bienvenue, {name}.",
+        "activeMonitors": "Moniteurs actifs",
+        "comingSoon": "Bientôt disponible",
+        "activeMonitorsDesc": "Configurez le suivi automatisé de la disponibilité et des performances de vos domaines.",
+        "apiUsage": "Utilisation de l'API",
+        "freePlan": "Plan gratuit",
+        "apiUsageDesc": "Vérifiez les limites et suivez votre consommation de l'API CheckHost.",
+        "accessLevel": "Niveau d'accès",
+        "adminAccessLevelDesc": "Vous êtes connecté en tant qu'Administrateur. Vous avez un accès complet au panneau de contrôle administratif.",
+        "userAccessLevelDesc": "Vous êtes connecté en tant qu'utilisateur standard. Vous n'avez pas accès au panneau de contrôle administratif.",
+        "role": "Rôle : {role}",
+        "goToAdminPanel": "Aller au panneau d'administration →"
+    },
+    "GlobalActivityFeed": {
+        "title": "Flux d'activité mondial",
+        "subtitle": "Dernières demandes de vérification des utilisateurs sur l'ensemble de la plateforme.",
+        "type": "Type",
+        "allTypes": "Tous les types",
+        "status": "Statut",
+        "allStatuses": "Tous les statuts",
+        "success": "Succès",
+        "error": "Erreur",
+        "targetHost": "Hôte cible",
+        "searchHost": "Rechercher un hôte...",
+        "userIp": "IP utilisateur",
+        "searchIp": "Rechercher une IP...",
+        "dateTime": "Date et heure",
+        "loading": "Chargement de l'activité...",
+        "noActivityFound": "Aucune activité trouvée pour vos filtres.",
+        "pageOf": "Page {page} sur {totalPages}",
+        "prev": "Précédent",
+        "next": "Suivant"
+    },
+    "DashboardSidebar": {
+        "backToSite": "Retour au site",
+        "overview": "Aperçu",
+        "monitors": "Moniteurs",
+        "apiUsage": "Utilisation de l'API",
+        "settings": "Paramètres",
+        "logout": "Déconnexion"
     }
 }

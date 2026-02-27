@@ -36,5 +36,48 @@
         "runLiveCheck": "Перепроверить",
         "installApp": "Установить приложение",
         "monitorHost": "Мониторинг"
+    },
+    "Dashboard": {
+        "userDashboard": "Панель пользователя",
+        "welcomeBack": "С возвращением, {name}.",
+        "activeMonitors": "Активные мониторы",
+        "comingSoon": "Скоро",
+        "activeMonitorsDesc": "Настройте автоматический мониторинг аптайма и производительности для ваших доменов.",
+        "apiUsage": "Использование API",
+        "freePlan": "Бесплатный план",
+        "apiUsageDesc": "Проверяйте лимиты и отслеживайте использование CheckHost API.",
+        "accessLevel": "Уровень доступа",
+        "adminAccessLevelDesc": "Вы вошли как Администратор. У вас есть полный доступ к панели администратора.",
+        "userAccessLevelDesc": "Вы вошли как стандартный пользователь. У вас нет доступа к панели администратора.",
+        "role": "Роль: {role}",
+        "goToAdminPanel": "Перейти в Панель администратора →"
+    },
+    "GlobalActivityFeed": {
+        "title": "Глобальная лента активности",
+        "subtitle": "Последние запросы на проверку от пользователей со всей платформы.",
+        "type": "Тип",
+        "allTypes": "Все типы",
+        "status": "Статус",
+        "allStatuses": "Все статусы",
+        "success": "Успех",
+        "error": "Ошибка",
+        "targetHost": "Целевой хост",
+        "searchHost": "Поиск хоста...",
+        "userIp": "IP пользователя",
+        "searchIp": "Поиск IP...",
+        "dateTime": "Дата и время",
+        "loading": "Загрузка активности...",
+        "noActivityFound": "Активность по вашим фильтрам не найдена.",
+        "pageOf": "Страница {page} из {totalPages}",
+        "prev": "Предыдущая",
+        "next": "Следующая"
+    },
+    "DashboardSidebar": {
+        "backToSite": "Вернуться на сайт",
+        "overview": "Обзор",
+        "monitors": "Мониторы",
+        "apiUsage": "Использование API",
+        "settings": "Настройки",
+        "logout": "Выйти"
     }
 }
