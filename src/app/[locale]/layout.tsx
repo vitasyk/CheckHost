@@ -17,6 +17,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { PwaRegister } from "@/components/PwaRegister";
+import { headers } from 'next/headers';
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -162,6 +163,10 @@ export default async function RootLayout({
     const isAdmin = !!session?.user;
     const isMaintenance = systemConfig?.maintenanceMode === true;
 
+    const headersList = await headers();
+    const pathname = headersList.get('x-pathname') || headersList.get('x-invoke-path') || '';
+    const isFullWidthPage = pathname.includes('/admin') || pathname.includes('/dashboard');
+
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
     const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'checknode.io';
 
@@ -230,13 +235,15 @@ export default async function RootLayout({
                                         </Suspense>
 
                                         <main className="flex-1 w-full overflow-x-hidden">
-                                            <div className="max-w-[1440px] mx-auto px-4 sm:px-8 flex flex-col md:flex-row gap-6 relative site-main-container">
+                                            <div className={`${isFullWidthPage ? 'w-full px-4 sm:px-6' : 'max-w-[1440px] mx-auto px-4 sm:px-8'} flex flex-col md:flex-row gap-6 relative site-main-container`}>
                                                 {/* Left Sidebar Ad */}
-                                                <aside className="hidden lg:block w-40 shrink-0 sticky top-4 h-fit site-sidebar-ad">
-                                                    <Suspense fallback={<div className="h-[600px] w-full bg-slate-100/50 dark:bg-white/5 rounded-xl animate-pulse" />}>
-                                                        <AdSlot slotType="sidebar_left" />
-                                                    </Suspense>
-                                                </aside>
+                                                {!isFullWidthPage && (
+                                                    <aside className="hidden lg:block w-40 shrink-0 sticky top-4 h-fit site-sidebar-ad">
+                                                        <Suspense fallback={<div className="h-[600px] w-full bg-slate-100/50 dark:bg-white/5 rounded-xl animate-pulse" />}>
+                                                            <AdSlot slotType="sidebar_left" />
+                                                        </Suspense>
+                                                    </aside>
+                                                )}
 
                                                 <div className="flex-1 min-w-0 site-content-wrapper">
                                                     <Suspense fallback={<div className="min-h-[400px] flex items-center justify-center animate-pulse text-slate-300">Loading content...</div>}>
@@ -245,11 +252,13 @@ export default async function RootLayout({
                                                 </div>
 
                                                 {/* Right Sidebar Ad */}
-                                                <aside className="hidden xl:block w-40 shrink-0 sticky top-4 h-fit site-sidebar-ad">
-                                                    <Suspense fallback={<div className="h-[600px] w-full bg-slate-100/50 dark:bg-white/5 rounded-xl animate-pulse" />}>
-                                                        <AdSlot slotType="sidebar_right" />
-                                                    </Suspense>
-                                                </aside>
+                                                {!isFullWidthPage && (
+                                                    <aside className="hidden xl:block w-40 shrink-0 sticky top-4 h-fit site-sidebar-ad">
+                                                        <Suspense fallback={<div className="h-[600px] w-full bg-slate-100/50 dark:bg-white/5 rounded-xl animate-pulse" />}>
+                                                            <AdSlot slotType="sidebar_right" />
+                                                        </Suspense>
+                                                    </aside>
+                                                )}
                                             </div>
                                         </main>
 
