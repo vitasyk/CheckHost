@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get('status') || '';
     const targetHost = searchParams.get('target_host') || '';
     const userIp = searchParams.get('user_ip') || '';
+    const dateStr = searchParams.get('date') || '';
 
     // Sorting
     const sortParam = searchParams.get('sort') || 'created_at';
@@ -35,6 +36,15 @@ export async function GET(req: NextRequest) {
         let logs: any[] = [];
         let total = 0;
 
+        // Generate date boundaries if date string provided
+        let startOfDay, endOfDay;
+        if (dateStr) {
+            startOfDay = new Date(dateStr);
+            startOfDay.setUTCHours(0, 0, 0, 0);
+            endOfDay = new Date(dateStr);
+            endOfDay.setUTCHours(23, 59, 59, 999);
+        }
+
         if (isSupabaseConfigured) {
             let querySbLogs = supabase.from('check_logs').select('*', { count: 'exact' });
 
@@ -43,6 +53,9 @@ export async function GET(req: NextRequest) {
             if (status) querySbLogs = querySbLogs.eq('status', status);
             if (targetHost) querySbLogs = querySbLogs.ilike('target_host', `%${targetHost}%`);
             if (userIp) querySbLogs = querySbLogs.ilike('user_ip', `%${userIp}%`);
+            if (dateStr && startOfDay && endOfDay) {
+                querySbLogs = querySbLogs.gte('created_at', startOfDay.toISOString()).lte('created_at', endOfDay.toISOString());
+            }
 
             querySbLogs = querySbLogs.order(sortColumn, { ascending: isAscending }).range(offset, offset + limit - 1);
 
@@ -81,6 +94,10 @@ export async function GET(req: NextRequest) {
             if (userIp) {
                 conditions.push(`user_ip ILIKE $${paramIndex++}`);
                 params.push(`%${userIp}%`);
+            }
+            if (dateStr && startOfDay && endOfDay) {
+                conditions.push(`created_at >= $${paramIndex++} AND created_at <= $${paramIndex++}`);
+                params.push(startOfDay.toISOString(), endOfDay.toISOString());
             }
 
             const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';

@@ -34,6 +34,7 @@ export function GlobalActivityFeed() {
     const [statusFilter, setStatusFilter] = useState<string>("all");
     const [targetHostSearch, setTargetHostSearch] = useState<string>("");
     const [userIpSearch, setUserIpSearch] = useState<string>("");
+    const [dateFilter, setDateFilter] = useState<string>("");
 
     // Sorting
     const [sortColumn, setSortColumn] = useState<string>("created_at");
@@ -89,6 +90,7 @@ export function GlobalActivityFeed() {
             if (statusFilter !== "all") params.append("status", statusFilter);
             if (debouncedTargetHost) params.append("target_host", debouncedTargetHost);
             if (debouncedUserIp) params.append("user_ip", debouncedUserIp);
+            if (dateFilter) params.append("date", dateFilter);
 
             const res = await fetch(`/api/dashboard/activity?${params.toString()}`);
             if (!res.ok) throw new Error("Failed to fetch activity logs");
@@ -101,7 +103,7 @@ export function GlobalActivityFeed() {
         } finally {
             setLoading(false);
         }
-    }, [page, typeFilter, statusFilter, debouncedTargetHost, debouncedUserIp, sortColumn, sortOrder]);
+    }, [page, typeFilter, statusFilter, debouncedTargetHost, debouncedUserIp, sortColumn, sortOrder, dateFilter]);
 
     useEffect(() => {
         fetchLogs();
@@ -131,7 +133,20 @@ export function GlobalActivityFeed() {
             </div>
 
             {/* Filters Row */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 z-10 w-full lg:w-3/4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 z-10 w-full">
+                <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('dateTime')}</label>
+                    <Input
+                        type="date"
+                        value={dateFilter}
+                        onChange={(e) => {
+                            setDateFilter(e.target.value);
+                            setPage(1);
+                        }}
+                        className="bg-white dark:bg-slate-950 border-slate-200 dark:border-white/10 w-full text-slate-900 dark:text-slate-100 placeholder:text-slate-500"
+                    />
+                </div>
+
                 <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('type')}</label>
                     <Select value={typeFilter} onValueChange={handleTypeChange}>
@@ -146,20 +161,6 @@ export function GlobalActivityFeed() {
                             <SelectItem value="tcp">TCP</SelectItem>
                             <SelectItem value="udp">UDP</SelectItem>
                             <SelectItem value="info">Info</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('status')}</label>
-                    <Select value={statusFilter} onValueChange={handleStatusChange}>
-                        <SelectTrigger className="bg-white dark:bg-slate-950 border-slate-200 dark:border-white/10">
-                            <SelectValue placeholder={t('allStatuses')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">{t('allStatuses')}</SelectItem>
-                            <SelectItem value="success">{t('success')}</SelectItem>
-                            <SelectItem value="error">{t('error')}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -188,6 +189,20 @@ export function GlobalActivityFeed() {
                             className="pl-9 bg-white dark:bg-slate-950 border-slate-200 dark:border-white/10"
                         />
                     </div>
+                </div>
+
+                <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('status')}</label>
+                    <Select value={statusFilter} onValueChange={handleStatusChange}>
+                        <SelectTrigger className="bg-white dark:bg-slate-950 border-slate-200 dark:border-white/10">
+                            <SelectValue placeholder={t('allStatuses')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">{t('allStatuses')}</SelectItem>
+                            <SelectItem value="success">{t('success')}</SelectItem>
+                            <SelectItem value="error">{t('error')}</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 

@@ -47,7 +47,7 @@ export async function GET(
         // We no longer cache "complete" results for long periods (300s) to allow real-time diagnostics.
         // We only keep very short-term cache (2s) to handle polling concurrency.
         if (hasResults) {
-            memoryCache.set(cacheKey, data, 2);
+            await memoryCache.set(cacheKey, data, 2);
         }
 
         return NextResponse.json(data, {

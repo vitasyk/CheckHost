@@ -28,16 +28,16 @@ export async function GET(request: NextRequest) {
         }
 
         const cacheKey = `ip-info:visitor:${ip}`;
-        const cachedData = memoryCache.get(cacheKey);
+        const cachedData = await memoryCache.get(cacheKey);
         if (cachedData) {
-            return NextResponse.json({ ...cachedData, isFallback }, {
+            return NextResponse.json({ ...(cachedData as any), isFallback }, {
                 headers: { 'X-Cache': 'HIT' }
             });
         }
 
         const data = await getMockIpInfo(ip);
         const visitorData = { ...data, isFallback };
-        memoryCache.set(cacheKey, visitorData, 3600);
+        await memoryCache.set(cacheKey, visitorData, 3600);
 
         return NextResponse.json(visitorData, {
             headers: { 'X-Cache': 'MISS' }
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
 
     // 1. Check cache (TTL 1 hour), skip if forceRefresh is true
     if (!forceRefresh) {
-        const cachedData = memoryCache.get(cacheKey);
+        const cachedData = await memoryCache.get(cacheKey);
         if (cachedData) {
             return NextResponse.json(cachedData, {
                 headers: { 'X-Cache': 'HIT' }
@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
                     rdapRawData: rdapData
                 };
 
-                memoryCache.set(cacheKey, successAsnData, 3600);
+                await memoryCache.set(cacheKey, successAsnData, 3600);
                 logSeoPage(host!, 'ip-info').catch(console.error);
                 return successAsnData;
             }
@@ -150,7 +150,7 @@ export async function GET(request: NextRequest) {
 
             // Cache successful response (TTL 3600s = 1h)
             const successData = { ...data, status: 'success' };
-            memoryCache.set(cacheKey, successData, 3600);
+            await memoryCache.set(cacheKey, successData, 3600);
 
             // Log successful check for Programmatic SEO
             logSeoPage(host!, 'ip-info').catch(console.error);

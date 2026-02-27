@@ -83,7 +83,7 @@ export async function GET(request: Request) {
 
     // 1. Check cache (TTL 10 minutes), skip if forceRefresh is true
     if (!forceRefresh) {
-        const cachedData = memoryCache.get(cacheKey);
+        const cachedData = await memoryCache.get(cacheKey);
         if (cachedData) {
             return NextResponse.json(cachedData, {
                 headers: { 'X-Cache': 'HIT' }
@@ -114,7 +114,7 @@ export async function GET(request: Request) {
                     timestamp: Date.now(),
                 };
 
-                memoryCache.set(cacheKey, data, 600);
+                await memoryCache.set(cacheKey, data, 600);
                 return data;
             }
 
@@ -262,7 +262,7 @@ export async function GET(request: Request) {
             };
 
             // Cache successful response (TTL 600s = 10m)
-            memoryCache.set(cacheKey, data, 600);
+            await memoryCache.set(cacheKey, data, 600);
 
             // Log successful search for Programmatic SEO
             logSeoPage(cleanDomain, 'dns').catch(console.error);

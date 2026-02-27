@@ -422,6 +422,8 @@ export function ResultsDisplay({
                 nodeCity={location.city}
                 onPingIp={onPingIp}
                 targetHost={targetHost}
+                nodeId={nodeId}
+                isSharedView={isSharedView}
             />
         );
     };

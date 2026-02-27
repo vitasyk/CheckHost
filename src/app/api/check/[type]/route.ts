@@ -29,7 +29,7 @@ export async function GET(
     // 1. Check if we have a recently cached request_id for this exact query (60s TTL)
     // Bypassed if refresh=true OR if it's a real-time diagnostic type
     if (!refresh && !isRealTime) {
-        const cachedResponse = memoryCache.get(cacheKey);
+        const cachedResponse = await memoryCache.get(cacheKey);
         if (cachedResponse) {
             return NextResponse.json(cachedResponse, {
                 headers: { 'X-Cache': 'HIT' }
@@ -84,7 +84,7 @@ export async function GET(
             }
 
             // Cache the successful initiation for 60 seconds
-            memoryCache.set(cacheKey, data, 60);
+            await memoryCache.set(cacheKey, data, 60);
 
             return data;
         });

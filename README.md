@@ -38,6 +38,11 @@ cp .env.example .env
 - `NEXTAUTH_SECRET`: Випадковий рядок для автентифікації.
 - `CRON_SECRET`: Секрет для захисту фонових завдань.
 
+**Для масштабування (Redis):**
+- За замовчуванням база використовує In-Memory кеш.
+- Для підключення до Upstash Redis (Serverless), додайте `UPSTASH_REDIS_REST_URL` та `UPSTASH_REDIS_REST_TOKEN`.
+- Для локального Docker Redis використовується `REDIS_URL="redis://localhost:6379"`.
+
 ### 4. Запуск
 Виконайте команду для автоматичного збирання та запуску:
 ```bash

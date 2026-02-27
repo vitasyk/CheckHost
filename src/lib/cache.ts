@@ -1,37 +1,53 @@
 
+import { redis } from './redis';
+
 type CacheItem<T> = {
     data: T;
     expiry: number;
 };
 
-class MemoryCache {
-    private cache = new Map<string, CacheItem<any>>();
+class HybridCache {
+    private localCache = new Map<string, CacheItem<any>>();
     private inflight = new Map<string, Promise<any>>();
 
     /**
-     * Get item from cache if not expired
+     * Get item from cache (tries Redis first, then Local Map)
      */
-    get<T>(key: string): T | null {
-        const item = this.cache.get(key);
+    async get<T>(key: string): Promise<T | null> {
+        // 1. Try Redis if enabled
+        if (redis.isEnabled) {
+            const redisData = await redis.get<T>(key);
+            if (redisData !== null) return redisData;
+        }
+
+        // 2. Fallback to local memory cache
+        const item = this.localCache.get(key);
         if (item && item.expiry > Date.now()) {
             return item.data;
         }
-        if (item) this.cache.delete(key);
+        if (item) this.localCache.delete(key);
+
         return null;
     }
 
     /**
-     * Set item in cache
+     * Set item in cache (Redis and Local Map)
      */
-    set<T>(key: string, data: T, ttlSeconds: number): void {
-        this.cache.set(key, {
+    async set<T>(key: string, data: T, ttlSeconds: number): Promise<void> {
+        // Set in Redis
+        if (redis.isEnabled) {
+            await redis.set(key, data, ttlSeconds);
+        }
+
+        // Set in local memory (acts as extremely fast L1 cache or fallback)
+        this.localCache.set(key, {
             data,
             expiry: Date.now() + ttlSeconds * 1000,
         });
     }
 
     /**
-     * Deduplicate in-flight requests
+     * Deduplicate in-flight requests (kept in memory as it's just per-process promise state)
      */
     async deduplicate<T>(key: string, fn: () => Promise<T>): Promise<T> {
         const existing = this.inflight.get(key);
@@ -45,10 +61,13 @@ class MemoryCache {
     /**
      * Delete item from cache
      */
-    delete(key: string): void {
-        this.cache.delete(key);
+    async delete(key: string): Promise<void> {
+        if (redis.isEnabled) {
+            await redis.del(key);
+        }
+        this.localCache.delete(key);
     }
 }
 
-// Global instance for the server process
-export const memoryCache = new MemoryCache();
+// Global instance for the server process (named memoryCache for backward compatibility)
+export const memoryCache = new HybridCache();

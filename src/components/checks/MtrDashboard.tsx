@@ -1,8 +1,7 @@
 import { useState, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Network, ArrowRight, Camera, Copy, Check, FileText, Loader2, } from 'lucide-react';
-import { toPng, toBlob } from 'html-to-image';
+import { Network, ArrowRight, Check, FileText, Loader2, Link } from 'lucide-react';
 import {
     Table,
     TableBody,
@@ -18,18 +17,17 @@ interface MtrDashboardProps {
     nodeCity?: string;
     onPingIp?: (ip: string) => void;
     targetHost?: string;
+    nodeId?: string;
+    isSharedView?: boolean;
 }
 
-export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDashboardProps) {
+export function MtrDashboard({ result, nodeCity, onPingIp, targetHost, nodeId, isSharedView = false }: MtrDashboardProps) {
     const dashboardRef = useRef<HTMLDivElement>(null);
-    const [screenshotCopied, setScreenshotCopied] = useState(false);
     const [textCopied, setTextCopied] = useState(false);
+    const [isSharing, setIsSharing] = useState(false);
+    const [shareCopied, setShareCopied] = useState(false);
 
-    const captureOptions = {
-        pixelRatio: 2,
-        cacheBust: true,
-        filter: (node: HTMLElement) => !node.classList?.contains('screenshot-hide')
-    };
+    const captureOptions = {};
 
     const processMtrData = (rawResult: any): MtrHop[] => {
         if (!rawResult) return [];
@@ -138,36 +136,36 @@ export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDash
 
     const hops = processMtrData(result);
 
-    const handleScreenshot = async () => {
-        if (dashboardRef.current) {
-            try {
-                const dataUrl = await toPng(dashboardRef.current, captureOptions);
-                const link = document.createElement('a');
-                link.href = dataUrl;
-                link.download = `mtr-${targetHost || 'trace'}.png`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } catch (err) {
-                console.error('Screenshot failed:', err);
-            }
-        }
-    };
+    const handleShare = async () => {
+        if (isSharing) return;
+        setIsSharing(true);
+        try {
+            const res = await fetch('/api/share', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'mtr',
+                    host: targetHost || '',
+                    results: nodeId ? { [nodeId]: result } : { 'unknown': result },
+                    checkNodes: nodeId ? { [nodeId]: { city: nodeCity || 'Unknown' } } : {},
+                    metadata: {
+                        timestamp: new Date().toISOString()
+                    }
+                })
+            });
 
-    const handleCopyToClipboard = async () => {
-        if (dashboardRef.current) {
-            try {
-                const blob = await toBlob(dashboardRef.current, captureOptions);
-                if (blob) {
-                    await navigator.clipboard.write([
-                        new ClipboardItem({ 'image/png': blob })
-                    ]);
-                    setScreenshotCopied(true);
-                    setTimeout(() => setScreenshotCopied(false), 2000);
-                }
-            } catch (err) {
-                console.error('Copy to clipboard failed:', err);
-            }
+            if (!res.ok) throw new Error('Failed to create share link');
+
+            const shareData = await res.json();
+            const fullUrl = `${window.location.origin}/share/${shareData.id}`;
+
+            await navigator.clipboard.writeText(fullUrl);
+            setShareCopied(true);
+            setTimeout(() => setShareCopied(false), 3000);
+        } catch (err) {
+            console.error('Sharing failed:', err);
+        } finally {
+            setIsSharing(false);
         }
     };
 
@@ -203,32 +201,37 @@ export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDash
     // const maxLoss = Math.max(...hops.map(h => parseFloat(h.Loss) || 0));
 
     return (
-        <div className="mt-8">
+        <div className="mt-2">
             {/* Content area with hover buttons - Framework pattern */}
             <div ref={dashboardRef} className="bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200/60 dark:border-white/5 relative group/screenshot pb-1">
                 {/* Hover-reveal floating action buttons */}
                 <div className="screenshot-hide absolute top-0 right-3 z-10 flex items-center opacity-0 group-hover/screenshot:opacity-100 transition-all duration-300">
                     <button
                         onClick={handleCopyText}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-l-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
+                        className={cn(
+                            "flex items-center gap-1.5 px-2.5 py-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer",
+                            isSharedView ? "rounded-lg" : "rounded-l-lg border-r-0"
+                        )}
                     >
                         {textCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <FileText className="h-3 w-3" />}
-                        <span>{textCopied ? 'Copied' : 'Copy TXT'}</span>
+                        <span>{textCopied ? 'Copied TXT' : 'Copy TXT'}</span>
                     </button>
-                    <button
-                        onClick={handleCopyToClipboard}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
-                    >
-                        {screenshotCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-                        <span>{screenshotCopied ? 'Copied Img' : 'Copy Img'}</span>
-                    </button>
-                    <button
-                        onClick={handleScreenshot}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-r-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-l-0 border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer"
-                    >
-                        <Camera className="h-3 w-3" />
-                        <span>Save</span>
-                    </button>
+                    {!isSharedView && (
+                        <button
+                            onClick={handleShare}
+                            disabled={isSharing}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-r-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/80 dark:border-white/10 text-[10px] font-bold uppercase tracking-tight text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-500/30 hover:bg-indigo-50/90 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm cursor-pointer disabled:opacity-50"
+                        >
+                            {shareCopied ? (
+                                <Check className="h-3 w-3 text-emerald-500" />
+                            ) : isSharing ? (
+                                <Loader2 className="h-3 w-3 animate-spin text-indigo-500" />
+                            ) : (
+                                <Link className="h-3 w-3" />
+                            )}
+                            <span>{shareCopied ? 'Link Copied' : 'Copy Link'}</span>
+                        </button>
+                    )}
                 </div>
 
                 <div className="bg-white dark:bg-slate-950 rounded-[calc(1rem-1px)] shadow-sm overflow-hidden p-4 mx-1 mt-1">
@@ -251,24 +254,24 @@ export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDash
                     <Table>
                         <TableHeader>
                             <TableRow className="h-8 hover:bg-transparent border-0 bg-slate-50/50 dark:bg-slate-950/30">
-                                <TableHead className="h-8 text-[10px] uppercase font-bold w-12 text-center">Hop</TableHead>
-                                <TableHead className="h-8 text-[10px] uppercase font-bold">Host / IP</TableHead>
-                                <TableHead className="h-8 text-[10px] uppercase font-bold text-center w-24">Loss %</TableHead>
-                                <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16">Last</TableHead>
-                                <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16">Avg</TableHead>
-                                <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16">Best</TableHead>
-                                <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16">Worst</TableHead>
+                                <TableHead className="h-8 text-[10px] uppercase font-bold w-12 text-center text-slate-500 dark:text-slate-400">Hop</TableHead>
+                                <TableHead className="h-8 text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Host / IP</TableHead>
+                                <TableHead className="h-8 text-[10px] uppercase font-bold text-center w-24 text-slate-500 dark:text-slate-400">Loss %</TableHead>
+                                <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16 text-slate-500 dark:text-slate-400">Last</TableHead>
+                                <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16 text-slate-500 dark:text-slate-400">Avg</TableHead>
+                                <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16 text-slate-500 dark:text-slate-400">Best</TableHead>
+                                <TableHead className="h-8 text-[10px] uppercase font-bold text-right w-16 text-slate-500 dark:text-slate-400">Worst</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {hops.map((hop: MtrHop, i: number) => (
                                 <TableRow key={i} className="h-8 hover:bg-slate-100/50 dark:hover:bg-white/[0.02] border-0 transition-colors">
-                                    <TableCell className="py-1 text-xs font-mono text-muted-foreground text-center">{i + 1}</TableCell>
+                                    <TableCell className="py-1 text-xs font-mono text-slate-500 dark:text-slate-400 text-center font-semibold">{i + 1}</TableCell>
                                     <TableCell className="py-1 text-xs font-mono">
                                         <div className="flex flex-col">
                                             <span
                                                 className={cn(
-                                                    "font-medium text-slate-700 dark:text-slate-200 transition-colors",
+                                                    "font-semibold text-slate-900 dark:text-slate-100 transition-colors",
                                                     onPingIp && "cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline"
                                                 )}
                                                 onClick={(e) => {
@@ -283,7 +286,7 @@ export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDash
                                             {hop.ip && hop.ip !== hop.host && (
                                                 <span
                                                     className={cn(
-                                                        "text-[10px] text-muted-foreground transition-colors",
+                                                        "text-[10px] text-slate-500 dark:text-slate-400 transition-colors mt-0.5",
                                                         onPingIp && "cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline"
                                                     )}
                                                     onClick={(e) => {
@@ -306,16 +309,18 @@ export function MtrDashboard({ result, nodeCity, onPingIp, targetHost }: MtrDash
                                             {hop.loss.toFixed(1)}%
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="py-1 text-xs text-right font-mono text-slate-600 dark:text-slate-400">
+                                    <TableCell className="py-1 text-xs text-right font-mono text-slate-700 dark:text-slate-300 font-medium">
                                         {hop.last.toFixed(1)}
                                     </TableCell>
-                                    <TableCell className="py-1 text-xs text-right font-mono font-bold text-indigo-600 dark:text-indigo-400">
-                                        {hop.avg.toFixed(1)}
+                                    <TableCell className="py-1 text-xs text-right font-mono">
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300 font-bold">
+                                            {hop.avg.toFixed(1)}
+                                        </span>
                                     </TableCell>
-                                    <TableCell className="py-1 text-xs text-right font-mono text-muted-foreground opacity-70">
+                                    <TableCell className="py-1 text-xs text-right font-mono text-slate-500 dark:text-slate-400">
                                         {hop.best.toFixed(1)}
                                     </TableCell>
-                                    <TableCell className="py-1 text-xs text-right font-mono text-muted-foreground opacity-70">
+                                    <TableCell className="py-1 text-xs text-right font-mono text-slate-500 dark:text-slate-400">
                                         {hop.worst.toFixed(1)}
                                     </TableCell>
                                 </TableRow>

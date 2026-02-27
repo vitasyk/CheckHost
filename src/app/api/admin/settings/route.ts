@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     const forceRefresh = searchParams.get('refresh') === 'true';
 
     if (isPublic && !forceRefresh) {
-        const cached = memoryCache.get(cacheKey);
+        const cached = await memoryCache.get(cacheKey);
         if (cached) {
             return NextResponse.json(cached, {
                 headers: { 'X-Cache': 'HIT' }
@@ -43,7 +43,7 @@ export async function GET(request: Request) {
         const value = await memoryCache.deduplicate(cacheKey, async () => {
             const data = await getSiteSetting(key);
             if (isPublic) {
-                memoryCache.set(cacheKey, data, 30);
+                await memoryCache.set(cacheKey, data, 30);
             }
             return data;
         });
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
         });
 
         // Invalidate cache on update
-        memoryCache.delete(`settings:${key}`);
+        await memoryCache.delete(`settings:${key}`);
 
         return NextResponse.json({ success: true });
     } catch (error) {

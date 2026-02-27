@@ -10,6 +10,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { Suspense } from "react";
 import { Header } from "@/components/Header";
+import { MainLayoutWrapper } from "@/components/MainLayoutWrapper";
 import { GlobalAdEditorModal } from "@/components/admin/GlobalAdEditorModal";
 import { JsonLd } from "@/components/SEO/JsonLd";
 import { NextIntlClientProvider } from 'next-intl';
@@ -234,33 +235,22 @@ export default async function RootLayout({
                                             <AdSlot slotType="blog_top" className="w-full site-global-ad" />
                                         </Suspense>
 
-                                        <main className="flex-1 w-full relative flex flex-col min-h-screen">
-                                            <div className={`${isFullWidthPage ? 'w-full px-4 sm:px-6' : 'max-w-[1440px] mx-auto w-full px-4 sm:px-8'} flex flex-col md:flex-row gap-6 relative site-main-container flex-1`}>
-                                                {/* Left Sidebar Ad */}
-                                                {!isFullWidthPage && (
-                                                    <div className="hidden lg:block w-40 shrink-0">
-                                                        <Suspense fallback={<div className="h-[600px] w-full bg-slate-100/50 dark:bg-white/5 rounded-xl animate-pulse" />}>
-                                                            <AdSlot slotType="sidebar_left" />
-                                                        </Suspense>
-                                                    </div>
-                                                )}
-
-                                                <div className="flex-1 min-w-0 site-content-wrapper">
-                                                    <Suspense fallback={<div className="min-h-[400px] flex items-center justify-center animate-pulse text-slate-300">Loading content...</div>}>
-                                                        {children}
-                                                    </Suspense>
-                                                </div>
-
-                                                {/* Right Sidebar Ad */}
-                                                {!isFullWidthPage && (
-                                                    <div className="hidden xl:block w-40 shrink-0">
-                                                        <Suspense fallback={<div className="h-[600px] w-full bg-slate-100/50 dark:bg-white/5 rounded-xl animate-pulse" />}>
-                                                            <AdSlot slotType="sidebar_right" />
-                                                        </Suspense>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </main>
+                                        <MainLayoutWrapper
+                                            leftAd={
+                                                <Suspense fallback={<div className="h-[600px] w-full bg-slate-100/50 dark:bg-white/5 rounded-xl animate-pulse" />}>
+                                                    <AdSlot slotType="sidebar_left" />
+                                                </Suspense>
+                                            }
+                                            rightAd={
+                                                <Suspense fallback={<div className="h-[600px] w-full bg-slate-100/50 dark:bg-white/5 rounded-xl animate-pulse" />}>
+                                                    <AdSlot slotType="sidebar_right" />
+                                                </Suspense>
+                                            }
+                                        >
+                                            <Suspense fallback={<div className="min-h-[400px] flex items-center justify-center animate-pulse text-slate-300">Loading content...</div>}>
+                                                {children}
+                                            </Suspense>
+                                        </MainLayoutWrapper>
 
                                         <Suspense fallback={<div className="h-[250px]" />}>
                                             <AdSlot slotType="homepage_bottom" className="w-full site-global-ad" />
