@@ -9,6 +9,7 @@ import {
     Edit3,
     Trash2,
     Eye,
+    EyeOff,
     Loader2,
     Clock,
     FileText,
@@ -30,6 +31,10 @@ import {
     Timer,
     CalendarClock,
     Send,
+    LayoutDashboard,
+    Save,
+    ToggleLeft,
+    ToggleRight,
 } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
@@ -69,7 +74,7 @@ interface KeywordConfig {
     generateCover: boolean;
 }
 
-type ActiveTab = 'posts' | 'keywords';
+type ActiveTab = 'posts' | 'keywords' | 'seo';
 
 // ── Countdown formatter ───────────────────────────────────────────────────
 function formatCountdown(isoTimestamp: string, _tick: number): string {
@@ -128,6 +133,14 @@ export default function AdminBlogList() {
     const [triggeringPub, setTriggeringPub] = useState(false);
     const [tick, setTick] = useState(0); // for countdown re-render
 
+    // ── SEO Content Block ──────────────────────────────────────────
+    const [seoHtml, setSeoHtml] = useState('');
+    const [seoEnabled, setSeoEnabled] = useState(true);
+    const [savingSeo, setSavingSeo] = useState(false);
+    const [seoSaved, setSeoSaved] = useState(false);
+    const [seoPreview, setSeoPreview] = useState(false);
+    const [seoLoading, setSeoLoading] = useState(false);
+
     // Global defaults for new keywords
     const [globalLangs, setGlobalLangs] = useState<string[]>(ALL_LOCALES.map(l => l.code));
     const [globalProvider, setGlobalProvider] = useState('auto');
@@ -175,6 +188,33 @@ export default function AdminBlogList() {
         } catch { /* ignore */ } finally { setCronLoading(false); }
     }, []);
 
+    const fetchSeoContent = useCallback(async () => {
+        setSeoLoading(true);
+        try {
+            const res = await fetch('/api/admin/settings?key=homepage_seo_content');
+            if (res.ok) {
+                const data = await res.json();
+                if (data) {
+                    setSeoHtml(data.html || '');
+                    setSeoEnabled(data.enabled !== false);
+                }
+            }
+        } catch { /* ignore */ } finally { setSeoLoading(false); }
+    }, []);
+
+    const handleSaveSeoContent = async () => {
+        setSavingSeo(true);
+        try {
+            await fetch('/api/admin/settings?key=homepage_seo_content', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ html: seoHtml, enabled: seoEnabled }),
+            });
+            setSeoSaved(true);
+            setTimeout(() => setSeoSaved(false), 3000);
+        } catch { /* ignore */ } finally { setSavingSeo(false); }
+    };
+
     const saveCronConfig = async (patch: any) => {
         const updated = { ...cronConfig, ...patch };
         setCronConfig(updated);
@@ -210,7 +250,10 @@ export default function AdminBlogList() {
             fetchKeywords();
             fetchCronConfig();
         }
-    }, [activeTab, fetchCronConfig]);
+        if (activeTab === 'seo') {
+            fetchSeoContent();
+        }
+    }, [activeTab, fetchCronConfig, fetchSeoContent]);
 
     const getConfig = (id: string): KeywordConfig =>
         keywordConfigs[id] || { languages: [...globalLangs], providerOverride: globalProvider, generateCover: globalCover };
@@ -440,13 +483,19 @@ export default function AdminBlogList() {
                         )}
 
                         {/* Tabs */}
-                        <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-white/5 w-fit">
-                            {(['posts', 'keywords'] as const).map(tab => (
-                                <button key={tab} onClick={() => setActiveTab(tab)}
-                                    className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${activeTab === tab ? 'bg-white dark:bg-slate-800 shadow text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`}>
-                                    {tab === 'posts' ? <><FileText className="h-4 w-4" /> Posts ({posts.length})</> : <><Tag className="h-4 w-4" /> AI Queue ({keywords.length || '—'})</>}
-                                </button>
-                            ))}
+                        <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-white/5 w-fit flex-wrap">
+                            <button onClick={() => setActiveTab('posts')}
+                                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${activeTab === 'posts' ? 'bg-white dark:bg-slate-800 shadow text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`}>
+                                <FileText className="h-4 w-4" /> Posts ({posts.length})
+                            </button>
+                            <button onClick={() => setActiveTab('keywords')}
+                                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${activeTab === 'keywords' ? 'bg-white dark:bg-slate-800 shadow text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`}>
+                                <Tag className="h-4 w-4" /> AI Queue ({keywords.length || '—'})
+                            </button>
+                            <button onClick={() => setActiveTab('seo')}
+                                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${activeTab === 'seo' ? 'bg-white dark:bg-slate-800 shadow text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`}>
+                                <LayoutDashboard className="h-4 w-4" /> SEO Block
+                            </button>
                         </div>
 
                         {/* ── POSTS TAB ── */}
@@ -891,6 +940,118 @@ export default function AdminBlogList() {
                                                 Trigger Now
                                             </Button>
                                         </div>
+                                    </div>
+                                </Card>
+                            </div>
+                        )}
+
+                        {/* ── SEO CONTENT BLOCK TAB ── */}
+                        {activeTab === 'seo' && (
+                            <div className="space-y-5">
+                                {/* Header card */}
+                                <Card className="p-6 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm space-y-5">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                        <div className="space-y-1">
+                                            <h3 className="font-semibold flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                                                <LayoutDashboard className="h-5 w-5 text-indigo-500" />
+                                                Homepage SEO Content Block
+                                            </h3>
+                                            <p className="text-sm text-slate-500">
+                                                Write HTML content displayed below the main tool on the homepage.
+                                                Use headings, paragraphs, lists, and tables for rich SEO structure.
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-3 shrink-0">
+                                            <button
+                                                onClick={() => setSeoEnabled(v => !v)}
+                                                className={`flex items-center gap-2 text-sm font-semibold px-3 py-1.5 rounded-lg border transition-all ${seoEnabled
+                                                        ? 'border-green-200 bg-green-50 text-green-700 dark:bg-green-900/20 dark:border-green-500/30 dark:text-green-400'
+                                                        : 'border-slate-200 bg-slate-50 text-slate-500 dark:bg-slate-800 dark:border-white/10'
+                                                    }`}
+                                            >
+                                                {seoEnabled ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                                                {seoEnabled ? 'Visible' : 'Hidden'}
+                                            </button>
+                                            <button
+                                                onClick={() => setSeoPreview(v => !v)}
+                                                className="flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                            >
+                                                {seoPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                {seoPreview ? 'Edit' : 'Preview'}
+                                            </button>
+                                            <Button
+                                                onClick={handleSaveSeoContent}
+                                                disabled={savingSeo}
+                                                className="h-9 px-5 gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 rounded-xl"
+                                            >
+                                                {savingSeo ? <Loader2 className="h-4 w-4 animate-spin" /> : seoSaved ? <CheckCircle2 className="h-4 w-4" /> : <Save className="h-4 w-4" />}
+                                                {savingSeo ? 'Saving...' : seoSaved ? 'Saved!' : 'Save'}
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    {seoLoading ? (
+                                        <div className="flex justify-center py-12">
+                                            <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                                        </div>
+                                    ) : seoPreview ? (
+                                        /* Live preview */
+                                        <div
+                                            className="
+                                                min-h-[300px] p-5 rounded-xl border border-slate-200 dark:border-white/10
+                                                bg-white dark:bg-slate-950
+                                                prose prose-slate dark:prose-invert max-w-none
+                                                prose-h2:text-xl prose-h2:font-bold prose-h2:mt-5 prose-h2:mb-2
+                                                prose-h3:text-base prose-h3:font-semibold prose-h3:mt-4 prose-h3:mb-1
+                                                prose-p:text-slate-600 dark:prose-p:text-slate-400 prose-p:leading-relaxed
+                                                prose-ul:space-y-1 prose-li:text-slate-600 dark:prose-li:text-slate-400
+                                                prose-table:text-sm
+                                                prose-th:text-left prose-th:font-semibold prose-th:py-2 prose-th:px-3 prose-th:bg-slate-50 dark:prose-th:bg-slate-900
+                                                prose-td:py-2 prose-td:px-3
+                                            "
+                                            dangerouslySetInnerHTML={{ __html: seoHtml || '<p class="text-slate-400 italic">Nothing to preview. Add HTML content in the editor.</p>' }}
+                                        />
+                                    ) : (
+                                        /* HTML Editor */
+                                        <div className="space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">HTML Editor</span>
+                                                <span className="text-[10px] text-slate-400 ml-auto">
+                                                    Supports: &lt;h2&gt;&lt;h3&gt;&lt;p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;&lt;table&gt;&lt;tr&gt;&lt;td&gt;&lt;th&gt;&lt;section&gt; etc.
+                                                </span>
+                                            </div>
+                                            <textarea
+                                                className="w-full min-h-[420px] p-4 rounded-xl bg-slate-950 border border-slate-200 dark:border-white/10 text-sm font-mono text-green-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 resize-y leading-relaxed"
+                                                placeholder={`<section>\n  <h2>Your SEO Heading</h2>\n  <p>Your SEO description...</p>\n</section>`}
+                                                value={seoHtml}
+                                                onChange={e => setSeoHtml(e.target.value)}
+                                                spellCheck={false}
+                                            />
+                                            <p className="text-[10px] text-slate-400">
+                                                💡 Tip: Leave the editor empty to display the built-in default content.
+                                                Toggle <strong>Preview</strong> above to see the rendered output.
+                                            </p>
+                                        </div>
+                                    )}
+                                </Card>
+
+                                {/* Quick reference card */}
+                                <Card className="p-5 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm">
+                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">HTML Quick Reference</h4>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        {[
+                                            { tag: '<h2>Title</h2>', desc: 'Section heading (H2)' },
+                                            { tag: '<h3>Subtitle</h3>', desc: 'Subsection heading (H3)' },
+                                            { tag: '<p>Text here</p>', desc: 'Paragraph' },
+                                            { tag: '<strong>bold</strong>', desc: 'Bold/emphasis' },
+                                            { tag: '<ul><li>item</li></ul>', desc: 'Bullet list' },
+                                            { tag: '<table><tr><th>H</th></tr><tr><td>D</td></tr></table>', desc: 'Data table' },
+                                        ].map(({ tag, desc }) => (
+                                            <div key={tag} className="flex flex-col gap-0.5">
+                                                <code className="text-[10px] bg-slate-100 dark:bg-slate-950 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-md font-mono break-all">{tag}</code>
+                                                <span className="text-[10px] text-slate-400">{desc}</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </Card>
                             </div>

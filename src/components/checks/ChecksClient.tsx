@@ -353,7 +353,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
             </div>
 
             <div className="relative z-10 flex flex-col">
-                <div className="w-full py-8 flex-1">
+                <div className="w-full pt-8 pb-6">
                     <div className="w-full">
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full relative">
                             <div className="flex flex-col items-center justify-center gap-3 mb-4">
@@ -459,12 +459,9 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                                 </TabsContent>
                             </div>
                         </Tabs>
-                        <AdSlot slotType="results_bottom" className="mt-12" />
+                        <AdSlot slotType="results_bottom" className="mt-8" />
                     </div>
                 </div>
-                <footer className="max-w-[1440px] mx-auto px-4 sm:px-8 py-12 text-center text-slate-400 border-t border-slate-200/50">
-                    <p className="text-sm">© 2026 {process.env.NEXT_PUBLIC_SITE_NAME || 'CheckHost'}</p>
-                </footer>
             </div>
         </div>
     );

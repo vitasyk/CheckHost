@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { setRequestLocale } from 'next-intl/server';
 import { ChecksClient } from '@/components/checks/ChecksClient';
+import { HomePageSeoBlock } from '@/components/HomePageSeoBlock';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
@@ -22,6 +23,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     return (
         <div className="flex flex-col min-h-full">
             <ChecksClient />
+            <HomePageSeoBlock />
         </div>
     );
 }

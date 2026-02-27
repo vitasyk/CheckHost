@@ -19,6 +19,8 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { PwaRegister } from "@/components/PwaRegister";
 import { headers } from 'next/headers';
+import { SiteFooter } from "@/components/SiteFooter";
+import { CookieConsent } from "@/components/CookieConsent";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -259,6 +261,9 @@ export default async function RootLayout({
                                         <Suspense fallback={null}>
                                             <GlobalAdEditorModal />
                                         </Suspense>
+
+                                        <SiteFooter />
+                                        <CookieConsent />
                                     </div>
                                 </>
                             )}
