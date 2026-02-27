@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
         if (isSupabaseConfigured) {
             // Build base queries
             let querySbChecks = supabase.from('check_logs').select('*', { count: 'exact', head: true });
-            let querySbLogs = supabase.from('check_logs').select('*').order('created_at', { ascending: false }).limit(10);
+            const querySbLogs = supabase.from('check_logs').select('*').order('created_at', { ascending: false }).limit(10);
             let querySbDist = supabase.from('check_logs').select('check_type, user_country_code').order('created_at', { ascending: false }).limit(5000);
             let querySbPrevChecks = supabase.from('check_logs').select('*', { count: 'exact', head: true });
             let querySbPrevDist = supabase.from('check_logs').select('user_country_code').order('created_at', { ascending: false }).limit(5000); // Approximation

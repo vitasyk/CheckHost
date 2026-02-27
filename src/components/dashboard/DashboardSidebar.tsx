@@ -12,16 +12,18 @@ import {
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-const menuItems = [
-    { label: 'Overview', icon: LayoutDashboard, href: '/dashboard' },
-    { label: 'Monitors', icon: MonitorCheck, href: '#', disabled: true },
-    { label: 'API Usage', icon: Activity, href: '#', disabled: true },
-    { label: 'Settings', icon: Settings, href: '#', disabled: true },
-];
+import { useTranslations } from 'next-intl';
 
 export function DashboardSidebar() {
     const pathname = usePathname();
+    const t = useTranslations('DashboardSidebar');
+
+    const menuItems = [
+        { label: t('overview'), icon: LayoutDashboard, href: '/dashboard' },
+        { label: t('monitors'), icon: MonitorCheck, href: '#', disabled: true },
+        { label: t('apiUsage'), icon: Activity, href: '#', disabled: true },
+        { label: t('settings'), icon: Settings, href: '#', disabled: true },
+    ];
 
     return (
         <aside className="hidden lg:flex lg:flex-col lg:w-64 shrink-0 space-y-2">
@@ -32,7 +34,7 @@ export function DashboardSidebar() {
                     className="w-full justify-start gap-3 p-6 font-medium rounded-xl transition-all duration-200 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900/40"
                 >
                     <HomeIcon className="h-5 w-5" />
-                    Back to Site
+                    {t('backToSite')}
                 </Button>
             </Link>
 
@@ -62,7 +64,7 @@ export function DashboardSidebar() {
                 onClick={() => signOut({ callbackUrl: '/' })}
             >
                 <LogOut className="h-5 w-5" />
-                Logout
+                {t('logout')}
             </Button>
         </aside>
     );

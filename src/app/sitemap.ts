@@ -3,7 +3,7 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import pool, { isPostgresConfigured } from '@/lib/postgres';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://check-host.top';
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
 
     const locales = ['en', 'uk', 'es', 'de', 'fr', 'ru', 'nl', 'pl', 'it'];
     const defaultLocale = 'en';

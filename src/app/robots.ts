@@ -10,9 +10,8 @@ export default function robots(): MetadataRoute.Robots {
                 '/api/',
                 '/_next/',
                 '/auth/',
-                '/share/', // Disallow private shared results from general search
             ],
         },
-        sitemap: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://check-host.top'}/sitemap.xml`,
+        sitemap: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io'}/sitemap.xml`,
     };
 }

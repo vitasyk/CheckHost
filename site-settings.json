@@ -1,9 +1,8 @@
 {
-  "adsense": null,
   "system_config": {
     "maintenanceMode": false,
     "verboseLogging": false,
     "db_postgres_enabled": true,
-    "db_supabase_enabled": false
+    "db_supabase_enabled": true
   }
 }

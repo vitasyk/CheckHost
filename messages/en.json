@@ -36,5 +36,48 @@
         "runLiveCheck": "Check Again",
         "installApp": "Install App",
         "monitorHost": "Monitor Host"
+    },
+    "Dashboard": {
+        "userDashboard": "User Dashboard",
+        "welcomeBack": "Welcome back, {name}.",
+        "activeMonitors": "Active Monitors",
+        "comingSoon": "Coming soon",
+        "activeMonitorsDesc": "Set up automated uptime and performance tracking for your domains.",
+        "apiUsage": "API Usage",
+        "freePlan": "Free Plan",
+        "apiUsageDesc": "Check limits and track your CheckHost API consumption.",
+        "accessLevel": "Access Level",
+        "adminAccessLevelDesc": "You are logged in as an Administrator. You have full access to the administrative control panel.",
+        "userAccessLevelDesc": "You are logged in as a standard user. You do not have access to the administrative control panel.",
+        "role": "Role: {role}",
+        "goToAdminPanel": "Go to Admin Panel →"
+    },
+    "GlobalActivityFeed": {
+        "title": "Global Activity Feed",
+        "subtitle": "Recent check requests from users across the platform.",
+        "type": "Type",
+        "allTypes": "All Types",
+        "status": "Status",
+        "allStatuses": "All Statuses",
+        "success": "Success",
+        "error": "Error",
+        "targetHost": "Target Host",
+        "searchHost": "Search host...",
+        "userIp": "User IP",
+        "searchIp": "Search IP...",
+        "dateTime": "Date & Time",
+        "loading": "Loading activity...",
+        "noActivityFound": "No activity found matching your filters.",
+        "pageOf": "Page {page} of {totalPages}",
+        "prev": "Prev",
+        "next": "Next"
+    },
+    "DashboardSidebar": {
+        "backToSite": "Back to Site",
+        "overview": "Overview",
+        "monitors": "Monitors",
+        "apiUsage": "API Usage",
+        "settings": "Settings",
+        "logout": "Logout"
     }
 }

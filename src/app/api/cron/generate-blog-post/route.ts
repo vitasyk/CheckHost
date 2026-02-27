@@ -114,7 +114,7 @@ async function generateArticleWithGemini(
         generationConfig: { responseMimeType: 'application/json', temperature: 0.75 },
     }, { apiVersion: 'v1' });
 
-    const langName = LANGUAGE_NAMES[locale] || 'English';
+    const _langName = LANGUAGE_NAMES[locale] || 'English';
     logDebug(`Calling Gemini for locale: ${locale}`);
 
     return retryRequest(async () => {
@@ -131,12 +131,12 @@ async function retryRequest(
     provider: string,
     maxRetries = 2
 ): Promise<any> {
-    let lastError = null;
+    let _lastError = null;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
             return await fn();
         } catch (e: any) {
-            lastError = e;
+            _lastError = e;
             const msg = e.message || '';
 
             // Handle 429 (Quota)
@@ -287,7 +287,7 @@ async function generateArticleWithBrowser(
 
             if (sessionRes.ok) {
                 const sessionData = await sessionRes.json();
-                const accessToken = sessionData.accessToken;
+                const _accessToken = sessionData.accessToken;
 
                 // Call ChatGPT conversation API
                 // Note: Full implementation requires model selection and handling SSE
@@ -370,7 +370,7 @@ export async function GET(request: Request) {
     const geminiModel = rawModel;
     logDebug(`Using Gemini model: ${geminiModel}, Groq model: ${groqModel}`);
 
-    const useBrowser = aiConfig.useBrowserAuth || aiConfig.browserEnabled;
+    const _useBrowser = aiConfig.useBrowserAuth || aiConfig.browserEnabled;
     const preferredProvider = aiConfig.preferredProvider || 'gemini';
 
     try {

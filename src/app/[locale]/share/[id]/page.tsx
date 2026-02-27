@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Clock, AlertCircle, Play, Calendar, ChevronRight } from 'lucide-react';
 import { AdSlot } from '@/components/AdSlot';
 import { useTranslations } from 'next-intl';
-import { usePwa } from '@/components/providers/PwaProvider';
+import { usePwa as _usePwa } from '@/components/providers/PwaProvider';
 import { InstallAppButton } from '@/components/providers/InstallAppButton';
 
 export default function SharePage() {

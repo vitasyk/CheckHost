@@ -5,15 +5,19 @@ import { apiLogger } from '@/lib/api-logger';
 import { headers } from 'next/headers';
 import { memoryCache } from '@/lib/cache';
 import { logSeoPage } from '@/lib/seo-logger';
+import { maskNodes, unmaskUrl } from '@/lib/node-masker';
 
 export async function GET(
     request: Request,
     context: { params: Promise<{ type: string }> }
 ) {
-    const { type } = await context.params;
+    const type = (await context.params).type;
     const { searchParams } = new URL(request.url);
     const host = searchParams.get('host') || 'unknown';
     const refresh = searchParams.get('refresh') === 'true';
+
+    // Unmask the searchParams so that we correctly request check-host.net nodes
+    const unmaskedParams = unmaskUrl(searchParams.toString());
 
     // Create a unique cache key based on type, host, and all parameters
     const cacheKey = `initiate:${type}:${searchParams.toString()}`;
@@ -36,8 +40,8 @@ export async function GET(
     // 2. Use deduplication to handle concurrent requests for the same target
     try {
         const responseData = await memoryCache.deduplicate(cacheKey, async () => {
-            // Forward to check-host
-            const url = `https://check-host.net/check-${type}?${searchParams.toString()}`;
+            // Forward to check-host with unmasked params
+            const url = `https://check-host.net/check-${type}?${unmaskedParams}`;
 
             const startTime = Date.now();
             await apiLogger.info(`Initiating ${type} check for host: ${host}`);
@@ -49,7 +53,8 @@ export async function GET(
                 timeout: 10000
             });
 
-            const data = response.data;
+            // Mask the outgoing data
+            const data = maskNodes(response.data);
             const duration = Date.now() - startTime;
 
             // Logging

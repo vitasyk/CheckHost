@@ -1,143 +1,99 @@
-# Checking Your Host - Quick Start Guide
+# 🚀 CheckHost - Моніторинг та перевірка доступності сайтів
 
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js 18+ installed
-- npm or yarn package manager
-
-### Installation
-
-Project is already set up! Dependencies are installed.
-
-### Running the Development Server
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Сучасний, високопродуктивний інструмент для моніторингу сайтів на базі Next.js та API CheckHost.net. Підтримує перевірки в реальному часі (Ping, HTTP, DNS), глобальні вузли та зручну панель керування.
 
 ---
 
-## 📁 Project Structure
+## 🛠 Можливості
 
+- ✅ **3 типи перевірок:** Ping, HTTP, DNS.
+- ✅ **Результати в реальному часі:** Глобальне опитування з відстеженням прогресу.
+- ✅ **20+ вузлів по всьому світу:** Інтеграція з API CheckHost.net.
+- ✅ **Безпека та сучасність:** Next.js 15, Tailwind CSS, PostgreSQL та Caddy.
+- ✅ **Готовність до деплою:** Повна інтеграція з Docker та Caddy для продакшну.
+
+---
+
+## 🐳 Автоматичне розгортання (Docker)
+
+Найпростіший спосіб розгорнути CheckHost — за допомогою Docker Compose. Він автоматично налаштує застосунок, базу даних PostgreSQL та проксі-сервер Caddy з автоматичним SSL.
+
+### 1. Вимоги
+- Встановлені Docker та Docker Compose.
+- Доменне ім'я, спрямоване на IP вашого сервера.
+
+### 2. Налаштування
+```bash
+# Клонуйте репозиторій
+git clone <url-вашого-репозиторію>
+cd CheckHost
+
+# Створіть файл оточення з шаблону
+cp .env.example .env
+```
+
+### 3. Конфігурація `.env`
+Відредагуйте файл `.env` та встановіть основні змінні:
+- `POSTGRES_PASSWORD`: Надійний пароль для бази даних.
+- `NEXTAUTH_SECRET`: Випадковий рядок для автентифікації.
+- `CRON_SECRET`: Секрет для захисту фонових завдань.
+
+### 4. Запуск
+Виконайте команду для автоматичного збирання та запуску:
+```bash
+npm run docker:up
+```
+*Або: `docker compose up -d`*
+
+Ваш сайт буде доступний за вашим доменом з автоматичним HTTPS!
+
+---
+
+## � Розробка та тестування
+
+### 📁 Структура проекту
 ```
 CheckHost/
 ├── src/
-│   ├── app/                   # Next.js App Router pages
-│   │   ├── page.tsx          # Homepage
-│   │   ├── ping/page.tsx     # Ping check
-│   │   ├── http/page.tsx     # HTTP check
-│   │   ├── dns/page.tsx      # DNS check
-│   │   ├── layout.tsx        # Root layout
-│   │   └── globals.css       # Global styles
-│   ├── components/
-│   │   ├── ui/               # shadcn/ui components
-│   │   │   ├── button.tsx
-│   │   │   ├── input.tsx
-│   │   │   └── card.tsx
-│   │   ├── checks/
-│   │   │   ├── CheckForm.tsx
-│   │   │   └── ResultsDisplay.tsx
-│   │   └── Providers.tsx
-│   ├── lib/
-│   │   ├── checkhost-api.ts  # API wrapper
-│   │   └── utils.ts
-│   └── types/
-│       └── checkhost.ts       # TypeScript types
-├── public/                    # Static files
-├── .agent/                    # AI agent configuration
-├── docs/                      # Documentation
-└── package.json
+│   ├── app/           # Сторінки (Next.js App Router)
+│   ├── components/    # Компоненти інтерфейсу (UI, форми, результати)
+│   ├── i18n/          # Локалізація та переклади
+│   ├── lib/           # Бібліотеки, API-клієнти, логіка
+│   ├── middleware.ts  # Проміжне ПЗ для захисту та редиректів
+│   └── types/         # Типи TypeScript
+├── public/            # Статичні файли (іконки, зображення)
+├── data/              # Директорія для локальних БД (GeoIP тощо)
+├── docs/              # Документація проекту
+├── migrations/        # Міграції бази даних
+├── scripts/           # Скрипти обслуговування (бекапи, налаштування)
+├── Caddyfile          # Налаштування веб-сервера Caddy
+├── Dockerfile         # Інструкція для збирання Docker-образу
+└── docker-compose.yml # Оркестрація контейнерів
 ```
 
----
-
-## 🧪 Testing
-
-### Manual Testing
-
-1. **Homepage** - [http://localhost:3000](http://localhost:3000)
-   - Verify hero section loads
-   - Click feature cards to navigate
-
-2. **Ping Check** - [http://localhost:3000/ping](http://localhost:3000/ping)
-   - Enter: `example.com`
-   - Click "Check Now"
-   - Wait for results
-
-3. **HTTP Check** - [http://localhost:3000/http](http://localhost:3000/http)
-   - Enter: `https://google.com`
-   - Submit and verify status codes display
-
-4. **DNS Check** - [http://localhost:3000/dns](http://localhost:3000/dns)
-   - Enter: `google.com`
-   - Verify IP addresses show
+### 🧪 Ручне тестування
+1. **Головна сторінка** — перевірка завантаження та навігації.
+2. **Ping Check** — тестування з доменом `example.com`.
+3. **HTTP Check** — перевірка кодів відповіді для `https://google.com`.
+4. **DNS Check** — перевірка записів для `google.com`.
 
 ---
 
-## 🎨 Key Features
+## � Основні команди
 
-- ✅ **3 Check Types:** Ping, HTTP, DNS
-- ✅ **Real-time Results:** Polling with progress
-- ✅ **20+ Global Nodes:** CheckHost.net API integration
-- ✅ **Beautiful UI:** shadcn/ui + Tailwind CSS
-- ✅ **Dark Mode Ready:** Full theme support
-- ✅ **Responsive:** Mobile-first design
-- ✅ **Type-Safe:** Full TypeScript coverage
+- `npm run dev` — запуск сервера для розробки.
+- `npm run build` — збирання для продакшну.
+- `npm run docker:up` — запуск у Docker (продакшн).
+- `npm run docker:down` — зупинка Docker-контейнерів.
+- `npm run lint` — перевірка коду (ESLint).
 
 ---
 
-## 📦 Available Scripts
+## 📚 Документація
 
-```bash
-# Development server
-npm run dev
+Детальну інформацію можна знайти в директорії `docs/`:
+- [Архітектура проекту](docs/ACTIVATION-MAP.md)
+- [Налаштування AI-функцій](docs/QUICKSTART-AI.md)
 
-# Production build
-npm run build
 
-# Start production server
-npm start
 
-# Lint code
-npm run lint
-```
-
----
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Copy `.env.example` to `.env.local` and configure:
-
-```env
-# Google AdSense (optional for now)
-NEXT_PUBLIC_ADSENSE_CLIENT="ca-pub-XXXXXXXXXXXXXXXX"
-
-# CheckHost API
-CHECKHOST_API_URL="https://XXXXXXXX.XXX"
-```
-
----
-
-## 📚 Documentation
-
-- [Implementation Plan](file:///C:/Users/VITASYK/.gemini/antigravity/brain/ceb9d6c9-4a8e-4f5e-a9c7-7c5617b56d0b/implementation_plan.md)
-- [UI/UX Design](file:///C:/Users/VITASYK/.gemini/antigravity/brain/ceb9d6c9-4a8e-4f5e-a9c7-7c5617b56d0b/ui_ux_design.md)
-- [Admin Panel Architecture](file:///C:/Users/VITASYK/.gemini/antigravity/brain/ceb9d6c9-4a8e-4f5e-a9c7-7c5617b56d0b/admin_panel_architecture.md)
-- [Future Enhancements](file:///C:/Users/VITASYK/.gemini/antigravity/brain/ceb9d6c9-4a8e-4f5e-a9c7-7c5617b56d0b/future_enhancements.md)
-- [Walkthrough](file:///C:/Users/VITASYK/.gemini/antigravity/brain/ceb9d6c9-4a8e-4f5e-a9c7-7c5617b56d0b/walkthrough.md)
-
----
-
-## 🚧 Next Steps
-
-1. **Admin Panel** - Authentication, analytics, API logging
-2. **AdSense Integration** - Add real ad codes
-3. **Testing** - E2E tests with Playwright
-4. **Deployment** - Deploy to Vercel
-
-See [task.md](file:///C:/Users/VITASYK/.gemini/antigravity/brain/ceb9d6c9-4a8e-4f5e-a9c7-7c5617b56d0b/task.md) for full checklist.

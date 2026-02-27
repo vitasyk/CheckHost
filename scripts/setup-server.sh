@@ -31,20 +31,14 @@ sudo apt-get install -y docker-compose-plugin
 # 5. Configure Firewall
 echo "🛡 Configuring Firewall (UFW)..."
 sudo ufw allow OpenSSH
-sudo ufw allow 'Nginx Full'
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
 sudo ufw --force enable
 
 # 6. Create Project Structure
 echo "📂 Creating project directories..."
 mkdir -p ~/checkhost/data
 mkdir -p ~/checkhost/backups/db
-
-# 7. Setup Nginx (Basic)
-echo "🌐 Setting up Nginx..."
-# We will rely on Docker's Nginx for the app, 
-# but having the host Nginx ready for future use or as a primary proxy is good.
-sudo systemctl enable nginx
-sudo systemctl start nginx
 
 echo "✅ Server setup complete!"
 echo "⚠️  Please log out and log back in to apply docker group changes."

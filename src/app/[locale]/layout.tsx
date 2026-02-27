@@ -23,8 +23,8 @@ const inter = Inter({ subsets: ["latin", "cyrillic"] });
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
     const { locale } = await params;
     setRequestLocale(locale);
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://check-host.top';
-    const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'CheckHost.top';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
+    const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'checknode.io';
     const seo = await getSiteSetting('seo_config') || {};
     const siteTitle = seo.siteTitle || `${siteName} - Global Website Monitoring & Uptime Checker`;
     const siteDescription = seo.siteDescription || 'Check your website uptime, latency, and DNS from 20+ locations worldwide. Fast, free, and reliable infrastructure monitoring.';
@@ -162,8 +162,8 @@ export default async function RootLayout({
     const isAdmin = !!session?.user;
     const isMaintenance = systemConfig?.maintenanceMode === true;
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://check-host.top';
-    const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'CheckHost.top';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
+    const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'checknode.io';
 
     const jsonLdData = {
         "@context": "https://schema.org",

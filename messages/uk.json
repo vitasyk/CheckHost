@@ -36,5 +36,48 @@
         "runLiveCheck": "Перевірити знову",
         "installApp": "Встановити додаток",
         "monitorHost": "Моніторинг"
+    },
+    "Dashboard": {
+        "userDashboard": "Дашборд користувача",
+        "welcomeBack": "З поверненням, {name}.",
+        "activeMonitors": "Активні монітори",
+        "comingSoon": "Незабаром",
+        "activeMonitorsDesc": "Налаштуйте автоматичний моніторинг аптайму та продуктивності для ваших доменів.",
+        "apiUsage": "Використання API",
+        "freePlan": "Безкоштовний план",
+        "apiUsageDesc": "Перевіряйте ліміти та відстежуйте використання CheckHost API.",
+        "accessLevel": "Рівень доступу",
+        "adminAccessLevelDesc": "Ви увійшли як Адміністратор. Ви маєте повний доступ до адміністративної панелі.",
+        "userAccessLevelDesc": "Ви увійшли як стандартний користувач. Ви не маєте доступу до адміністративної панелі.",
+        "role": "Роль: {role}",
+        "goToAdminPanel": "Перейти в Панель Адміністратора →"
+    },
+    "GlobalActivityFeed": {
+        "title": "Глобальна стрічка активності",
+        "subtitle": "Останні запити на перевірку від користувачів з усієї платформи.",
+        "type": "Тип",
+        "allTypes": "Всі типи",
+        "status": "Статус",
+        "allStatuses": "Всі статуси",
+        "success": "Успіх",
+        "error": "Помилка",
+        "targetHost": "Цільовий хост",
+        "searchHost": "Пошук хоста...",
+        "userIp": "IP Користувача",
+        "searchIp": "Пошук IP...",
+        "dateTime": "Дата та Час",
+        "loading": "Завантаження активності...",
+        "noActivityFound": "Не знайдено активності за вашими фільтрами.",
+        "pageOf": "Сторінка {page} з {totalPages}",
+        "prev": "Попередня",
+        "next": "Наступна"
+    },
+    "DashboardSidebar": {
+        "backToSite": "Повернутися на сайт",
+        "overview": "Огляд",
+        "monitors": "Монітори",
+        "apiUsage": "Використання API",
+        "settings": "Налаштування",
+        "logout": "Вийти"
     }
 }

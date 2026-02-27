@@ -120,7 +120,7 @@ export default function AdminBlogList() {
         publishEnabled: false, publishIntervalHours: 12,
         publishMaxPerRun: 1, publishLastRun: null, publishNextRun: null,
     });
-    const [cronLoading, setCronLoading] = useState(false);
+    const [_cronLoading, setCronLoading] = useState(false);
     const [cronSaving, setCronSaving] = useState(false);
     const [triggeringGen, setTriggeringGen] = useState(false);
     const [triggeringPub, setTriggeringPub] = useState(false);

@@ -21,7 +21,6 @@ docs
 Dockerfile
 docker-compose.yml
 Caddyfile
-nginx
 
 # License
 LICENSE
@@ -35,15 +34,6 @@ debug-eslint.mjs
 debug-ip.js
 
 # Development scripts (not needed in production)
-fix_quotes.js
-fix_unused.js
-fix_warnings2.js
-fix_warnings3.js
-fetch-nodes.js
-migrate-settings.js
-test-dns-api.mjs
-test-http-parse.js
-test-whois.js
 
 # AI tooling metadata
 .agent

@@ -102,7 +102,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         "author": [{
             "@type": "Person",
             "name": post.author,
-            "url": "https://check-host.top"
+            "url": process.env.NEXT_PUBLIC_SITE_URL || "https://checknode.io"
         }]
     };
 

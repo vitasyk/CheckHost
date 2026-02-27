@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import axios from 'axios';
 import { apiLogger } from '@/lib/api-logger';
 import { memoryCache } from '@/lib/cache';
+import { maskNodes } from '@/lib/node-masker';
 
 export async function GET(
     request: Request,
@@ -31,7 +32,7 @@ export async function GET(
             timeout: 10000
         });
 
-        const data = response.data;
+        const data = maskNodes(response.data);
         const duration = Date.now() - startTime;
 
         await apiLogger.logApiUsage({

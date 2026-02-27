@@ -14,7 +14,7 @@ export function DnsContentEn() {
                     <div>
                         <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-3">How Does a DNS Check Work?</h2>
                         <p>
-                            The Domain Name System (DNS) is often referred to as the &quot;phonebook of the internet.&quot; It translates human-readable domain names (like check-host.top) into IP addresses that computers use to identify each other on the network. A DNS Check queries specific nameservers to retrieve the current DNS records associated with a domain.
+                            The Domain Name System (DNS) is often referred to as the &quot;phonebook of the internet.&quot; It translates human-readable domain names (like c{process.env.NEXT_PUBLIC_SITE_NAME || 'CheckHost'}) into IP addresses that computers use to identify each other on the network. A DNS Check queries specific nameservers to retrieve the current DNS records associated with a domain.
                         </p>
                     </div>
 

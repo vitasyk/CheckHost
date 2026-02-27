@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
+import { maskNodes } from '@/lib/node-masker';
 
 export async function GET() {
     try {
@@ -11,7 +12,7 @@ export async function GET() {
             timeout: 5000, // Reduced timeout for faster fallback
         });
 
-        return NextResponse.json(response.data);
+        return NextResponse.json(maskNodes(response.data));
     } catch (error: any) {
         console.error('Proxy error fetching nodes, using fallback:', error.message);
 
@@ -41,6 +42,6 @@ export async function GET() {
             }
         };
 
-        return NextResponse.json(fallbackNodes);
+        return NextResponse.json(maskNodes(fallbackNodes));
     }
 }

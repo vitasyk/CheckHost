@@ -106,11 +106,11 @@ export default function BlogPostClient({ post }: { post: Post }) {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Calendar className="h-4 w-4 text-indigo-400" />
-                                        {new Date(post.published_at || post.created_at || Date.now()).toLocaleDateString('en-US', {
+                                        {post.published_at || post.created_at ? new Date((post.published_at || post.created_at) as string).toLocaleDateString('en-US', {
                                             month: 'long',
                                             day: 'numeric',
                                             year: 'numeric'
-                                        })}
+                                        }) : 'Unknown Date'}
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Clock className="h-4 w-4 text-indigo-400" />

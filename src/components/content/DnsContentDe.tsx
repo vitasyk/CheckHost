@@ -14,7 +14,7 @@ export function DnsContentDe() {
                     <div>
                         <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-3">Wie funktioniert eine DNS-Prüfung?</h2>
                         <p>
-                            Das Domain Name System (DNS) wird oft als das &quot;Telefonbuch des Internets&quot; bezeichnet. Es übersetzt menschenlesbare Domainnamen (wie check-host.top) in IP-Adressen. Eine DNS-Prüfung fragt spezifische Nameserver ab, um die aktuellen DNS-Einträge einer Domain abzurufen.
+                            Das Domain Name System (DNS) wird oft als das &quot;Telefonbuch des Internets&quot; bezeichnet. Es übersetzt menschenlesbare Domainnamen (wie {process.env.NEXT_PUBLIC_SITE_NAME || 'checknode.io'}) in IP-Adressen. Eine DNS-Prüfung fragt spezifische Nameserver ab, um die aktuellen DNS-Einträge einer Domain abzurufen.
                         </p>
                     </div>
 

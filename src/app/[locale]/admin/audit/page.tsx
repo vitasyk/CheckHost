@@ -17,7 +17,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
     Terminal,
-    Trash2,
     FileText
 } from 'lucide-react';
 
@@ -135,8 +134,8 @@ export default function AuditLogsPage() {
                         <button
                             onClick={() => setActiveTab('audit')}
                             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${activeTab === 'audit'
-                                    ? 'bg-white dark:bg-slate-800 text-indigo-500 shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                ? 'bg-white dark:bg-slate-800 text-indigo-500 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                 }`}
                         >
                             <div className="flex items-center gap-2">
@@ -147,8 +146,8 @@ export default function AuditLogsPage() {
                         <button
                             onClick={() => setActiveTab('blog')}
                             className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${activeTab === 'blog'
-                                    ? 'bg-white dark:bg-slate-800 text-indigo-500 shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                ? 'bg-white dark:bg-slate-800 text-indigo-500 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                 }`}
                         >
                             <div className="flex items-center gap-2">

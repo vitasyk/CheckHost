@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 import { apiLogger } from '@/lib/api-logger';
+import { maskNodes } from '@/lib/node-masker';
 
 export async function GET(
     request: Request,
@@ -28,7 +29,7 @@ export async function GET(
         });
 
         // Extended response has nested results
-        const data = response.data;
+        const data = maskNodes(response.data);
         // if (data && data.results) {
         //     data.results = sanitizeKeys(data.results);
         // }
