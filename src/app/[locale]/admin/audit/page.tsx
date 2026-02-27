@@ -19,6 +19,7 @@ import {
     Terminal,
     FileText
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface AuditLog {
     id: string;
@@ -39,6 +40,7 @@ export default function AuditLogsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [refreshing, setRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState<'audit' | 'blog'>('audit');
+    const t = useTranslations('Admin.audit');
 
     const fetchAuditLogs = async () => {
         try {
@@ -113,9 +115,9 @@ export default function AuditLogsPage() {
                         <div>
                             <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-3">
                                 <History className="h-8 w-8 text-indigo-500" />
-                                Security Audit Logs
+                                {t('title')}
                             </h2>
-                            <p className="text-slate-500 mt-1">Timeline of all administrative actions in the system</p>
+                            <p className="text-slate-500 mt-1">{t('subtitle')}</p>
                         </div>
                         <Button
                             variant="outline"
@@ -125,7 +127,7 @@ export default function AuditLogsPage() {
                             className="gap-2"
                         >
                             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-                            Refresh Logs
+                            {t('refreshLogs')}
                         </Button>
                     </div>
 
@@ -140,7 +142,7 @@ export default function AuditLogsPage() {
                         >
                             <div className="flex items-center gap-2">
                                 <History className="h-4 w-4" />
-                                Security Audit
+                                {t('tabSecurity')}
                             </div>
                         </button>
                         <button
@@ -152,7 +154,7 @@ export default function AuditLogsPage() {
                         >
                             <div className="flex items-center gap-2">
                                 <Terminal className="h-4 w-4" />
-                                Blog Generation
+                                {t('tabBlog')}
                             </div>
                         </button>
                     </div>
@@ -163,7 +165,7 @@ export default function AuditLogsPage() {
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                 <Input
-                                    placeholder="Search by email, action or entity type..."
+                                    placeholder={t('searchPlaceholder')}
                                     className="pl-10 h-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-white/10"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -234,7 +236,7 @@ export default function AuditLogsPage() {
                                         ) : (
                                             <tr>
                                                 <td className="px-6 py-12 text-center text-slate-400" colSpan={6}>
-                                                    No audit logs found.
+                                                    {t('noLogs')}
                                                 </td>
                                             </tr>
                                         )}
@@ -263,7 +265,7 @@ export default function AuditLogsPage() {
                                         </div>
                                     ) : (
                                         <pre className="text-slate-300 whitespace-pre-wrap break-all">
-                                            {blogLogs || 'No log data available.'}
+                                            {blogLogs || t('noLogData')}
                                         </pre>
                                     )}
                                 </div>

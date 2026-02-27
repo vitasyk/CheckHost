@@ -16,20 +16,22 @@ import {
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-const menuItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-    { label: 'Blog Posts', icon: Newspaper, href: '/admin/blog' },
-    { label: 'Ads Management', icon: Megaphone, href: '/admin/ads' },
-    { label: 'Access Control', icon: ShieldCheck, href: '/admin/access' },
-    { label: 'Audit Logs', icon: History, href: '/admin/audit' },
-    { label: 'Analytics', icon: BarChart3, href: '#', disabled: true },
-    { label: 'API Logs', icon: Database, href: '#', disabled: true },
-    { label: 'Settings', icon: Settings, href: '/admin/settings' },
-];
+import { useTranslations } from 'next-intl';
 
 export function AdminSidebar() {
     const pathname = usePathname();
+    const t = useTranslations('Admin.sidebar');
+
+    const menuItems = [
+        { label: t('dashboard'), icon: LayoutDashboard, href: '/admin' },
+        { label: t('blogPosts'), icon: Newspaper, href: '/admin/blog' },
+        { label: t('adsManagement'), icon: Megaphone, href: '/admin/ads' },
+        { label: t('accessControl'), icon: ShieldCheck, href: '/admin/access' },
+        { label: t('auditLogs'), icon: History, href: '/admin/audit' },
+        { label: t('analytics'), icon: BarChart3, href: '#', disabled: true },
+        { label: t('apiLogs'), icon: Database, href: '#', disabled: true },
+        { label: t('settings'), icon: Settings, href: '/admin/settings' },
+    ];
 
     return (
         <aside className="hidden lg:flex lg:flex-col lg:w-64 shrink-0 space-y-2">
@@ -40,7 +42,7 @@ export function AdminSidebar() {
                     className="w-full justify-start gap-3 p-6 font-medium rounded-xl transition-all duration-200 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900/40"
                 >
                     <HomeIcon className="h-5 w-5" />
-                    Back to Site
+                    {t('backToSite')}
                 </Button>
             </Link>
 
@@ -70,10 +72,8 @@ export function AdminSidebar() {
                 onClick={() => signOut({ callbackUrl: '/' })}
             >
                 <LogOut className="h-5 w-5" />
-                Logout
+                {t('logout')}
             </Button>
         </aside>
     );
 }
-
-

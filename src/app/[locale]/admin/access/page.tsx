@@ -29,6 +29,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Badge } from '@/components/ui/badge';
+import { useTranslations } from 'next-intl';
 
 interface AdminUser {
     email: string;
@@ -47,6 +48,7 @@ interface AdminAccessConfig {
 
 export default function AdminAccessPage() {
     const { data: _session } = useSession();
+    const t = useTranslations('Admin.access');
     const [config, setConfig] = useState<AdminAccessConfig>({
         google_emails: [],
         credentials: {

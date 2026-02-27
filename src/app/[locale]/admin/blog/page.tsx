@@ -44,6 +44,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 interface Post {
     id: string;
@@ -99,6 +100,7 @@ const ALL_LOCALES = [
 
 export default function AdminBlogList() {
     const { data: _session } = useSession();
+    const t = useTranslations('Admin.blog');
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');

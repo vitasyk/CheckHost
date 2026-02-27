@@ -25,6 +25,7 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import { useTranslations } from 'next-intl';
 
 interface SystemConfig {
     maintenanceMode: boolean;
@@ -118,6 +119,7 @@ export default function AdminSettings() {
     const [clearingSeo, setClearingSeo] = useState(false);
     const [saved, setSaved] = useState(false);
     const [purgingCache, setPurgingCache] = useState(false);
+    const t = useTranslations('Admin.settings');
 
     useEffect(() => {
         const fetchConfigs = async () => {

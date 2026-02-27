@@ -19,6 +19,7 @@ import { useEffect, useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { useTranslations } from 'next-intl';
 
 interface AdPlacement {
     id: string;
@@ -52,6 +53,7 @@ const defaultSlots = {
 
 export default function AdminAdsPage() {
     const { data: _session } = useSession();
+    const t = useTranslations('Admin.ads');
 
     const [config, setConfig] = useState<AdSenseConfig>({
         client_id: '',
