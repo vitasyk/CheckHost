@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import ReactCountryFlag from 'react-country-flag';
 import { useTransition, useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 const locales = [
     { code: 'en', label: 'English', country: 'US' },
@@ -23,6 +24,7 @@ export function LanguageSwitcher() {
     const currentLocale = useLocale();
     const router = useRouter();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const [mounted, setMounted] = useState(false);
     const [isPending, startTransition] = useTransition();
 
@@ -31,8 +33,11 @@ export function LanguageSwitcher() {
     }, []);
 
     const handleLanguageChange = (newLocale: string) => {
+        // Preserve `host` param but intentionally drop `tab` (user goes back to home)
+        const host = searchParams.get('host');
+        const newSearch = host ? `?host=${encodeURIComponent(host)}` : '';
         startTransition(() => {
-            router.replace(pathname, { locale: newLocale });
+            router.replace(`${pathname}${newSearch}` as any, { locale: newLocale });
         });
     };
 

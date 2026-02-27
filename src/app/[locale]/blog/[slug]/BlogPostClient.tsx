@@ -12,6 +12,13 @@ import {
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { AdSlot } from '@/components/AdSlot';
+import { marked } from 'marked';
+
+// Configure marked to handle line breaks professionally
+marked.setOptions({
+    breaks: true,
+    gfm: true
+});
 
 interface Post {
     id: string;
@@ -33,29 +40,23 @@ export default function BlogPostClient({ post }: { post: Post }) {
 
     const renderContent = (content: string) => {
         if (!content) return null;
+
+        // Split by {{AD}} but keep the structure
         const parts = content.split('{{AD}}');
 
         return parts.map((part, index) => {
             const trimmedPart = part.trim();
             if (!trimmedPart) return null;
 
-            // Better HTML detection: if it contains any common block-level tag or self-closing tag
-            const hasTags = /<[a-z][\s\S]*>/i.test(trimmedPart);
+            // Render markdown or HTML safely using marked
+            const htmlContent = marked.parse(trimmedPart) as string;
 
             return (
                 <div key={index}>
-                    {hasTags ? (
-                        <div
-                            className="article-content-block"
-                            dangerouslySetInnerHTML={{ __html: trimmedPart }}
-                        />
-                    ) : (
-                        trimmedPart.split('\n').map((line: string, i: number) => {
-                            const trimmedLine = line.trim();
-                            if (!trimmedLine) return <br key={i} />;
-                            return <p key={i} className="mb-6 leading-relaxed text-slate-600 dark:text-slate-300">{trimmedLine}</p>;
-                        })
-                    )}
+                    <div
+                        className="article-content-wrapper"
+                        dangerouslySetInnerHTML={{ __html: htmlContent }}
+                    />
                     {index < parts.length - 1 && (
                         <div className="my-16 flex justify-center">
                             <AdSlot slotType="blog_content" className="w-full max-w-2xl px-4" />

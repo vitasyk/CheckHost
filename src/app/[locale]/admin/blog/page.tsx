@@ -136,6 +136,7 @@ export default function AdminBlogList() {
     // ── SEO Content Block ──────────────────────────────────────────
     const [seoHtml, setSeoHtml] = useState('');
     const [seoEnabled, setSeoEnabled] = useState(true);
+    const [seoShowDefault, setSeoShowDefault] = useState(false);
     const [savingSeo, setSavingSeo] = useState(false);
     const [seoSaved, setSeoSaved] = useState(false);
     const [seoPreview, setSeoPreview] = useState(false);
@@ -197,6 +198,7 @@ export default function AdminBlogList() {
                 if (data) {
                     setSeoHtml(data.html || '');
                     setSeoEnabled(data.enabled !== false);
+                    setSeoShowDefault(data.showDefault === true);
                 }
             }
         } catch { /* ignore */ } finally { setSeoLoading(false); }
@@ -208,7 +210,11 @@ export default function AdminBlogList() {
             await fetch('/api/admin/settings?key=homepage_seo_content', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ html: seoHtml, enabled: seoEnabled }),
+                body: JSON.stringify({
+                    html: seoHtml,
+                    enabled: seoEnabled,
+                    showDefault: seoShowDefault
+                }),
             });
             setSeoSaved(true);
             setTimeout(() => setSeoSaved(false), 3000);
@@ -965,12 +971,22 @@ export default function AdminBlogList() {
                                             <button
                                                 onClick={() => setSeoEnabled(v => !v)}
                                                 className={`flex items-center gap-2 text-sm font-semibold px-3 py-1.5 rounded-lg border transition-all ${seoEnabled
-                                                        ? 'border-green-200 bg-green-50 text-green-700 dark:bg-green-900/20 dark:border-green-500/30 dark:text-green-400'
-                                                        : 'border-slate-200 bg-slate-50 text-slate-500 dark:bg-slate-800 dark:border-white/10'
+                                                    ? 'border-green-200 bg-green-50 text-green-700 dark:bg-green-900/20 dark:border-green-500/30 dark:text-green-400'
+                                                    : 'border-slate-200 bg-slate-50 text-slate-500 dark:bg-slate-800 dark:border-white/10'
                                                     }`}
                                             >
                                                 {seoEnabled ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
                                                 {seoEnabled ? 'Visible' : 'Hidden'}
+                                            </button>
+                                            <button
+                                                onClick={() => setSeoShowDefault(v => !v)}
+                                                className={`flex items-center gap-2 text-sm font-semibold px-3 py-1.5 rounded-lg border transition-all ${seoShowDefault
+                                                    ? 'border-violet-200 bg-violet-50 text-violet-700 dark:bg-violet-900/20 dark:border-violet-500/30 dark:text-violet-400'
+                                                    : 'border-slate-200 bg-slate-50 text-slate-500 dark:bg-slate-800 dark:border-white/10'
+                                                    }`}
+                                            >
+                                                {seoShowDefault ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                                                {seoShowDefault ? 'Show Default' : 'Default Hidden'}
                                             </button>
                                             <button
                                                 onClick={() => setSeoPreview(v => !v)}

@@ -164,7 +164,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                                 <Type className="h-3 w-3" /> Article Title
                             </label>
                             <Input
-                                value={post.title}
+                                value={post.title || ''}
                                 onChange={(e) => handleTitleChange(e.target.value)}
                                 placeholder="Enter a catchy title..."
                                 className="h-14 text-xl font-bold bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 rounded-xl focus-visible:ring-indigo-500"
@@ -176,7 +176,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                                 <FileText className="h-3 w-3" /> Content (Markdown supported)
                             </label>
                             <textarea
-                                value={post.content}
+                                value={post.content || ''}
                                 onChange={(e) => setPost({ ...post, content: e.target.value })}
                                 placeholder="Write your story here..."
                                 className="w-full min-h-[400px] p-6 bg-slate-50 dark:bg-white/5 border-[1px] border-slate-200 dark:border-white/5 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-serif text-lg leading-relaxed text-slate-800 dark:text-slate-200"
@@ -190,7 +190,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                                 <FileText className="h-3 w-3" /> Excerpt (Short Summary)
                             </label>
                             <textarea
-                                value={post.excerpt}
+                                value={post.excerpt || ''}
                                 onChange={(e) => setPost({ ...post, excerpt: e.target.value })}
                                 placeholder="A brief summary for search engines and list pages..."
                                 className="w-full min-h-[100px] p-4 bg-slate-50 dark:bg-white/5 border-[1px] border-slate-200 dark:border-white/5 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm text-slate-600 dark:text-slate-400"
@@ -227,7 +227,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                                 <LinkIcon className="h-3 w-3" /> URL Slug
                             </label>
                             <Input
-                                value={post.slug}
+                                value={post.slug || ''}
                                 onChange={(e) => setPost({ ...post, slug: e.target.value })}
                                 placeholder="url-friendly-slug"
                                 className="h-10 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 rounded-lg font-mono text-xs"
@@ -239,7 +239,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                                 <ImageIcon className="h-3 w-3" /> Cover Image URL
                             </label>
                             <Input
-                                value={post.cover_image}
+                                value={post.cover_image || ''}
                                 onChange={(e) => setPost({ ...post, cover_image: e.target.value })}
                                 placeholder="https://example.com/image.jpg"
                                 className="h-10 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 rounded-lg text-xs"

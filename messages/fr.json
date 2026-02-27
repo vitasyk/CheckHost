@@ -45,7 +45,7 @@
         "activeMonitorsDesc": "Configurez le suivi automatisé de la disponibilité et des performances de vos domaines.",
         "apiUsage": "Utilisation de l'API",
         "freePlan": "Plan gratuit",
-        "apiUsageDesc": "Vérifiez les limites et suivez votre consommation de l'API CheckHost.",
+        "apiUsageDesc": "Vérifiez les limites et suivez votre consommation de l'API CheckNode.",
         "accessLevel": "Niveau d'accès",
         "adminAccessLevelDesc": "Vous êtes connecté en tant qu'Administrateur. Vous avez un accès complet au panneau de contrôle administratif.",
         "userAccessLevelDesc": "Vous êtes connecté en tant qu'utilisateur standard. Vous n'avez pas accès au panneau de contrôle administratif.",
@@ -310,9 +310,14 @@
         "slogan": "Outils de surveillance réseau mondiaux pour les développeurs, administrateurs système et webmasters.",
         "globalCoverage": "20+ emplacements de surveillance mondiaux",
         "tools": "Outils",
-        "ping": "Vérification Ping",
-        "http": "Vérification HTTP",
-        "dns": "Recherche DNS",
+        "ping": "Ping",
+        "http": "HTTP",
+        "tcp": "TCP",
+        "udp": "UDP",
+        "dns": "DNS",
+        "mtr": "MTR",
+        "dnsinfo": "Infos DNS",
+        "ssl": "SSL",
         "ipinfo": "Infos IP",
         "legal": "Mentions légales",
         "privacy": "Politique de confidentialité",
@@ -414,5 +419,185 @@
         "beforeContacting1": "Nos pages FAQ et documentation",
         "beforeContacting2": "La page À propos ({link}) pour les informations sur le service",
         "beforeContacting3": "Notre Blog ({link}) pour des conseils et tutoriels"
+    },
+    "HomePageSeoBlock": {
+        "header": {
+            "badge": "Plateforme gratuite de diagnostic réseau",
+            "titleLine1": "Vérifications de réseau professionnelles",
+            "titleLine2": "depuis chaque coin du globe",
+            "description": "CheckNode est utilisé par les développeurs, les administrateurs système et les webmasters pour diagnostiquer les problèmes de réseau sur plus de 20 sites mondiaux — aucune inscription, aucune limite."
+        },
+        "features": {
+            "globalCoverage": {
+                "title": "Couverture globale",
+                "desc": "Plus de 20 nœuds de surveillance en Europe, aux Amériques et en Asie pour des résultats mondiaux précis."
+            },
+            "realTimeResults": {
+                "title": "Résultats en temps réel",
+                "desc": "Latence instantanée, perte de paquets et données DNS — aucun délai, aucune file d'attente."
+            },
+            "noAccountRequired": {
+                "title": "Aucun compte requis",
+                "desc": "Tous les outils de diagnostic de base sont entièrement gratuits — effectuez des vérifications sans vous inscrire."
+            },
+            "shareableReports": {
+                "title": "Rapports partageables",
+                "desc": "Partagez les résultats de vos vérifications avec n'importe quel membre de l'équipe via un lien permanent pouvant être mis en signet."
+            }
+        },
+        "tools": {
+            "title": "Tous les outils de diagnostic en un coup d'œil",
+            "ping": {
+                "name": "Ping",
+                "measures": "Latence ICMP & perte de paquets",
+                "useCase": "Diagnostiquer l'accessibilité du réseau",
+                "checkSuffix": " Vérification"
+            },
+            "http": {
+                "name": "HTTP",
+                "measures": "Code d'état, TLS, temps de réponse",
+                "useCase": "Vérifier la disponibilité du site web",
+                "checkSuffix": " Vérification"
+            },
+            "dns": {
+                "name": "DNS",
+                "measures": "Enregistrements A, AAAA, MX, CNAME, TXT",
+                "useCase": "Valider la propagation DNS",
+                "checkSuffix": " Recherche"
+            },
+            "mtr": {
+                "name": "MTR",
+                "measures": "Traceroute saut par saut avec statistiques",
+                "useCase": "Trouver les goulots d'étranglement du réseau",
+                "checkSuffix": " Vérification"
+            },
+            "tcpUdp": {
+                "name": "TCP/UDP",
+                "measures": "Accessibilité et réponse des ports",
+                "useCase": "Vérifier la disponibilité du service",
+                "checkSuffix": " Vérification"
+            },
+            "ipInfo": {
+                "name": "Infos IP",
+                "measures": "Géolocalisation, FAI, ASN, WHOIS",
+                "useCase": "Identifier la propriété et le routage IP",
+                "checkSuffix": " Recherche"
+            }
+        },
+        "faq": {
+            "whatIsCheckNode": {
+                "q": "Qu'est-ce que CheckNode ?",
+                "a": "CheckNode est une plateforme de surveillance réseau professionnelle gratuite. Elle vous permet d'exécuter instantanément des diagnostics Ping, HTTP, DNS, MTR, TCP, UDP et IP à partir de plus de 20 nœuds mondiaux — directement depuis votre navigateur."
+            },
+            "whoIsItFor": {
+                "q": "A qui est-il destiné ?",
+                "a": "Développeurs déboguant la latence du serveur, webmasters vérifiant le temps de fonctionnement, administrateurs système diagnostiquant les anomalies de routage, et toute personne ayant besoin de données réseau précises provenant de plusieurs emplacements simultanément."
+            },
+            "whyUseCheckNode": {
+                "q": "Pourquoi utiliser CheckNode ?",
+                "a": "Contrairement aux outils à emplacement unique, CheckNode vérifie à partir de nombreuses régions à la fois. Cela révèle des problèmes CDN, des pannes régionales et des différences de propagation DNS que les vérifications locales ne peuvent pas détecter."
+            }
+        },
+        "footerText": "Que vous déboguiez une réponse lente du serveur, vérifiiez la propagation DNS après une migration de domaine ou contrôliez l'accessibilité dans le monde entier — CheckNode fournit les outils de précision dont vous avez besoin, tout à fait gratuitement."
+    },
+    "ToolSeoContent": {
+        "ping": {
+            "title": "What is a Ping Test and How Does It Work?",
+            "understanding": "Understanding the Ping Command",
+            "understandingDesc": "A Ping test is an essential network diagnostic tool used to test the reachability of a host on an IP network. It operates by sending ICMP Echo Request packets to the target and waiting for a reply.",
+            "latency": "Why Measure Network Latency?",
+            "latencyDesc": "The round-trip time (RTT) for packets is known as latency, measured in milliseconds (ms). High latency causes slow website loading and poor application performance.",
+            "latencyList": {
+                "fast": "Fast Response (0-50ms): Excellent connection, ideal for real-time applications.",
+                "acceptable": "Acceptable Response (50-150ms): Good connection, suitable for general web browsing.",
+                "slow": "Slow Response (>150ms): Noticeable delay that impacts interactive applications."
+            },
+            "global": "The Importance of Global Testing",
+            "globalDesc": "Testing from a single location only shows part of the picture. By using a global ping tool, you verify routing efficiency and identify regional network outages simultaneously."
+        },
+        "http": {
+            "title": "HTTP Status Check: Verify Website Availability",
+            "understanding": "Understanding HTTP Checks",
+            "understandingDesc": "An HTTP check simulates a real browser sending a request to your web server. It verifies if your website is online, responds with the correct HTTP status code (like 200 OK), and measures exactly how long it takes to fetch the page content.",
+            "latency": "Monitoring Response Times",
+            "latencyDesc": "Website speed is critical for user experience and SEO. A slow Time to First Byte (TTFB) or long DNS resolution time can drive visitors away.",
+            "latencyList": {
+                "fast": "Fast (0-500ms): Excellent server response and optimized network path.",
+                "acceptable": "Average (500-1500ms): Typical response time, but can be improved with caching.",
+                "slow": "Slow (>1500ms): Poor user experience, indicating server overload or network issues."
+            },
+            "global": "Why Test Worldwide?",
+            "globalDesc": "Your server in Frankfurt might load instantly for European users, but time out for visitors in Sydney. Global HTTP checks reveal CDN misconfigurations, regional blocking, and latency bottlenecks."
+        },
+        "dns": {
+            "title": "Global DNS Propagation Checker",
+            "understanding": "How DNS Lookups Work",
+            "understandingDesc": "The Domain Name System (DNS) translates human-readable domain names into IP addresses. A DNS Lookup queries authoritative nameservers to fetch specific records (A, AAAA, MX, CNAME, TXT) associated with your domain.",
+            "latency": "Key DNS Records Explained",
+            "latencyDesc": "Different records serve specific functional purposes in your network architecture:",
+            "latencyList": {
+                "a": "A & AAAA: Maps a domain name to an IPv4 (A) or IPv6 (AAAA) address.",
+                "mx": "MX (Mail Exchange): Directs email to the correct mail server.",
+                "txt": "TXT: Holds text information, crucial for email security (SPF, DKIM, DMARC)."
+            },
+            "global": "Verifying Global DNS Propagation",
+            "globalDesc": "When you change your domain's hosting, the new IP address must propagate across global DNS caches. This tool checks multiple resolvers worldwide to ensure your updates are visible everywhere."
+        },
+        "mtr": {
+            "title": "MTR (Multi-Traceroute): Advanced Network Diagnostics",
+            "understanding": "What is MTR?",
+            "understandingDesc": "MTR combines the functionality of the 'traceroute' and 'ping' programs in a single network diagnostic tool. It investigates the network connection between the host MTR runs on and a user-specified destination host.",
+            "latency": "Analyzing Hop-by-Hop Data",
+            "latencyDesc": "By continuously sending packets to each router (hop) along the path, MTR provides real-time statistics about network health.",
+            "latencyList": {
+                "loss": "Packet Loss (%): High loss at a specific hop often indicates a congested router or faulty link.",
+                "ping": "Latency (Ping): Sudden spikes in response time reveal where network slowdowns originate.",
+                "routing": "Routing Path: Identify if traffic is taking an optimal geographical route."
+            },
+            "global": "Isolating Network Bottlenecks",
+            "globalDesc": "When users report connectivity issues, MTR helps pinpoint exactly where the connection fails—whether it's at your ISP, a backbone provider, or the destination data center."
+        },
+        "tcpUdp": {
+            "title": "TCP and UDP Port Availability Check",
+            "understanding": "Port Scanning Explained",
+            "understandingDesc": "Port checks determine the status of specific network ports. TCP (Transmission Control Protocol) establishes a reliable connection, while UDP (User Datagram Protocol) sends data without a preliminary connection.",
+            "latency": "Common Use Cases",
+            "latencyDesc": "Verifying port availability is essential for system administrators configuring firewalls and deploying new services.",
+            "latencyList": {
+                "web": "Web Services: TCP 80 (HTTP) and TCP 443 (HTTPS).",
+                "mail": "Email: TCP 25 (SMTP), TCP 110 (POP3), and TCP 143 (IMAP).",
+                "db": "Databases: TCP 3306 (MySQL), TCP 5432 (PostgreSQL)."
+            },
+            "global": "Detecting Firewall Blocks",
+            "globalDesc": "Testing ports globally ensures your services aren't being inadvertently blocked by regional ISP firewalls or geoblocking rules configured on your server."
+        },
+        "ipInfo": {
+            "title": "IP Address Information & Geolocation",
+            "understanding": "What is IP Intelligence?",
+            "understandingDesc": "IP Info tools extract detailed metadata associated with a specific IP address or domain name. This includes geographic coordinates, the governing Internet Service Provider (ISP), and the Autonomous System Number (ASN).",
+            "latency": "Why Identify IP Data?",
+            "latencyDesc": "Understanding who owns an IP address and where it is physically located is crucial for numerous administrative tasks:",
+            "latencyList": {
+                "security": "Security: Investigate suspicious traffic or failed login attempts.",
+                "routing": "Routing: Verify BGP routing and CDN edge node resolving.",
+                "compliance": "Compliance: Ensure data is hosted in the correct geographic jurisdiction."
+            },
+            "global": "WHOIS and Abuse Contacts",
+            "globalDesc": "In addition to location data, advanced lookups provide administrative contact information (WHOIS) for an IP block, which is necessary for reporting network abuse or spam."
+        },
+        "ssl": {
+            "title": "SSL/TLS Certificate Checker",
+            "understanding": "What Does an SSL Certificate Check Verify?",
+            "understandingDesc": "An SSL/TLS check analyzes the security certificate of a website, confirming it is valid, trusted by major browsers, and not expired. It reveals the certificate authority (CA), expiry date, and encryption strength.",
+            "latency": "Why Monitor Your SSL Certificate?",
+            "latencyDesc": "An expired or misconfigured SSL certificate causes browser security warnings, blocking visitors immediately. Proactive monitoring prevents unexpected outages.",
+            "latencyList": {
+                "expiry": "Certificate Expiry: Certificates have a validity period. An expired cert immediately breaks HTTPS for all visitors.",
+                "chain": "Chain of Trust: A broken chain (missing intermediate certificate) causes untrusted warnings on some browsers.",
+                "cipher": "Cipher Suite: Weak encryption algorithms (like RC4 or MD5) expose users to man-in-the-middle attacks."
+            },
+            "global": "Global Certificate Validation",
+            "globalDesc": "Different regions may resolve to different servers due to CDN or GeoDNS configurations. A global SSL check confirms that all edge servers present a valid certificate, not just your local resolver."
+        }
     }
 }
