@@ -10,7 +10,7 @@ import {
     Link, Check, Loader2, AlertTriangle,
     Navigation, Clock, Sun, Moon, ArrowUpRight, MapPin, Globe,
     ChevronDown, Database, Calendar, ShieldCheck, Mail, Phone,
-    ExternalLink, Server, Network, Maximize2, Copy
+    ExternalLink, Server, Network, Maximize2, Copy, Building2, Shield, Tag, Globe2
 } from 'lucide-react';
 
 interface IpInfoResultProps {
@@ -263,7 +263,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
             fields: config.fields.filter(f => f.value && f.value !== 'N/A' && f.value !== '0' && f.value !== '0,0' && f.value !== '0km' && f.value !== '0, 0')
         }));
 
-    if (!isUnresolved && providerConfigs.length === 0) {
+    if (!isUnresolved && providerConfigs.length === 0 && !data.isASN) {
         return <div className="text-center p-8 text-muted-foreground">No IP information found.</div>;
     }
 
@@ -336,41 +336,45 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
                                             hasRdap ? "text-amber-500" : "text-rose-500"
                                         )}>
                                             <span className={cn("inline-block w-1.5 h-1.5 rounded-full animate-pulse", hasRdap ? "bg-amber-500" : "bg-rose-500")} />
-                                            {isIP ? 'IP Address Status' : 'Resolution Status'}
+                                            {data.isASN ? 'AS Number Status' : (isIP ? 'IP Address Status' : 'Resolution Status')}
                                         </p>
                                         <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight leading-none">
-                                            {hasRdap ? 'Partial Info Found' : (isIP ? 'Lookup Failed' : 'Resolution Failed')}
+                                            {hasRdap ? 'Partial Info Found' : (data.isASN ? 'ASN Lookup Failed' : (isIP ? 'Lookup Failed' : 'Resolution Failed'))}
                                         </h3>
                                     </div>
                                 </div>
 
                                 {/* Description */}
                                 <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-                                    {isIP ? 'The IP address ' : 'The domain '}
+                                    {data.isASN ? 'The AS Number ' : (isIP ? 'The IP address ' : 'The domain ')}
                                     <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data.host || 'this host'}</span>
-                                    {isIP ? ' currently doesn\'t have public info or might be a private/invalid address.' : ' currently doesn\'t resolve to a valid IP address.'}
+                                    {data.isASN
+                                        ? ' currently could not be found in our network database. It might be invalid or recently allocated.'
+                                        : (isIP ? ' currently doesn\'t have public info or might be a private/invalid address.' : ' currently doesn\'t resolve to a valid IP address.')}
                                 </p>
 
                                 {/* Possible cause badges */}
-                                <div className="flex flex-wrap gap-2 mb-5">
-                                    {(isIP ? [
-                                        { label: 'PRIVATE IP', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
-                                        { label: 'INVALID FORMAT', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
-                                        { label: 'NO RECORD', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
-                                    ] : [
-                                        { label: 'DNS ERROR', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
-                                        { label: 'DOMAIN EXPIRED', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
-                                        { label: 'SERVER DOWN', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
-                                        { label: 'MAINTENANCE', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
-                                    ]).map(({ label, color }) => (
-                                        <span key={label} className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black border tracking-widest ${color}`}>
-                                            {label}
-                                        </span>
-                                    ))}
-                                </div>
+                                {!data.isASN && (
+                                    <div className="flex flex-wrap gap-2 mb-5">
+                                        {(isIP ? [
+                                            { label: 'PRIVATE IP', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
+                                            { label: 'INVALID FORMAT', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
+                                            { label: 'NO RECORD', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
+                                        ] : [
+                                            { label: 'DNS ERROR', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
+                                            { label: 'DOMAIN EXPIRED', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
+                                            { label: 'SERVER DOWN', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
+                                            { label: 'MAINTENANCE', color: 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' },
+                                        ]).map(({ label, color }) => (
+                                            <span key={label} className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black border tracking-widest ${color}`}>
+                                                {label}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
 
-                                {/* DNS Diagnostic button (only for domains) */}
-                                {!isIP && (
+                                {/* DNS Diagnostic button (only for domains, not IPs or ASNs) */}
+                                {!isIP && !data.isASN && (
                                     <a
                                         href={`/checks?tab=dns&host=${encodeURIComponent(data.host || '')}`}
                                         className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors duration-150 shadow-sm"
@@ -511,28 +515,40 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
                                 {/* Focus: IP & Hostname */}
                                 <div className="flex items-center gap-4 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-border pb-4 lg:pb-0 lg:pr-8 w-full lg:w-auto">
                                     <div className="p-2.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl">
-                                        <Globe className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                                        {data.isASN ? (
+                                            <Network className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                                        ) : (
+                                            <Globe className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                                        )}
                                     </div>
                                     <div className="flex-1 lg:flex-none min-w-[140px]">
                                         <div className="text-[11px] text-slate-400 font-bold uppercase tracking-widest mb-1.5">
-                                            Target IP
+                                            {data.isASN ? 'Target ASN' : 'Target IP'}
                                         </div>
                                         <div className="text-2xl font-mono font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 leading-none">
-                                            {data.ip}
-                                            <Badge variant="secondary" className="px-1.5 py-0 text-xs bg-slate-100 dark:bg-white/5 text-slate-500 rounded-md font-bold">
-                                                {providerConfigs.length}
-                                            </Badge>
+                                            {data.isASN ? data.asnDetails?.asn : data.ip}
+                                            {!data.isASN && (
+                                                <Badge variant="secondary" className="px-1.5 py-0 text-xs bg-slate-100 dark:bg-white/5 text-slate-500 rounded-md font-bold">
+                                                    {providerConfigs.length}
+                                                </Badge>
+                                            )}
                                         </div>
                                         <div className="text-xs font-mono text-slate-400 line-clamp-1 mt-1 flex items-center gap-2">
-                                            {data.hostname && data.hostname !== data.ip && (
-                                                <span>{data.hostname}</span>
-                                            )}
-                                            {data.host && data.host !== data.ip && data.host !== data.hostname && (
+                                            {data.isASN ? (
+                                                <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data.asnDetails?.name}</span>
+                                            ) : (
                                                 <>
                                                     {data.hostname && data.hostname !== data.ip && (
-                                                        <span className="text-[10px] opacity-50">•</span>
+                                                        <span>{data.hostname}</span>
                                                     )}
-                                                    <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data.host}</span>
+                                                    {data.host && data.host !== data.ip && data.host !== data.hostname && (
+                                                        <>
+                                                            {data.hostname && data.hostname !== data.ip && (
+                                                                <span className="text-[10px] opacity-50">•</span>
+                                                            )}
+                                                            <span className="text-indigo-600 dark:text-indigo-400 font-bold">{data.host}</span>
+                                                        </>
+                                                    )}
                                                 </>
                                             )}
                                         </div>
@@ -540,79 +556,200 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
                                 </div>
 
                                 {/* Focus: Quick Insights */}
-                                {(() => {
-                                    const activeBadges = [
-                                        providers.ipapi?.proxy,
-                                        providers.ipapi?.hosting
-                                    ].filter(Boolean).length;
-                                    const hasMultiple = activeBadges >= 2;
-
-                                    return (
-                                        <div className={cn(
-                                            "flex flex-1 min-w-0 transition-all duration-300",
-                                            hasMultiple ? "flex-col gap-1" : "flex-row items-center justify-between w-full"
-                                        )}>
-                                            {/* Main row: Location + Details */}
-                                            <div className="flex items-center gap-6 sm:gap-10 overflow-x-auto no-scrollbar py-1">
-                                                {/* Location */}
-                                                {providers.ipapi?.city && (
-                                                    <div className="flex items-center gap-3 shrink-0">
-                                                        <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-                                                            <MapPin className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Location</div>
-                                                            <div className="text-base font-bold text-slate-800 dark:text-slate-200">
-                                                                {providers.ipapi.city}, {providers.ipapi.countryCode}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* Timezone & Info */}
-                                                {providers.ipapi?.timezone && (
-                                                    <div className="flex items-center gap-3 shrink-0">
-                                                        <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                                                            <Calendar className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Details</div>
-                                                            <div className="text-base font-bold text-slate-800 dark:text-slate-200">
-                                                                {providers.ipapi.timezone}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
+                                {data.isASN ? (
+                                    <div className="flex-1 py-1">
+                                        <div className="flex flex-wrap gap-4 items-center">
+                                            <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded-xl">
+                                                <Shield className="h-4 w-4 text-indigo-500" />
+                                                <span className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Verified ASN</span>
                                             </div>
-
-                                            {/* Security Badges */}
-                                            {(providers.ipapi?.proxy || providers.ipapi?.hosting) && (
-                                                <div className={cn(
-                                                    "flex gap-1.5 transition-all duration-300",
-                                                    hasMultiple ? "flex-wrap pt-0.5" : "items-center shrink-0 ml-4"
-                                                )}>
-                                                    {providers.ipapi?.proxy && (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border bg-amber-100/80 text-amber-700 border-amber-200/70 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-900/50 shrink-0">
-                                                            <svg className="h-2.5 w-2.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
-                                                            VPN / Proxy
-                                                        </span>
-                                                    )}
-                                                    {providers.ipapi?.hosting && (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border bg-rose-100/80 text-rose-700 border-rose-200/70 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-900/50 shrink-0">
-                                                            <svg className="h-2.5 w-2.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="2" width="20" height="8" rx="2" /><rect x="2" y="14" width="20" height="8" rx="2" /><line x1="6" y1="6" x2="6.01" y2="6" /><line x1="6" y1="18" x2="6.01" y2="18" /></svg>
-                                                            Data Center
-                                                        </span>
-                                                    )}
+                                            {data.asnDetails?.registry && (
+                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl">
+                                                    <Tag className="h-4 w-4 text-slate-400" />
+                                                    <span className="text-[11px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-wider">Registry: {data.asnDetails.registry}</span>
                                                 </div>
                                             )}
                                         </div>
-                                    );
-                                })()}
+                                    </div>
+                                ) : (
+                                    (() => {
+                                        const activeBadges = [
+                                            providers.ipapi?.proxy,
+                                            providers.ipapi?.hosting
+                                        ].filter(Boolean).length;
+                                        const hasMultiple = activeBadges >= 2;
+
+                                        return (
+                                            <div className={cn(
+                                                "flex flex-1 min-w-0 transition-all duration-300",
+                                                hasMultiple ? "flex-col gap-1" : "flex-row items-center justify-between w-full"
+                                            )}>
+                                                {/* Main row: Location + Details */}
+                                                <div className="flex items-center gap-6 sm:gap-10 overflow-x-auto no-scrollbar py-1">
+                                                    {/* Location */}
+                                                    {providers.ipapi?.city && (
+                                                        <div className="flex items-center gap-3 shrink-0">
+                                                            <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                                                                <MapPin className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                                            </div>
+                                                            <div>
+                                                                <div className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Location</div>
+                                                                <div className="text-base font-bold text-slate-800 dark:text-slate-200">
+                                                                    {providers.ipapi.city}, {providers.ipapi.countryCode}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Timezone & Info */}
+                                                    {providers.ipapi?.timezone && (
+                                                        <div className="flex items-center gap-3 shrink-0">
+                                                            <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                                                                <Calendar className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                                                            </div>
+                                                            <div>
+                                                                <div className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-0.5">Details</div>
+                                                                <div className="text-base font-bold text-slate-800 dark:text-slate-200">
+                                                                    {providers.ipapi.timezone}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Security Badges */}
+                                                {(providers.ipapi?.proxy || providers.ipapi?.hosting) && (
+                                                    <div className={cn(
+                                                        "flex gap-1.5 transition-all duration-300",
+                                                        hasMultiple ? "flex-wrap pt-0.5" : "items-center shrink-0 ml-4"
+                                                    )}>
+                                                        {providers.ipapi?.proxy && (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border bg-amber-100/80 text-amber-700 border-amber-200/70 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-900/50 shrink-0">
+                                                                <svg className="h-2.5 w-2.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+                                                                VPN / Proxy
+                                                            </span>
+                                                        )}
+                                                        {providers.ipapi?.hosting && (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border bg-rose-100/80 text-rose-700 border-rose-200/70 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-900/50 shrink-0">
+                                                                <svg className="h-2.5 w-2.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="2" width="20" height="8" rx="2" /><rect x="2" y="14" width="20" height="8" rx="2" /><line x1="6" y1="6" x2="6.01" y2="6" /><line x1="6" y1="18" x2="6.01" y2="18" /></svg>
+                                                                Data Center
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })()
+                                )}
                             </div>
                         </div>
 
+                        {/* ASN Bento Grid Section */}
+                        {data.isASN && data.asnDetails && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 px-1 mt-2 mb-4">
+                                {/* Organization Tile */}
+                                <div className="backdrop-blur-md bg-white/70 dark:bg-slate-900/70 border border-white/40 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+                                    <div className="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
+                                        <Building2 className="h-24 w-24" />
+                                    </div>
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="p-2.5 bg-indigo-500 rounded-xl shadow-lg shadow-indigo-500/20">
+                                            <Building2 className="h-4 w-4 text-white" />
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Entity</div>
+                                            <div className="text-sm font-black text-slate-900 dark:text-white leading-none">Organization</div>
+                                        </div>
+                                    </div>
+                                    <div className="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">
+                                        {data.asnDetails.name}
+                                    </div>
+                                    <div className="mt-3 text-[10px] font-mono text-slate-400 truncate">
+                                        {data.asnDetails.domain}
+                                    </div>
+                                </div>
+
+                                {/* Network Profile Tile */}
+                                <div className="backdrop-blur-md bg-white/70 dark:bg-slate-900/70 border border-white/40 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+                                    <div className="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
+                                        <Network className="h-24 w-24" />
+                                    </div>
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="p-2.5 bg-emerald-500 rounded-xl shadow-lg shadow-emerald-500/20">
+                                            <Network className="h-4 w-4 text-white" />
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Network</div>
+                                            <div className="text-sm font-black text-slate-900 dark:text-white leading-none">Routing & Type</div>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Main Route</span>
+                                            <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-200">{data.asnDetails.route || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Traffic Type</span>
+                                            <Badge variant="secondary" className="px-1.5 py-0 text-[9px] uppercase font-black bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
+                                                {data.asnDetails.type || 'Standard'}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Regional Authority Tile */}
+                                <div className="backdrop-blur-md bg-white/70 dark:bg-slate-900/70 border border-white/40 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+                                    <div className="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
+                                        <Globe2 className="h-24 w-24" />
+                                    </div>
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="p-2.5 bg-blue-500 rounded-xl shadow-lg shadow-blue-500/20">
+                                            <Globe2 className="h-4 w-4 text-white" />
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Geography</div>
+                                            <div className="text-sm font-black text-slate-900 dark:text-white leading-none">Registry & Region</div>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">RIR</span>
+                                            <span className="text-xs font-black text-blue-600 dark:text-blue-400">{data.asnDetails.registry}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Location</span>
+                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">{data.asnDetails.country}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Technical Age Tile */}
+                                <div className="backdrop-blur-md bg-white/70 dark:bg-slate-900/70 border border-white/40 dark:border-white/10 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+                                    <div className="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity">
+                                        <Tag className="h-24 w-24" />
+                                    </div>
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="p-2.5 bg-amber-500 rounded-xl shadow-lg shadow-amber-500/20">
+                                            <Tag className="h-4 w-4 text-white" />
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">History</div>
+                                            <div className="text-sm font-black text-slate-900 dark:text-white leading-none">Registration</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mb-0.5">Allocated On</span>
+                                        <div className="text-sm font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                            <Calendar className="h-3.5 w-3.5 text-amber-500 opacity-70" />
+                                            {data.asnDetails.allocated || 'N/A'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Featured Map Section - High Visibility */}
-                        {displaySettings.showFeaturedMap && (() => {
+                        {displaySettings.showFeaturedMap && !data.isASN && (() => {
                             let featuredLat = 0;
                             let featuredLng = 0;
                             let sourceName = '';
@@ -997,7 +1134,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
             </div>
 
             {/* Provider List (outside of capture area) */}
-            {displaySettings.showProviderCards && providerConfigs.length > 0 && (
+            {displaySettings.showProviderCards && !data.isASN && providerConfigs.length > 0 && (
                 <div className="space-y-4 mt-8">
                     <div className="flex items-center justify-between px-2 mb-1">
                         <div className="flex items-center gap-2">

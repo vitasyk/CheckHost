@@ -1,6 +1,19 @@
+export interface ASNDetails {
+    asn: string;
+    name: string;
+    domain: string;
+    route: string;
+    type: string;
+    allocated: string;
+    registry: string;
+    country: string;
+}
+
 export interface IpInfoResponse {
     ip: string;
     hostname?: string;
+    isASN?: boolean;
+    asnDetails?: ASNDetails;
     providers: {
         maxmind?: MaxMindData;
         ipinfo?: IpInfoData;

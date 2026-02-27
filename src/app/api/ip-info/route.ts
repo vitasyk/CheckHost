@@ -1,6 +1,7 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getMockIpInfo } from '@/lib/mock-data';
+import { fetchAsnInfo, fetchRdapInfo } from '@/lib/ipinfo-api';
+import { parseRdapData } from '@/lib/rdap-parser';
 import { memoryCache } from '@/lib/cache';
 import { logSeoPage } from '@/lib/seo-logger';
 
@@ -65,6 +66,73 @@ export async function GET(request: NextRequest) {
     // 2. Deduplicate concurrent requests
     try {
         const responseData = await memoryCache.deduplicate(cacheKey, async () => {
+
+            // Check if it's an AS Number query (e.g., AS13335 or AS 13335)
+            const isASN = /^AS\s*\d+$/i.test(host!);
+
+            if (isASN) {
+                // Fetch ASN details and RDAP info in parallel
+                let [asnData, rdapData] = await Promise.all([
+                    fetchAsnInfo(host!),
+                    fetchRdapInfo(host!).catch(() => null)
+                ]);
+
+                if (!asnData || asnData.error) {
+                    // Ultimate fallback: Extract basic info from RDAP if available
+                    if (rdapData) {
+                        const parsed = parseRdapData(rdapData);
+                        if (parsed.name || parsed.organization) {
+                            asnData = {
+                                asn: host!.toUpperCase(),
+                                name: parsed.name || parsed.organization || '',
+                                domain: '',
+                                route: '',
+                                type: parsed.networkType || '',
+                                allocated: parsed.registrationDate || '',
+                                registry: '',
+                                country: parsed.country || ''
+                            };
+                        }
+                    }
+
+                    if (!asnData || asnData.error) {
+                        return {
+                            host,
+                            status: 'failed',
+                            isASN: true,
+                            error: `ASN Lookup failed: Could not retrieve information for ${host!}.`,
+                            providers: {},
+                            rdapRawData: rdapData,
+                            timestamp: Date.now()
+                        };
+                    }
+                }
+
+                // Format the ASN specific response
+                const successAsnData = {
+                    ip: '',
+                    host,
+                    status: 'success',
+                    isASN: true,
+                    asnDetails: {
+                        asn: asnData.asn,
+                        name: asnData.name || '',
+                        domain: asnData.domain || '',
+                        route: asnData.route || '',
+                        type: asnData.type || '',
+                        allocated: asnData.allocated || '',
+                        registry: asnData.registry || '',
+                        country: asnData.country || ''
+                    },
+                    providers: {},
+                    rdapRawData: rdapData
+                };
+
+                memoryCache.set(cacheKey, successAsnData, 3600);
+                logSeoPage(host!, 'ip-info').catch(console.error);
+                return successAsnData;
+            }
+
             const data = await getMockIpInfo(host!);
 
             // If IP is null (resolution failed for a domain), mark as failed but keep RDAP data

@@ -350,10 +350,16 @@ export async function resolveNameservers(domain: string): Promise<string[]> {
  */
 export async function fetchRdapInfo(query: string): Promise<any> {
     const isIp = /^(?:\d{1,3}\.){3}\d{1,3}$|^(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}$/.test(query);
-    const type = isIp ? 'ip' : 'domain';
+    const isAsn = /^as\s*\d+$/i.test(query);
+    const type = isAsn ? 'autnum' : (isIp ? 'ip' : 'domain');
+
+    let cleanQuery = query;
+    if (isAsn) {
+        cleanQuery = query.replace(/^as\s*/i, '');
+    }
 
     // List of RDAP servers to try
-    const servers = [`https://rdap.org/${type}/${query}`];
+    const servers = [`https://rdap.org/${type}/${cleanQuery}`];
 
     // Add TLD-specific fallbacks for common TLDs if not already covered
     if (!isIp) {
@@ -576,4 +582,70 @@ function parseWhoisText(text: string, domain: string): any {
     }
 
     return result;
+}
+
+/**
+ * Fetch ASN specific information from IPinfo.io API
+ */
+export async function fetchAsnInfo(asn: string): Promise<any> {
+    const config = getIpInfoConfig();
+    const token = config.apiToken;
+
+    // Normalize ASN format (AS13335) - strip spaces and ensure uppercase
+    const cleanAsn = asn.replace(/\s+/g, '').toUpperCase();
+    const normalizedAsn = cleanAsn.startsWith('AS') ? cleanAsn : `AS${cleanAsn}`;
+
+    const url = `${IPINFO_API_BASE}/${normalizedAsn}/json${token ? `?token=${token}` : ''}`;
+    console.log(`[Diagnostic] ASN Fetch: ${url.replace(token || '', 'REDACTED')}`);
+
+    try {
+        const response = await fetch(url, {
+            signal: AbortSignal.timeout(5000)
+        });
+
+        if (!response.ok) {
+            // Try BGPView as a fallback
+            return await fetchAsnInfoFromBgpView(cleanAsn);
+        }
+
+        return await response.json();
+    } catch (_error) {
+        console.warn('[Diagnostic] ASN fetch failed:', _error);
+        return await fetchAsnInfoFromBgpView(cleanAsn);
+    }
+}
+
+/**
+ * Fallback to BGPView API for ASN info
+ */
+async function fetchAsnInfoFromBgpView(asn: string): Promise<any> {
+    const cleanAsn = asn.replace(/\s+/g, '').toUpperCase().replace(/^AS/i, '');
+    const url = `https://api.bgpview.io/asn/${cleanAsn}`;
+    console.log(`[Diagnostic] BGPView Fallback: ${url}`);
+
+    try {
+        const response = await fetch(url, {
+            signal: AbortSignal.timeout(5000)
+        });
+
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        if (data.status === 'ok' && data.data) {
+            const d = data.data;
+            return {
+                asn: `AS${d.asn}`,
+                name: d.name,
+                domain: d.website || '',
+                route: '', // Will be filled from prefixes if needed
+                type: '',
+                allocated: d.date_updated || '',
+                registry: d.registry || '',
+                country: d.country_code || ''
+            };
+        }
+        return null;
+    } catch (_e) {
+        return null;
+    }
 }

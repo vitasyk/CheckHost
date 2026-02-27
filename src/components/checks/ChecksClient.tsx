@@ -209,6 +209,13 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
 
     const runCheck = (type: CheckType, currentHost: string, refresh = false) => {
         let sanitized = currentHost.trim();
+
+        // Special sanitization for ASN
+        if (type === 'info' && /^as\s*\d+$/i.test(sanitized)) {
+            const match = sanitized.match(/^as\s*(\d+)$/i);
+            if (match) sanitized = `AS${match[1]}`;
+        }
+
         if (type === 'ping' || type === 'dns' || type === 'tcp' || type === 'udp') {
             sanitized = sanitized.replace(/^https?:\/\//, '');
             sanitized = sanitized.split('/')[0];

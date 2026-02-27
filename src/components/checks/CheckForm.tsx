@@ -74,6 +74,12 @@ export function CheckForm({
     const sanitizeInput = useCallback((input: string) => {
         let sanitized = input.trim();
 
+        // Detect ASN input format (e.g. "as 13335" or "AS13335")
+        const asnMatch = sanitized.match(/^as\s*(\d+)$/i);
+        if (asnMatch && type === 'info') {
+            return `AS${asnMatch[1]}`;
+        }
+
         if (type === 'info' || type === 'ping' || type === 'dns' || type === 'dns-all' || type === 'tcp' || type === 'udp' || type === 'mtr' || type === 'ssl') {
             // Remove protocol
             sanitized = sanitized.replace(/^https?:\/\//, '');
@@ -177,7 +183,7 @@ export function CheckForm({
     const getPlaceholder = () => {
         switch (type) {
             case 'info':
-                return 'example.com or 1.1.1.1';
+                return 'example.com, 1.1.1.1, or AS13335';
             case 'ping':
                 return 'example.com or 1.1.1.1';
             case 'http':
