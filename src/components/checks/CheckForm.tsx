@@ -167,9 +167,9 @@ export function CheckForm({
     };
 
     useEffect(() => {
-        if (autoStart && host) {
+        if (autoStart && host && !isLoading && !checkMutation.isPending) {
             const cleanHost = sanitizeInput(host);
-            if (cleanHost && !isLoading) {
+            if (cleanHost) {
                 if (type === 'info' || type === 'ssl') {
                     onCheckComplete(type);
                 } else {
