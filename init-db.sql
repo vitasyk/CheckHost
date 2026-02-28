@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS posts (
     excerpt TEXT,
     content TEXT NOT NULL,
     cover_image TEXT,
-    author TEXT DEFAULT 'Admin',
+    author TEXT DEFAULT 'CheckNode',
     status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
     published_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

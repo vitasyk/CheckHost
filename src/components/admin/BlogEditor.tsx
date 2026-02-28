@@ -20,7 +20,8 @@ import {
     Zap,
     FileText,
     Upload,
-    Sparkles
+    Sparkles,
+    User
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -31,6 +32,7 @@ interface PostData {
     excerpt: string;
     content: string;
     cover_image: string;
+    author: string;
     status: 'draft' | 'published';
     locale: string;
     ad_top: boolean;
@@ -56,6 +58,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
         excerpt: '',
         content: '',
         cover_image: '',
+        author: 'CheckNode',
         status: 'draft',
         locale: 'en',
         ad_top: false,
@@ -266,6 +269,18 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                     <Card className="p-6 space-y-6 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm">
                         <div className="space-y-4">
                             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <User className="h-3 w-3" /> Author Name
+                            </label>
+                            <Input
+                                value={post.author || ''}
+                                onChange={(e) => setPost({ ...post, author: e.target.value })}
+                                placeholder="Author name"
+                                className="h-10 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 rounded-lg text-xs"
+                            />
+                        </div>
+
+                        <div className="space-y-4">
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                 <Layers className="h-3 w-3" /> Publishing Status
                             </label>
                             <div className="flex gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
@@ -273,7 +288,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                                     <button
                                         key={s}
                                         onClick={() => setPost({ ...post, status: s as any })}
-                                        className={`flex-1 py-2 text-xs font-bold rounded-lg capitalize transition-all ${post.status === s
+                                        className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg capitalize transition-all ${post.status === s
                                             ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
                                             : 'text-slate-500 hover:text-slate-700'
                                             }`}
@@ -430,7 +445,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                         </ul>
                     </Card>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

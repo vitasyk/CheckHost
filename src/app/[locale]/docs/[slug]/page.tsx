@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { query } from '@/lib/postgres';
 import { ChevronLeft, ChevronRight, Clock, BookOpen, List } from 'lucide-react';
 import { marked } from 'marked';
@@ -13,6 +13,8 @@ interface Article {
     section: string;
     cover_image?: string;
     updated_at: Date;
+    locale: string;
+    translation_group?: string;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string, locale: string }> }) {
@@ -30,6 +32,68 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     }
 }
 
+async function findDocTranslation(slug: string, targetLocale: string): Promise<string | null> {
+    try {
+        console.log(`[DocsRedirect] Searching translation for slug: "${slug}" to locale: "${targetLocale}"`);
+
+        const sourceRes = await query('SELECT * FROM docs_articles WHERE slug = $1 LIMIT 1', [slug]);
+        const sourceDoc = sourceRes.rows[0] as Article;
+
+        if (!sourceDoc) {
+            console.log(`[DocsRedirect] No source article found for slug: "${slug}"`);
+            return null;
+        }
+
+        console.log(`[DocsRedirect] Found source article ID: ${sourceDoc.id}, Locale: ${sourceDoc.locale}, Group: ${sourceDoc.translation_group}`);
+        if (sourceDoc.locale === targetLocale) {
+            console.log(`[DocsRedirect] Source article is already in target locale. Skipping redirect.`);
+            return null;
+        }
+
+        let translatedDoc: { slug: string } | null = null;
+
+        if (sourceDoc.translation_group) {
+            console.log(`[DocsRedirect] Trying by translation_group: ${sourceDoc.translation_group}`);
+            const res = await query(
+                'SELECT slug FROM docs_articles WHERE translation_group = $1 AND locale = $2 AND published = true LIMIT 1',
+                [sourceDoc.translation_group, targetLocale]
+            );
+            translatedDoc = res.rows[0];
+        }
+
+        if (!translatedDoc && sourceDoc.cover_image) {
+            console.log(`[DocsRedirect] Trying by cover_image: ${sourceDoc.cover_image}`);
+            const res = await query(
+                'SELECT slug FROM docs_articles WHERE cover_image = $1 AND locale = $2 AND published = true LIMIT 1',
+                [sourceDoc.cover_image, targetLocale]
+            );
+            translatedDoc = res.rows[0];
+        }
+
+        // Final Fallback: Fuzzy Match by Root Slug
+        if (!translatedDoc) {
+            const rootSlug = slug.replace(/-[a-z]{2}$/, '');
+            console.log(`[DocsRedirect] Trying fuzzy match by root slug: "${rootSlug}%"`);
+            const res = await query(
+                'SELECT slug FROM docs_articles WHERE slug ILIKE $1 AND locale = $2 AND published = true LIMIT 1',
+                [`${rootSlug}%`, targetLocale]
+            );
+            translatedDoc = res.rows[0];
+        }
+
+        if (translatedDoc) {
+            console.log(`[DocsRedirect] Success! Found translated doc slug: "${translatedDoc.slug}"`);
+            return translatedDoc.slug;
+        }
+
+        console.log(`[DocsRedirect] No translation found for doc "${slug}" in "${targetLocale}"`);
+        return null;
+    } catch (e) {
+        console.error('[DocsRedirect] Error finding translation:', e);
+        return null;
+    }
+}
+
 export default async function DocArticlePage({ params }: { params: Promise<{ slug: string, locale: string }> }) {
     const { slug, locale } = await params;
     const t = await getTranslations('Docs');
@@ -39,7 +103,15 @@ export default async function DocArticlePage({ params }: { params: Promise<{ slu
 
     try {
         const result = await query('SELECT * FROM docs_articles WHERE slug = $1 AND published = true AND locale = $2 LIMIT 1', [slug, locale]);
-        if (result.rows.length === 0) notFound();
+
+        if (result.rows.length === 0) {
+            const newSlug = await findDocTranslation(slug, locale);
+            if (newSlug) {
+                redirect(`/${locale}/docs/${newSlug}`);
+            }
+            notFound();
+        }
+
         article = result.rows[0];
 
         const allResult = await query(
@@ -49,6 +121,7 @@ export default async function DocArticlePage({ params }: { params: Promise<{ slu
         otherArticles = allResult.rows;
     } catch (e) {
         console.error('Error fetching article:', e);
+        if ((e as any).digest?.startsWith('NEXT_REDIRECT')) throw e;
         notFound();
     }
 

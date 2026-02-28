@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import pool, { isPostgresConfigured } from '@/lib/postgres';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { getSiteSetting } from '@/lib/site-settings';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { fetchWithBrowserSpoof } from '@/lib/ai/browser-client';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 const LOG_FILE = path.join(process.cwd(), 'debug-blog.log');
 
@@ -400,9 +402,11 @@ export async function GET(request: Request) {
         // 3. Generate cover image (optional, using OpenAI DALL-E)
         const coverImage = await generateCoverImage(keyword, openaiKey);
 
-        // 4. Generate articles in each locale and save as DRAFT
         const results: Record<string, 'ok' | 'failed'> = {};
         let masterSlug = '';
+
+        // Generate a shared UUID for this translation group
+        const translationGroupId = crypto.randomUUID();
 
         for (let i = 0; i < SUPPORTED_LOCALES.length; i++) {
             const locale = SUPPORTED_LOCALES[i];
@@ -465,7 +469,6 @@ export async function GET(request: Request) {
                 }
             }
 
-
             if (!articleData) {
                 results[locale] = 'failed';
                 continue;
@@ -491,16 +494,33 @@ export async function GET(request: Request) {
                 // Inject cover alt as data attribute on cover_image for the frontend
                 const coverData = cover ? JSON.stringify({ url: cover, alt: coverAlt }) : null;
 
-                await pool.query(
-                    `INSERT INTO posts (title, slug, excerpt, content, status, cover_image, author, ad_top, ad_bottom)
-                     VALUES ($1, $2, $3, $4, 'draft', $5, $6, true, true)
-                     ON CONFLICT (slug) DO UPDATE SET title = EXCLUDED.title, content = EXCLUDED.content, status = 'draft'`,
-                    [title, finalSlug, excerpt, content, coverData ? cover : null, `${SITE_NAME} Bot`]
-                );
+                if (isPostgresConfigured) {
+                    await pool.query(
+                        `INSERT INTO posts (title, slug, excerpt, content, status, cover_image, author, ad_top, ad_bottom, locale, translation_group)
+                         VALUES ($1, $2, $3, $4, 'draft', $5, $6, true, true, $7, $8)
+                         ON CONFLICT (slug) DO UPDATE SET title = EXCLUDED.title, content = EXCLUDED.content, status = 'draft', translation_group = EXCLUDED.translation_group`,
+                        [title, finalSlug, excerpt, content, coverData ? cover : null, `${SITE_NAME}`, locale, translationGroupId]
+                    );
+                } else if (isSupabaseConfigured) {
+                    await supabase.from('posts').upsert({
+                        title,
+                        slug: finalSlug,
+                        excerpt,
+                        content,
+                        status: 'draft',
+                        locale,
+                        translation_group: translationGroupId,
+                        cover_image: coverData ? cover : null,
+                        author: `${SITE_NAME}`,
+                        ad_top: true,
+                        ad_bottom: true
+                    });
+                }
+
                 logDebug(`Locale ${locale} saved successfully to DB.`);
                 results[locale] = 'ok';
             } catch (e: any) {
-                logDebug(`DB insert failed for locale ${locale}: ${e.message}`);
+                logDebug(`DB insert failed for locale ${locale}: ${e.message} `);
                 results[locale] = 'failed';
             }
         }
@@ -509,10 +529,10 @@ export async function GET(request: Request) {
         const successCount = Object.values(results).filter(v => v === 'ok').length;
         if (successCount > 0) {
             await pool.query(`UPDATE blog_keywords SET status = 'completed' WHERE id = $1`, [task.id]);
-            logDebug(`Job finished. Success count: ${successCount}`);
+            logDebug(`Job finished.Success count: ${successCount} `);
         } else {
             await pool.query(`UPDATE blog_keywords SET status = 'failed' WHERE id = $1`, [task.id]);
-            logDebug(`Job failed. All locales failed for keyword: "${keyword}"`);
+            logDebug(`Job failed.All locales failed for keyword: "${keyword}"`);
         }
 
         return NextResponse.json({
