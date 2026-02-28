@@ -119,6 +119,7 @@ export default function AdminSettings() {
     const [clearingSeo, setClearingSeo] = useState(false);
     const [saved, setSaved] = useState(false);
     const [purgingCache, setPurgingCache] = useState(false);
+    const [replacingDomain, setReplacingDomain] = useState(false);
     const t = useTranslations('Admin.settings');
 
     useEffect(() => {
@@ -296,6 +297,26 @@ export default function AdminSettings() {
         }
     };
 
+    const handleReplaceDomain = async () => {
+        if (!confirm('This will replace all old domain links (check-host.top) in existing blog posts with the new domain. Proceed?')) {
+            return;
+        }
+        setReplacingDomain(true);
+        try {
+            const res = await fetch('/api/admin/blog/replace-domain', { method: 'POST' });
+            const data = await res.json();
+            if (res.ok) {
+                alert(`Done! Updated ${data.updatedPosts} post(s).\n${data.oldDomain} → ${data.newDomain}`);
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+            }
+        } catch {
+            alert('Failed to replace domain. Check logs.');
+        } finally {
+            setReplacingDomain(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center p-20">
@@ -425,6 +446,15 @@ export default function AdminSettings() {
                             >
                                 {clearing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                                 Clear All Snapshots
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="w-full border-orange-200 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/10 gap-2"
+                                onClick={handleReplaceDomain}
+                                disabled={replacingDomain}
+                            >
+                                {replacingDomain ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                                Replace Domain in Blog Posts
                             </Button>
                         </Card>
                     </div>
