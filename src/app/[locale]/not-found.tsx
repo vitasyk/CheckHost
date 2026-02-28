@@ -59,7 +59,7 @@ export default function NotFound() {
 
             <div className="mt-20 py-8 text-center border-t border-slate-200 dark:border-white/5 w-full">
                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">
-                    {process.env.NEXT_PUBLIC_SITE_NAME || 'CheckHost.top'} • Network Diagnostic System
+                    {process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode'} • Network Diagnostic System
                 </p>
             </div>
         </div>

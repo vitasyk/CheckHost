@@ -49,6 +49,8 @@ type Format = 'html' | 'md' | 'txt';
 
 function generatePrompt(topic: string, locale: string): string {
     const lang = LANG_NAMES[locale] || 'English';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
+    const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode';
     return `You are a senior DevOps engineer and SEO content expert.
 
 Write a comprehensive, technically accurate, SEO-optimized blog article about: "${topic}"
@@ -62,8 +64,8 @@ Return ONLY the article body as rich HTML (no <html>/<body> wrap). Use:
 - At least one <img src="URL" alt="descriptive text"> (use: https://placehold.co/800x400/1e293b/818cf8?text=Topic+Diagram)
 - Never leave the alt attribute empty
 
-Naturally mention CheckHost tools where relevant (Ping, HTTP Check, DNS Check, SSL Check, MTR). 
-Link format: <a href="https://check-host.top/ping">Ping Check</a>
+Naturally mention ${siteName} tools where relevant (Ping, HTTP Check, DNS Check, SSL Check, MTR). 
+Link format: <a href="${siteUrl}/ping">Ping Check</a>
 
 Target length: 1200–2000 words.`;
 }

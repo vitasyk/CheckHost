@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const t = await getTranslations({ locale, namespace: 'Metadata' });
 
     return {
-        title: t('checksTitle') || `Diagnostic Tools | ${process.env.NEXT_PUBLIC_SITE_NAME || 'CheckHost.top'}`,
+        title: t('checksTitle') || `Diagnostic Tools | ${process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode'}`,
         description: t('checksDesc') || 'Comprehensive website diagnostic tools including Ping, HTTP, DNS, SSL, and MTR checks.',
         alternates: {
             canonical: '/',

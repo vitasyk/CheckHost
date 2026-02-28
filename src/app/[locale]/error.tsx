@@ -75,7 +75,7 @@ export default function Error({
 
             <div className="mt-20 py-8 text-center border-t border-slate-200 dark:border-white/5 w-full">
                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">
-                    {process.env.NEXT_PUBLIC_SITE_NAME || 'CheckHost.top'} • Uptime Guarantee System
+                    {process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode'} • Uptime Guarantee System
                 </p>
             </div>
         </div>

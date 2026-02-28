@@ -104,7 +104,7 @@ export default function SharePage() {
                     </div>
 
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                        {process.env.NEXT_PUBLIC_SITE_NAME || 'CheckHost.top'} • Diagnostic Service
+                        {process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode'} • Diagnostic Service
                     </p>
                 </div>
             </div>

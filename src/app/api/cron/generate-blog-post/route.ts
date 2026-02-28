@@ -23,6 +23,9 @@ const LANGUAGE_NAMES: Record<string, string> = {
     fr: 'French', ru: 'Russian', nl: 'Dutch', pl: 'Polish', it: 'Italian',
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
+const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode';
+
 const DEFAULT_PROMPT_TEMPLATE = `
 You are a senior IT engineer, DevOps specialist, and expert SEO content writer.
 Write a comprehensive, technically accurate, and SEO-optimized blog article about: "{{keyword}}".
@@ -45,14 +48,16 @@ Rules:
   * Add proper spacing between sections (the prose CSS will handle this, but ensure logical flow).
   * Include at least one <img> tag with a technical illustration placeholder: "https://placehold.co/800x400/1e293b/818cf8?text=Technical+Flow". MANDATORY descriptive [alt] attribute.
   * Insert exactly two {{AD}} markers for optimal reader retention.
-  * Naturally mention and link to CheckHost tools (Ping, DNS check, SSL check, etc.) using: [text](https://check-host.top/[tool]).
+  * Naturally mention and link to {{siteName}} tools (Ping, DNS check, SSL check, etc.) using: [text]({{siteUrl}}/[tool]).
 `;
 
 function compilePrompt(template: string, keyword: string, language: string) {
     const raw = template || DEFAULT_PROMPT_TEMPLATE;
     return raw
         .replace(/{{keyword}}/g, keyword)
-        .replace(/{{language}}/g, language);
+        .replace(/{{language}}/g, language)
+        .replace(/{{siteUrl}}/g, SITE_URL)
+        .replace(/{{siteName}}/g, SITE_NAME);
 }
 
 async function getAiConfig() {
@@ -481,7 +486,7 @@ export async function GET(request: Request) {
 
             try {
                 const cover = coverImage?.url || null;
-                const coverAlt = coverImage?.alt || `${title} - CheckHost Blog`;
+                const coverAlt = coverImage?.alt || `${title} - ${SITE_NAME} Blog`;
 
                 // Inject cover alt as data attribute on cover_image for the frontend
                 const coverData = cover ? JSON.stringify({ url: cover, alt: coverAlt }) : null;
@@ -490,7 +495,7 @@ export async function GET(request: Request) {
                     `INSERT INTO posts (title, slug, excerpt, content, status, cover_image, author, ad_top, ad_bottom)
                      VALUES ($1, $2, $3, $4, 'draft', $5, $6, true, true)
                      ON CONFLICT (slug) DO UPDATE SET title = EXCLUDED.title, content = EXCLUDED.content, status = 'draft'`,
-                    [title, finalSlug, excerpt, content, coverData ? cover : null, 'CheckHost Bot']
+                    [title, finalSlug, excerpt, content, coverData ? cover : null, `${SITE_NAME} Bot`]
                 );
                 logDebug(`Locale ${locale} saved successfully to DB.`);
                 results[locale] = 'ok';

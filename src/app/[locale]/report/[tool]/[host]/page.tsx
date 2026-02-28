@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const toolName = checkNames[tool.toLowerCase()] || tool.toUpperCase();
 
     return {
-        title: `${toolName} for ${host} | ${process.env.NEXT_PUBLIC_SITE_NAME || 'CheckHost.top'}`,
+        title: `${toolName} for ${host} | ${process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode'}`,
         description: `Perform ${toolName} diagnostic tests for ${host}. Analyze network latency, reachability, and DNS configuration globally.`,
         alternates: {
             canonical: `/report/${tool}/${host}`,
