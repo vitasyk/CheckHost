@@ -2,10 +2,30 @@ import { NextResponse } from 'next/server';
 import pool, { isPostgresConfigured } from '@/lib/postgres';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
-const OLD_DOMAIN = 'check-host.top';
 const NEW_DOMAIN = process.env.NEXT_PUBLIC_SITE_URL
     ? new URL(process.env.NEXT_PUBLIC_SITE_URL).hostname
     : 'checknode.io';
+
+// All old domains that should be replaced
+const OLD_DOMAINS = [
+    'check-host.top',
+    'checkhost.net',
+];
+
+function replaceAllDomains(text: string): string {
+    let result = text;
+    for (const old of OLD_DOMAINS) {
+        result = result.replaceAll(`https://${old}`, `https://${NEW_DOMAIN}`);
+        result = result.replaceAll(`http://${old}`, `https://${NEW_DOMAIN}`);
+        // Also plain domain mentions without protocol
+        result = result.replaceAll(`www.${old}`, NEW_DOMAIN);
+    }
+    return result;
+}
+
+function hasOldDomain(text: string): boolean {
+    return OLD_DOMAINS.some(d => text?.includes(d));
+}
 
 export async function POST() {
     if (!isPostgresConfigured && !isSupabaseConfigured) {
@@ -14,38 +34,58 @@ export async function POST() {
 
     let updated = 0;
 
-    // PostgreSQL
+    // PostgreSQL — chain REPLACE for each old domain
     if (isPostgresConfigured) {
         try {
-            const result = await pool.query(
-                `UPDATE posts
-                 SET content = REPLACE(content, $1, $2),
-                     excerpt = REPLACE(excerpt, $1, $2)
-                 WHERE content LIKE $3 OR excerpt LIKE $3`,
-                [`https://${OLD_DOMAIN}`, `https://${NEW_DOMAIN}`, `%${OLD_DOMAIN}%`]
-            );
+            // Build chained SQL REPLACE expressions
+            let contentExpr = 'content';
+            let excerptExpr = 'excerpt';
+            const params: string[] = [];
+            let paramIdx = 1;
+
+            for (const old of OLD_DOMAINS) {
+                contentExpr = `REPLACE(${contentExpr}, $${paramIdx}, $${paramIdx + 1})`;
+                excerptExpr = `REPLACE(${excerptExpr}, $${paramIdx}, $${paramIdx + 1})`;
+                params.push(`https://${old}`, `https://${NEW_DOMAIN}`);
+                paramIdx += 2;
+
+                // Also handle http://
+                contentExpr = `REPLACE(${contentExpr}, $${paramIdx}, $${paramIdx + 1})`;
+                excerptExpr = `REPLACE(${excerptExpr}, $${paramIdx}, $${paramIdx + 1})`;
+                params.push(`http://${old}`, `https://${NEW_DOMAIN}`);
+                paramIdx += 2;
+            }
+
+            const whereConditions = OLD_DOMAINS.map(d => `content LIKE $${paramIdx++}`);
+            OLD_DOMAINS.forEach(d => params.push(`%${d}%`));
+
+            const sql = `UPDATE posts
+                         SET content = ${contentExpr},
+                             excerpt = ${excerptExpr}
+                         WHERE ${whereConditions.join(' OR ')}`;
+
+            const result = await pool.query(sql, params);
             updated += result.rowCount ?? 0;
         } catch (e: any) {
             console.error('[ReplaceDomain] Postgres error:', e.message);
         }
     }
 
-    // Supabase
+    // Supabase — fetch and replace in JS (more flexible)
     if (isSupabaseConfigured) {
         try {
+            // Fetch posts that might contain old domains
+            const orConditions = OLD_DOMAINS.map(d => `content.ilike.%${d}%`).join(',');
             const { data: posts } = await supabase
                 .from('posts')
                 .select('id, content, excerpt')
-                .or(`content.ilike.%${OLD_DOMAIN}%,excerpt.ilike.%${OLD_DOMAIN}%`);
+                .or(orConditions);
 
             if (posts && posts.length > 0) {
                 for (const post of posts) {
-                    const newContent = (post.content || '').replaceAll(
-                        `https://${OLD_DOMAIN}`, `https://${NEW_DOMAIN}`
-                    );
-                    const newExcerpt = (post.excerpt || '').replaceAll(
-                        `https://${OLD_DOMAIN}`, `https://${NEW_DOMAIN}`
-                    );
+                    if (!hasOldDomain(post.content || '') && !hasOldDomain(post.excerpt || '')) continue;
+                    const newContent = replaceAllDomains(post.content || '');
+                    const newExcerpt = replaceAllDomains(post.excerpt || '');
                     await supabase
                         .from('posts')
                         .update({ content: newContent, excerpt: newExcerpt })
@@ -61,7 +101,7 @@ export async function POST() {
     return NextResponse.json({
         success: true,
         updatedPosts: updated,
-        oldDomain: OLD_DOMAIN,
+        replacedDomains: OLD_DOMAINS,
         newDomain: NEW_DOMAIN,
     });
 }
