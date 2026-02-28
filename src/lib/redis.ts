@@ -142,5 +142,10 @@ class UniversalRedis {
     }
 }
 
-// Export singleton instance
-export const redis = new UniversalRedis();
+const globalForRedis = globalThis as unknown as {
+    redis: UniversalRedis | undefined;
+};
+
+export const redis = globalForRedis.redis ?? new UniversalRedis();
+
+if (process.env.NODE_ENV !== 'production') globalForRedis.redis = redis;

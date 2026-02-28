@@ -1,11 +1,5 @@
 import { Pool } from 'pg';
 
-// Singleton logic for PostgreSQL Pool in Next.js
-declare global {
-    var pgPool: Pool | undefined;
-    var pgPoolConnectionString: string | undefined;
-}
-
 const connectionString = process.env.DATABASE_URL;
 
 function createPool() {
@@ -28,17 +22,21 @@ function createPool() {
     return newPool;
 }
 
-// Check if we need to recreate the pool (connection string changed or first init)
-if (!global.pgPool || global.pgPoolConnectionString !== connectionString) {
-    if (global.pgPool) {
+const globalForPg = globalThis as unknown as {
+    pgPool: Pool | undefined;
+    pgPoolConnectionString: string | undefined;
+};
+
+if (!globalForPg.pgPool || globalForPg.pgPoolConnectionString !== connectionString) {
+    if (globalForPg.pgPool) {
         console.log('[Postgres] Connection string changed, ending old pool...');
-        global.pgPool.end().catch(err => console.error('[Postgres] Error ending old pool:', err));
+        globalForPg.pgPool.end().catch(err => console.error('[Postgres] Error ending old pool:', err));
     }
-    global.pgPool = createPool();
-    global.pgPoolConnectionString = connectionString;
+    globalForPg.pgPool = createPool();
+    globalForPg.pgPoolConnectionString = connectionString;
 }
 
-const pool = global.pgPool;
+const pool = globalForPg.pgPool;
 
 export default pool;
 

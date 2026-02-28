@@ -120,6 +120,10 @@ export default function AdminSettings() {
     const [saved, setSaved] = useState(false);
     const [purgingCache, setPurgingCache] = useState(false);
     const [replacingDomain, setReplacingDomain] = useState(false);
+    const [replaceDomainConfig, setReplaceDomainConfig] = useState({
+        oldDomain: 'check-host.top',
+        newDomain: ''
+    });
     const t = useTranslations('Admin.settings');
 
     useEffect(() => {
@@ -298,12 +302,22 @@ export default function AdminSettings() {
     };
 
     const handleReplaceDomain = async () => {
-        if (!confirm('This will replace all old domain links (check-host.top) in existing blog posts with the new domain. Proceed?')) {
+        if (!replaceDomainConfig.oldDomain.trim() || !replaceDomainConfig.newDomain.trim()) {
+            alert('Please enter both old and new domains.');
             return;
         }
+
+        if (!confirm(`This will replace all old domain links (${replaceDomainConfig.oldDomain}) in existing blog posts with the new domain (${replaceDomainConfig.newDomain}). Proceed?`)) {
+            return;
+        }
+
         setReplacingDomain(true);
         try {
-            const res = await fetch('/api/admin/blog/replace-domain', { method: 'POST' });
+            const res = await fetch('/api/admin/blog/replace-domain', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(replaceDomainConfig)
+            });
             const data = await res.json();
             if (res.ok) {
                 alert(`Done! Updated ${data.updatedPosts} post(s).\n${data.oldDomain} → ${data.newDomain}`);
@@ -413,50 +427,86 @@ export default function AdminSettings() {
                     </Card>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Data Retention */}
-                        <Card className="p-6 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm space-y-4">
-                            <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-200">
-                                <Clock className="h-5 w-5 text-indigo-500" />
-                                Snapshot Retention
-                            </h3>
-                            <p className="text-sm text-slate-500">Configure how long shared result snapshots are kept before automatic deletion.</p>
-                            <div className="flex items-center gap-3">
-                                <Input
-                                    type="number"
-                                    value={shareConfig.ttlDays}
-                                    onChange={(e) => setShareConfig(prev => ({ ...prev, ttlDays: parseInt(e.target.value) }))}
-                                    className="w-24 bg-slate-50 dark:bg-slate-950"
-                                />
-                                <span className="text-sm font-medium text-slate-600">Days</span>
-                            </div>
-                        </Card>
+                        {/* LEFT COLUMN */}
+                        <div className="space-y-6">
+                            {/* Data Retention */}
+                            <Card className="p-6 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm space-y-4">
+                                <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                                    <Clock className="h-5 w-5 text-indigo-500" />
+                                    Snapshot Retention
+                                </h3>
+                                <p className="text-sm text-slate-500">Configure how long shared result snapshots are kept before automatic deletion.</p>
+                                <div className="flex items-center gap-3">
+                                    <Input
+                                        type="number"
+                                        value={shareConfig.ttlDays}
+                                        onChange={(e) => setShareConfig(prev => ({ ...prev, ttlDays: parseInt(e.target.value) }))}
+                                        className="w-24 bg-slate-50 dark:bg-slate-950"
+                                    />
+                                    <span className="text-sm font-medium text-slate-600">Days</span>
+                                </div>
+                            </Card>
 
-                        {/* Database Operations */}
-                        <Card className="p-6 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm space-y-4">
-                            <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-200">
-                                <Database className="h-5 w-5 text-indigo-500" />
-                                Data Cleanup
-                            </h3>
-                            <p className="text-sm text-slate-500 italic">Caution: This action is permanent and affects all users.</p>
-                            <Button
-                                variant="outline"
-                                className="w-full border-red-200 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 gap-2"
-                                onClick={handleClearSnapshots}
-                                disabled={clearing}
-                            >
-                                {clearing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                                Clear All Snapshots
-                            </Button>
-                            <Button
-                                variant="outline"
-                                className="w-full border-orange-200 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/10 gap-2"
-                                onClick={handleReplaceDomain}
-                                disabled={replacingDomain}
-                            >
-                                {replacingDomain ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                                Replace Domain in Blog Posts
-                            </Button>
-                        </Card>
+                            {/* Database Operations */}
+                            <Card className="p-6 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm space-y-4">
+                                <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                                    <Database className="h-5 w-5 text-indigo-500" />
+                                    Data Cleanup
+                                </h3>
+                                <p className="text-sm text-slate-500 italic">Caution: This action is permanent and affects all users.</p>
+                                <Button
+                                    variant="outline"
+                                    className="w-full border-red-200 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 gap-2"
+                                    onClick={handleClearSnapshots}
+                                    disabled={clearing}
+                                >
+                                    {clearing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                    Clear All Snapshots
+                                </Button>
+                            </Card>
+                        </div>
+
+                        {/* RIGHT COLUMN */}
+                        <div className="space-y-6">
+                            {/* Domain Replacement */}
+                            <Card className="p-6 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm space-y-4">
+                                <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                                    <RefreshCw className="h-5 w-5 text-indigo-500" />
+                                    Domain Replacement
+                                </h3>
+                                <p className="text-sm text-slate-500">Find and replace domain mentions in all blog posts (HTTP/HTTPS/WWW auto-handled).</p>
+
+                                <div className="space-y-3">
+                                    <div className="space-y-1.5">
+                                        <label className="text-sm font-medium">Search for (Old Domain)</label>
+                                        <Input
+                                            placeholder="e.g. check-host.top"
+                                            value={replaceDomainConfig.oldDomain}
+                                            onChange={(e) => setReplaceDomainConfig(prev => ({ ...prev, oldDomain: e.target.value }))}
+                                            className="bg-slate-50 dark:bg-slate-950"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-sm font-medium">Replace with (New Domain)</label>
+                                        <Input
+                                            placeholder="e.g. checknode.io"
+                                            value={replaceDomainConfig.newDomain}
+                                            onChange={(e) => setReplaceDomainConfig(prev => ({ ...prev, newDomain: e.target.value }))}
+                                            className="bg-slate-50 dark:bg-slate-950"
+                                        />
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full border-orange-200 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/10 gap-2 mt-2"
+                                        onClick={handleReplaceDomain}
+                                        disabled={replacingDomain || !replaceDomainConfig.oldDomain || !replaceDomainConfig.newDomain}
+                                    >
+                                        {replacingDomain ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                                        Replace Domain in Blog Posts
+                                    </Button>
+                                </div>
+                            </Card>
+                        </div>
                     </div>
 
                     {/* SEO Config */}
