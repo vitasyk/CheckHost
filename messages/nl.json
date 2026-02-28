@@ -9,7 +9,8 @@
         "home": "Home",
         "dashboard": "Dashboard",
         "blog": "Blog",
-        "about": "Over ons"
+        "about": "Over ons",
+        "docs": "Docs"
     },
     "Tools": {
         "ping": "Ping Controle",
@@ -84,6 +85,7 @@
         "sidebar": {
             "backToSite": "Terug naar site",
             "dashboard": "Dashboard",
+            "docs": "Documentatie",
             "blogPosts": "Blogberichten",
             "adsManagement": "Advertentiebeheer",
             "accessControl": "Toegangscontrole",
@@ -309,6 +311,7 @@
     "Footer": {
         "slogan": "Wereldwijde netwerkbewakingstools voor ontwikkelaars, systeembeheerders en webmasters.",
         "globalCoverage": "20+ wereldwijde bewakingslocaties",
+        "docs": "Documentatie",
         "tools": "Tools",
         "ping": "Ping Controle",
         "http": "HTTP Controle",

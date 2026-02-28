@@ -9,7 +9,8 @@
         "home": "Strona główna",
         "dashboard": "Panel sterowania",
         "blog": "Blog",
-        "about": "O nas"
+        "about": "O nas",
+        "docs": "Dokumentacja"
     },
     "Tools": {
         "ping": "Test Ping",
@@ -84,6 +85,7 @@
         "sidebar": {
             "backToSite": "Powrót do strony",
             "dashboard": "Panel",
+            "docs": "Dokumentacja",
             "blogPosts": "Wpisy na blogu",
             "adsManagement": "Zarządzanie reklamami",
             "accessControl": "Kontrola dostępu",
@@ -309,6 +311,7 @@
     "Footer": {
         "slogan": "Globalne narzędzia do monitorowania sieci dla programistów, administratorów systemów i webmasterów.",
         "globalCoverage": "20+ globalnych lokalizacji monitorowania",
+        "docs": "Dokumentacja",
         "tools": "Narzędzia",
         "ping": "Test Ping",
         "http": "Test HTTP",

@@ -9,7 +9,8 @@
         "home": "Accueil",
         "dashboard": "Tableau de bord",
         "blog": "Blog",
-        "about": "À propos"
+        "about": "À propos",
+        "docs": "Docs"
     },
     "Tools": {
         "ping": "Vérification Ping",
@@ -84,6 +85,7 @@
         "sidebar": {
             "backToSite": "Retour au site",
             "dashboard": "Tableau de bord",
+            "docs": "Documentation",
             "blogPosts": "Articles de blog",
             "adsManagement": "Gestion des annonces",
             "accessControl": "Contrôle d'accès",
@@ -309,6 +311,7 @@
     "Footer": {
         "slogan": "Outils de surveillance réseau mondiaux pour les développeurs, administrateurs système et webmasters.",
         "globalCoverage": "20+ emplacements de surveillance mondiaux",
+        "docs": "Documentation",
         "tools": "Outils",
         "ping": "Ping",
         "http": "HTTP",

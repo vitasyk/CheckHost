@@ -9,7 +9,8 @@
         "home": "Home",
         "dashboard": "Dashboard",
         "blog": "Blog",
-        "about": "About"
+        "about": "About",
+        "docs": "Docs"
     },
     "Tools": {
         "ping": "Ping Check",
@@ -84,6 +85,7 @@
         "sidebar": {
             "backToSite": "Back to Site",
             "dashboard": "Dashboard",
+            "docs": "Documentation",
             "blogPosts": "Blog Posts",
             "adsManagement": "Ads Management",
             "accessControl": "Access Control",
@@ -310,6 +312,7 @@
         "slogan": "Global network monitoring tools for developers, sysadmins, and webmasters.",
         "globalCoverage": "20+ global monitoring locations",
         "tools": "Tools",
+        "docs": "Documentation",
         "ping": "Ping",
         "http": "HTTP",
         "tcp": "TCP",
@@ -598,6 +601,24 @@
             },
             "global": "Global Certificate Validation",
             "globalDesc": "Different regions may resolve to different servers due to CDN or GeoDNS configurations. A global SSL check confirms that all edge servers present a valid certificate, not just your local resolver."
+        }
+    },
+    "Docs": {
+        "title": "Documentation",
+        "subtitle": "Guides, API reference, and technical documentation for CheckNode.",
+        "searchPlaceholder": "Search documentation...",
+        "noArticles": "No documentation articles found.",
+        "backToDocs": "Back to Documentation",
+        "lastUpdated": "Last updated",
+        "onThisPage": "On this page",
+        "next": "Next",
+        "previous": "Previous",
+        "sections": {
+            "General": "General",
+            "Guides": "Guides",
+            "API": "API Reference",
+            "Network": "Network & Nodes",
+            "FAQ": "FAQ"
         }
     }
 }

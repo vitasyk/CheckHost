@@ -98,6 +98,7 @@ export function SiteFooter() {
                             <ul className="space-y-2.5">
                                 {[
                                     { href: "/about", icon: Globe, label: t('about') },
+                                    { href: "/docs", icon: BookOpen, label: t('docs') },
                                     { href: "/contact", icon: Phone, label: t('contact') },
                                     { href: "/blog", icon: BookOpen, label: t('blog') },
                                 ].map((item) => (

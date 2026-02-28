@@ -5,7 +5,8 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import {
     Shield, ScanEye, Menu, X, Home as HomeIcon, Info as InfoIcon,
     Newspaper as BlogIcon, LayoutDashboard, Settings, LogOut,
-    BarChart3, Database, ShieldCheck, History, Megaphone, LogIn
+    BarChart3, Database, ShieldCheck, History, Megaphone, LogIn,
+    Newspaper
 } from 'lucide-react';
 import { VisitorIpInfo } from '@/components/VisitorIpInfo';
 import { useSession, signOut } from 'next-auth/react';
@@ -20,12 +21,14 @@ import { cn } from '@/lib/utils';
 
 const publicNavItems = [
     { labelKey: 'home', icon: HomeIcon, href: '/' as const },
+    { labelKey: 'docs', icon: Newspaper as any, href: '/docs' as const },
     { labelKey: 'about', icon: InfoIcon, href: '/about' as const },
     { labelKey: 'blog', icon: BlogIcon, href: '/blog' as const },
 ];
 
 const adminNavItems = [
     { label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
+    { label: 'Documentation', icon: Newspaper, href: '/admin/docs' },
     { label: 'Blog Posts', icon: BlogIcon, href: '/admin/blog' },
     { label: 'Ads Management', icon: Megaphone, href: '/admin/ads' },
     { label: 'Access Control', icon: ShieldCheck, href: '/admin/access' },

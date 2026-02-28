@@ -24,6 +24,7 @@ export function AdminSidebar() {
 
     const menuItems = [
         { label: t('dashboard'), icon: LayoutDashboard, href: '/admin' },
+        { label: t('docs'), icon: Newspaper, href: '/admin/docs' },
         { label: t('blogPosts'), icon: Newspaper, href: '/admin/blog' },
         { label: t('adsManagement'), icon: Megaphone, href: '/admin/ads' },
         { label: t('accessControl'), icon: ShieldCheck, href: '/admin/access' },
