@@ -11,6 +11,7 @@ import {
     ShieldCheck,
     History,
     Megaphone,
+    Users,
     Home as HomeIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ export function AdminSidebar() {
         { label: t('docs'), icon: Newspaper, href: '/admin/docs' },
         { label: t('blogPosts'), icon: Newspaper, href: '/admin/blog' },
         { label: t('adsManagement'), icon: Megaphone, href: '/admin/ads' },
+        { label: 'Users', icon: Users, href: '/admin/users' },
         { label: t('accessControl'), icon: ShieldCheck, href: '/admin/access' },
         { label: t('auditLogs'), icon: History, href: '/admin/audit' },
         { label: t('analytics'), icon: BarChart3, href: '#', disabled: true },

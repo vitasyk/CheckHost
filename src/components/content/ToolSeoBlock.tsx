@@ -45,16 +45,19 @@ export function ToolSeoBlock({ toolId }: ToolSeoBlockProps) {
     const MainIcon = style.icon;
 
     return (
-        <section className="mt-20 mb-12 max-w-5xl mx-auto w-full">
-            {/* Header Section */}
-            <div className="text-center mb-10">
-                <div className={`inline-flex items-center justify-center p-3 rounded-2xl bg-gradient-to-br ${style.gradient} text-white shadow-lg mb-6`}>
-                    <MainIcon className="w-8 h-8" />
+        <section className="mt-8 mb-12 max-w-5xl mx-auto w-full">
+            {/* ── Section Divider Strip ── */}
+            <div className="relative flex items-center gap-4 mb-8">
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent to-slate-200 dark:to-white/[0.06]" />
+                <div className={`flex items-center gap-2.5 px-4 py-2 rounded-full border ${style.border} ${style.lightBg} shadow-sm`}>
+                    <div className={`w-6 h-6 rounded-lg bg-gradient-to-br ${style.gradient} flex items-center justify-center flex-shrink-0`}>
+                        <MainIcon className="w-3.5 h-3.5 text-white" />
+                    </div>
+                    <h2 className={`text-sm font-bold tracking-wide ${style.text}`}>
+                        {t(`${mappedId}.title`)}
+                    </h2>
                 </div>
-                <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
-                    {t(`${mappedId}.title`)}
-                </h2>
-                <div className="w-24 h-1.5 rounded-full bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 mx-auto mt-6" />
+                <div className="flex-1 h-px bg-gradient-to-l from-transparent to-slate-200 dark:to-white/[0.06]" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

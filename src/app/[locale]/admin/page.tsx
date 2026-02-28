@@ -48,6 +48,7 @@ export default function AdminDashboard() {
     const [toolData, setToolData] = useState<ToolStat[]>([]);
     const [countryData, setCountryData] = useState<CountryStat[]>([]);
     const [blogData, setBlogData] = useState<BlogStats | null>(null);
+    const [adsenseData, setAdsenseData] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const t = useTranslations('Admin.dashboard');
@@ -67,6 +68,7 @@ export default function AdminDashboard() {
                 setToolData(data.toolDistribution || []);
                 setCountryData(data.countryStats || []);
                 setBlogData(data.blogStats || null);
+                setAdsenseData(data.adsense || null);
             }
         } catch (error) {
             console.error('Failed to fetch stats:', error);
@@ -187,11 +189,38 @@ export default function AdminDashboard() {
 
                         <Card className="p-6 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between relative overflow-hidden group">
                             <Settings className="absolute -right-4 -bottom-4 h-24 w-24 text-slate-500/5 group-hover:text-slate-500/10 transition-colors spin-slow" />
-                            <div>
-                                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">{t('adSense')}</h3>
-                                <p className="text-xs text-slate-500">{t('adSenseDesc')}</p>
+                            <div className="relative z-10 flex-1">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">{t('adSense')}</h3>
+                                    <Badge
+                                        variant={adsenseData?.enabled ? 'default' : 'secondary'}
+                                        className={adsenseData?.enabled ? 'bg-green-500/10 text-green-600 border-green-200' : ''}
+                                    >
+                                        {adsenseData?.enabled ? t('active') : t('inactive')}
+                                    </Badge>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Active Slots</p>
+                                        <p className="text-lg font-bold">
+                                            {adsenseData?.slots ? Object.values(adsenseData.slots).filter((s: any) => s.enabled).length : 0}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1 text-right">
+                                        <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Client ID</p>
+                                        <p className="text-[10px] font-mono text-slate-500 truncate max-w-[100px] ml-auto">
+                                            {adsenseData?.client_id ? `${adsenseData.client_id.substring(0, 10)}...` : 'Not Set'}
+                                        </p>
+                                    </div>
+                                </div>
+                                {adsenseData?.placements?.length > 0 && (
+                                    <div className="mt-2 pt-2 border-t border-slate-100 dark:border-white/5">
+                                        <p className="text-[10px] text-slate-400">
+                                            <span className="font-bold text-indigo-500">{adsenseData.placements.length}</span> dynamic routing rules active
+                                        </p>
+                                    </div>
+                                )}
                             </div>
-                            <Badge variant="outline" className="border-green-200 text-green-600 bg-green-50">{t('active')}</Badge>
                         </Card>
                     </div>
 

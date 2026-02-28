@@ -105,20 +105,15 @@ export const authOptions: NextAuthOptions = {
 
                 // Determine role
                 let role: 'admin' | 'user' = 'user';
-                let isAllowed = false;
 
                 if (allAllowedAdminEmails.includes(userEmail) || (process.env.NODE_ENV === "development" && allAllowedAdminEmails.length === 0)) {
                     role = 'admin';
-                    isAllowed = true;
                 } else if (allAllowedUserEmails.includes(userEmail)) {
+                    // Explicitly defined in DB as 'user' (optional, but keep for backwards compat)
                     role = 'user';
-                    isAllowed = true;
-                }
-
-                // If the user's email is not in any list, reject login
-                if (!isAllowed) {
-                    console.warn(`[Auth] Unauthorized user attempted login: ${userEmail}`);
-                    return false;
+                } else {
+                    // Open registration: any valid google account that isn't blocked becomes a 'user'
+                    role = 'user';
                 }
 
                 // Sync user with Database

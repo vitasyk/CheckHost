@@ -353,7 +353,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
             </div>
 
             <div className="relative z-10 flex flex-col">
-                <div className="w-full pt-8 pb-6">
+                <div className="w-full pt-8 pb-2">
                     <div className="w-full">
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full relative">
                             <div className="flex flex-col items-center justify-center gap-3 mb-4">
@@ -408,7 +408,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
 
                             <div className="mt-0">
                                 <TabsContent value="info">
-                                    <CheckForm type="info" host={host} maxNodes={maxNodes} onMaxNodesChange={setMaxNodes} onHostChange={setHost} onResults={() => { }} onCheckStart={() => { }} onCheckComplete={() => host.trim() && runCheck('info', host)} errorMessage={errorMessage} isLoading={activeChecks.has('info')} nodes={nodes} isReverseMtr={isReverseMtr} onReverseMtrToggle={handleReverseMtrToggle} selectedNodeIds={selectedNodeIds} />
+                                    <CheckForm type="info" host={host} maxNodes={maxNodes} onMaxNodesChange={setMaxNodes} onHostChange={setHost} onResults={() => { }} onCheckStart={() => { }} onCheckComplete={() => host.trim() && runCheck('info', host)} errorMessage={errorMessage} isLoading={activeChecks.has('info')} nodes={nodes} isReverseMtr={isReverseMtr} onReverseMtrToggle={handleReverseMtrToggle} selectedNodeIds={selectedNodeIds} showQuickLinks />
                                     {ipInfoResult && <IpInfoResult data={ipInfoResult} onRefresh={() => runCheck('info', host, true)} isRefreshing={activeChecks.has('info')} />}
                                 </TabsContent>
 
@@ -459,7 +459,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                                 </TabsContent>
                             </div>
                         </Tabs>
-                        <AdSlot slotType="results_bottom" className="mt-8" />
+                        <AdSlot slotType="results_bottom" className="mt-4" />
                     </div>
                 </div>
             </div>

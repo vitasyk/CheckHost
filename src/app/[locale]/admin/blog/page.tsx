@@ -35,6 +35,8 @@ import {
     Save,
     ToggleLeft,
     ToggleRight,
+    Replace,
+    AlertTriangle,
 } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
@@ -75,7 +77,7 @@ interface KeywordConfig {
     generateCover: boolean;
 }
 
-type ActiveTab = 'posts' | 'keywords' | 'seo';
+type ActiveTab = 'posts' | 'keywords' | 'seo' | 'replacer';
 
 // ── Countdown formatter ───────────────────────────────────────────────────
 function formatCountdown(isoTimestamp: string, _tick: number): string {
@@ -142,6 +144,12 @@ export default function AdminBlogList() {
     const [seoSaved, setSeoSaved] = useState(false);
     const [seoPreview, setSeoPreview] = useState(false);
     const [seoLoading, setSeoLoading] = useState(false);
+
+    // ── Link/Text Replacer ──────────────────────────────────────────
+    const [findText, setFindText] = useState('');
+    const [replaceWith, setReplaceWith] = useState('');
+    const [replacing, setReplacing] = useState(false);
+    const [replacerResult, setReplacerResult] = useState<any>(null);
 
     // Global defaults for new keywords
     const [globalLangs, setGlobalLangs] = useState<string[]>(ALL_LOCALES.map(l => l.code));
@@ -327,6 +335,30 @@ export default function AdminBlogList() {
         finally { setGenerating(false); }
     };
 
+    const handleReplaceText = async (dryRun: boolean = false) => {
+        if (!findText) return;
+        if (!dryRun && !confirm(`Are you sure you want to replace "${findText}" with "${replaceWith}" in all articles? This cannot be undone.`)) return;
+
+        setReplacing(true);
+        setReplacerResult(null);
+        try {
+            const res = await fetch('/api/admin/blog/replace-text', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ findText, replaceWith, dryRun }),
+            });
+            const data = await res.json();
+            setReplacerResult(data);
+            if (!dryRun && data.success) {
+                fetchPosts();
+            }
+        } catch {
+            setReplacerResult({ error: 'Request failed' });
+        } finally {
+            setReplacing(false);
+        }
+    };
+
     const handleBulkDelete = async () => {
         if (!confirm(`Delete ${selectedIds.length} posts?`)) return;
         setIsBulkDeleting(true);
@@ -504,6 +536,10 @@ export default function AdminBlogList() {
                             <button onClick={() => setActiveTab('seo')}
                                 className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${activeTab === 'seo' ? 'bg-white dark:bg-slate-800 shadow text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`}>
                                 <LayoutDashboard className="h-4 w-4" /> SEO Block
+                            </button>
+                            <button onClick={() => setActiveTab('replacer')}
+                                className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${activeTab === 'replacer' ? 'bg-white dark:bg-slate-800 shadow text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`}>
+                                <Replace className="h-4 w-4" /> Replacer
                             </button>
                         </div>
 
@@ -1085,6 +1121,94 @@ export default function AdminBlogList() {
                                                 <span className="text-[10px] text-slate-400">{desc}</span>
                                             </div>
                                         ))}
+                                    </div>
+                                </Card>
+                            </div>
+                        )}
+
+                        {/* ── LINK/TEXT REPLACER TAB ── */}
+                        {activeTab === 'replacer' && (
+                            <div className="space-y-6">
+                                <Card className="p-8 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm space-y-8">
+                                    <div className="space-y-1">
+                                        <h3 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                                            <Replace className="h-6 w-6 text-orange-500" />
+                                            Link & Text Replacer
+                                        </h3>
+                                        <p className="text-sm text-slate-500 max-w-2xl">
+                                            Perform bulk "Search and Replace" operations across all blog posts.
+                                            Useful for updating broken links, changing company names, or fixing common typos.
+                                            <strong> Caution:</strong> This directly modifies the database.
+                                        </p>
+                                    </div>
+
+                                    <div className="grid gap-6 md:grid-cols-2">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Exact text to find</label>
+                                            <Input
+                                                placeholder="e.g. old-link.com/page"
+                                                value={findText}
+                                                onChange={e => setFindText(e.target.value)}
+                                                className="h-12 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-white/10 rounded-xl"
+                                            />
+                                            <p className="text-[10px] text-slate-400">Cases sensitive exact match.</p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Replacement text</label>
+                                            <Input
+                                                placeholder="e.g. new-link.io/page"
+                                                value={replaceWith}
+                                                onChange={e => setReplaceWith(e.target.value)}
+                                                className="h-12 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-white/10 rounded-xl"
+                                            />
+                                            <p className="text-[10px] text-slate-400">Leave empty to remove the text entirely.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => handleReplaceText(true)}
+                                            disabled={replacing || !findText}
+                                            className="h-11 px-6 rounded-xl border-slate-200 hover:bg-slate-50 gap-2 font-bold"
+                                        >
+                                            {replacing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                                            Preview Matches
+                                        </Button>
+
+                                        <Button
+                                            onClick={() => handleReplaceText(false)}
+                                            disabled={replacing || !findText}
+                                            className="h-11 px-8 rounded-xl bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-500/20 gap-2 font-bold"
+                                        >
+                                            {replacing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                                            Replace in All Articles
+                                        </Button>
+
+                                        {replacerResult && (
+                                            <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border animate-in fade-in zoom-in duration-300 ${replacerResult.error ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                                                }`}>
+                                                {replacerResult.error ? (
+                                                    <><XCircle className="h-4 w-4" /> {replacerResult.error}</>
+                                                ) : (
+                                                    <>
+                                                        <CheckCircle2 className="h-4 w-4" />
+                                                        {replacerResult.dryRun
+                                                            ? `Found ${replacerResult.affectedCount} matches in ${posts.length} articles.`
+                                                            : `Successfully updated ${replacerResult.affectedCount} articles.`}
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Warnings */}
+                                    <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-xl flex gap-3 italic">
+                                        <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
+                                        <div className="text-xs text-amber-800 dark:text-amber-400 space-y-1">
+                                            <p>This tool performs a <strong>case-sensitive</strong> exact string replacement. It affects both the article content and the excerpt (meta description).</p>
+                                            <p>It is highly recommended to use the <strong>Preview</strong> button first to see how many articles will be affected.</p>
+                                        </div>
                                     </div>
                                 </Card>
                             </div>

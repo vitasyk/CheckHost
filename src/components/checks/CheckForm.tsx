@@ -21,6 +21,18 @@ import {
     Settings2,
 } from 'lucide-react';
 
+const QUICK_LINKS: Record<CheckType, string[]> = {
+    'info': ['1.1.1.1', '8.8.8.8', 'google.com', 'AS13335'],
+    'ping': ['google.com', '1.1.1.1', 'cloudflare.com'],
+    'http': ['https://google.com', 'https://cloudflare.com'],
+    'tcp': ['google.com:443', '1.1.1.1:53'],
+    'udp': ['8.8.8.8:53', '1.1.1.1:53'],
+    'dns': ['google.com', 'cloudflare.com'],
+    'mtr': ['google.com', '1.1.1.1'],
+    'dns-all': ['google.com', 'github.com'],
+    'ssl': ['google.com', 'cloudflare.com']
+};
+
 interface CheckFormProps {
     type: CheckType;
     host: string;
@@ -44,6 +56,7 @@ interface CheckFormProps {
     onClearSelection?: () => void;
     isMapVisible?: boolean;
     autoStart?: boolean;
+    showQuickLinks?: boolean;
 }
 
 export function CheckForm({
@@ -68,7 +81,8 @@ export function CheckForm({
     onToggleMap,
     onClearSelection,
     isMapVisible = false,
-    autoStart = false
+    autoStart = false,
+    showQuickLinks = false
 }: CheckFormProps) {
     // Smart parsing logic
     const sanitizeInput = useCallback((input: string) => {
@@ -373,6 +387,33 @@ export function CheckForm({
                                 </Button>
                             </div>
                         </div>
+
+                        {/* Quick Links */}
+                        {showQuickLinks && QUICK_LINKS[type] && QUICK_LINKS[type].length > 0 && (
+                            <div className="flex flex-wrap items-center gap-2 pt-3 px-2">
+                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mr-1">Try it:</span>
+                                {QUICK_LINKS[type].map(link => (
+                                    <button
+                                        key={link}
+                                        type="button"
+                                        disabled={isLoading || checkMutation.isPending}
+                                        onClick={() => {
+                                            onHostChange(link);
+                                            const cleanHost = sanitizeInput(link);
+                                            if (!cleanHost || isLoading || checkMutation.isPending) return;
+                                            if (type === 'info' || type === 'ssl') {
+                                                onCheckComplete(type);
+                                            } else {
+                                                checkMutation.mutate(cleanHost);
+                                            }
+                                        }}
+                                        className="text-[11px] font-medium px-3 py-1.5 rounded-full bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 border border-slate-200/60 hover:border-indigo-200 dark:bg-slate-800/40 dark:hover:bg-indigo-500/10 dark:text-slate-400 dark:hover:text-indigo-400 dark:border-white/5 dark:hover:border-indigo-500/30 transition-all duration-200 cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-slate-50 dark:disabled:hover:bg-slate-800/40 disabled:hover:border-slate-200/60 dark:disabled:hover:border-white/5 disabled:hover:text-slate-600 dark:disabled:hover:text-slate-400"
+                                    >
+                                        {link}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
 
                         {errorMessage && (
                             <p className={`text-[10px] font-bold uppercase tracking-wider pl-4 pt-1.5 ${errorMessage.includes('Using 1.1.1.1') ? 'text-indigo-500/70 animate-pulse' : 'text-destructive animate-bounce'}`}>

@@ -11,7 +11,7 @@ interface MainLayoutWrapperProps {
 
 export function MainLayoutWrapper({ children, leftAd, rightAd }: MainLayoutWrapperProps) {
     const pathname = usePathname() || '';
-    const isFullWidthPage = pathname.includes('/admin') || pathname.includes('/dashboard');
+    const isFullWidthPage = pathname.includes('/admin') || pathname.includes('/dashboard') || pathname.includes('/auth');
 
     return (
         <main className="flex-1 w-full relative flex flex-col min-h-screen">

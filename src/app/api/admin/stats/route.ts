@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import pool, { isPostgresConfigured } from '@/lib/postgres';
+import { getSiteSetting } from '@/lib/site-settings';
 
 const TIER_1 = ['US', 'GB', 'CA', 'AU', 'NZ', 'DE', 'SE', 'NO', 'FI', 'DK', 'CH'];
 const TIER_2 = ['FR', 'IT', 'ES', 'PL', 'NL', 'BE', 'AT', 'IE', 'JP', 'SG'];
@@ -166,19 +167,16 @@ export async function GET(req: NextRequest) {
             const { count: kwPCount } = await supabase.from('blog_keywords').select('*', { count: 'exact', head: true }).eq('status', 'pending');
             const { count: kwCCount } = await supabase.from('blog_keywords').select('*', { count: 'exact', head: true }).eq('status', 'completed');
 
-            blogStats = {
-                published: pubCount || 0,
-                draft: draftCount || 0,
-                keywordsPending: kwPCount || 0,
-                keywordsCompleted: kwCCount || 0
-            };
+            // AdSense Config (to check status and slots)
+            const adsenseConfig = await getSiteSetting('adsense');
 
             return NextResponse.json({
                 stats: { totalChecks, uptime, errors },
                 recentLogs,
                 toolDistribution,
                 countryStats,
-                blogStats
+                blogStats,
+                adsense: adsenseConfig
             });
         }
 
@@ -298,19 +296,16 @@ export async function GET(req: NextRequest) {
                     (SELECT COUNT(*) FROM blog_keywords WHERE status = 'pending') as pending_kw,
                     (SELECT COUNT(*) FROM blog_keywords WHERE status = 'completed') as completed_kw
             `);
-            blogStats = {
-                published: parseInt(blogRes.rows[0].published),
-                draft: parseInt(blogRes.rows[0].draft),
-                keywordsPending: parseInt(blogRes.rows[0].pending_kw),
-                keywordsCompleted: parseInt(blogRes.rows[0].completed_kw)
-            };
+            // AdSense Config (to check status and slots)
+            const adsenseConfig = await getSiteSetting('adsense');
 
             return NextResponse.json({
                 stats: { totalChecks, totalChecksTrend, uptime, errors },
                 recentLogs,
                 toolDistribution,
                 countryStats,
-                blogStats
+                blogStats,
+                adsense: adsenseConfig
             });
         }
 

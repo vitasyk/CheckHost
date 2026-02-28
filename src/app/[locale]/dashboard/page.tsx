@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Activity, ShieldAlert, MonitorCheck, LayoutDashboard, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { GlobalActivityFeed } from "@/components/dashboard/GlobalActivityFeed";
+import { UserActivityFeed } from "@/components/dashboard/UserActivityFeed";
 import { getTranslations } from 'next-intl/server';
 
 export const metadata = {
@@ -23,6 +23,10 @@ export default async function DashboardPage() {
 
     if (!session) {
         redirect('/auth/signin');
+    }
+
+    if (session.user.role === 'admin') {
+        redirect('/admin');
     }
 
     const t = await getTranslations('Dashboard');
@@ -85,33 +89,21 @@ export default async function DashboardPage() {
                         </Card>
 
                         <Card className="p-6 border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5 shadow-inner">
-                            <div className={`flex items-center gap-3 mb-2 ${session.user.role === 'admin' ? 'text-indigo-500' : 'text-rose-500'}`}>
-                                {session.user.role === 'admin' ? <ShieldCheck className="h-5 w-5" /> : <ShieldAlert className="h-5 w-5" />}
+                            <div className="flex items-center gap-3 mb-2 text-emerald-500">
+                                <ShieldCheck className="h-5 w-5" />
                                 <h3 className="font-bold">{t('accessLevel')}</h3>
                             </div>
                             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                                {session.user.role === 'admin'
-                                    ? t('adminAccessLevelDesc')
-                                    : t('userAccessLevelDesc')}
+                                {t('userAccessLevelDesc')}
                             </p>
-                            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest ${session.user.role === 'admin'
-                                ? 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400'
-                                : 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400'
-                                }`}>
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">
                                 {t('role', { role: session.user.role })}
                             </div>
-                            {session.user.role === 'admin' && (
-                                <div className="mt-4">
-                                    <Link href="/admin" className="text-sm font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
-                                        {t('goToAdminPanel')}
-                                    </Link>
-                                </div>
-                            )}
                         </Card>
                     </div>
 
-                    {/* Activity Feed */}
-                    <GlobalActivityFeed />
+                    {/* Personalized Activity Feed & Monitors */}
+                    <UserActivityFeed />
 
                 </div>
             </div>
