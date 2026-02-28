@@ -22,13 +22,14 @@ interface Post {
     created_at: string;
 }
 
-async function getPost(slug: string, isAdmin: boolean = false): Promise<Post | null> {
+async function getPost(slug: string, locale: string, isAdmin: boolean = false): Promise<Post | null> {
     try {
         if (isSupabaseConfigured) {
             let query = supabase
                 .from('posts')
                 .select('*')
-                .eq('slug', slug);
+                .eq('slug', slug)
+                .eq('locale', locale);
 
             if (!isAdmin) {
                 query = query.eq('status', 'published');
@@ -43,8 +44,8 @@ async function getPost(slug: string, isAdmin: boolean = false): Promise<Post | n
             const result = await pool.query(
                 `SELECT id, title, slug, excerpt, content, cover_image, author, published_at, ad_top, ad_bottom, status, created_at
                  FROM posts 
-                 WHERE slug = $1 ${statusFilter} LIMIT 1`,
-                [slug]
+                 WHERE slug = $1 AND locale = $2 ${statusFilter} LIMIT 1`,
+                [slug, locale]
             );
             return result.rows[0] || null;
         }
@@ -54,10 +55,10 @@ async function getPost(slug: string, isAdmin: boolean = false): Promise<Post | n
     return null;
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-    const { slug } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ slug: string, locale: string }> }): Promise<Metadata> {
+    const { slug, locale } = await params;
     const session = await getServerSession(authOptions);
-    const post = await getPost(slug, !!session);
+    const post = await getPost(slug, locale, !!session);
 
     if (!post) return { title: 'Post Not Found' };
 
@@ -65,7 +66,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         title: post.title,
         description: post.excerpt,
         alternates: {
-            canonical: `/blog/${slug}`,
+            canonical: `/${locale}/blog/${slug}`,
         },
         openGraph: {
             title: post.title,
@@ -84,10 +85,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     };
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-    const { slug } = await params;
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string, locale: string }> }) {
+    const { slug, locale } = await params;
     const session = await getServerSession(authOptions);
-    const post = await getPost(slug, !!session);
+    const post = await getPost(slug, locale, !!session);
 
     if (!post) {
         notFound();

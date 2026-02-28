@@ -53,7 +53,8 @@ function EditorContent() {
         section: 'General',
         order_index: 0,
         published: false,
-        cover_image: ''
+        cover_image: '',
+        locale: 'en'
     });
 
     useEffect(() => {
@@ -75,7 +76,8 @@ function EditorContent() {
                     section: found.section,
                     order_index: found.order_index,
                     published: found.published,
-                    cover_image: found.cover_image || ''
+                    cover_image: found.cover_image || '',
+                    locale: found.locale || 'en'
                 });
             }
         } catch (error) {
@@ -304,6 +306,34 @@ function EditorContent() {
                                                 onChange={(e) => setFormData(prev => ({ ...prev, order_index: parseInt(e.target.value) || 0 }))}
                                                 className="h-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-white/10 rounded-xl"
                                             />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Language</Label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {[
+                                                    { code: 'en', label: 'English' },
+                                                    { code: 'uk', label: 'Ukrainian' },
+                                                    { code: 'es', label: 'Spanish' },
+                                                    { code: 'de', label: 'German' },
+                                                    { code: 'fr', label: 'French' },
+                                                    { code: 'ru', label: 'Russian' },
+                                                    { code: 'nl', label: 'Dutch' },
+                                                    { code: 'pl', label: 'Polish' },
+                                                    { code: 'it', label: 'Italian' }
+                                                ].map((l) => (
+                                                    <button
+                                                        key={l.code}
+                                                        type="button"
+                                                        onClick={() => setFormData(p => ({ ...p, locale: l.code }))}
+                                                        className={`py-1.5 px-2 text-[10px] font-bold rounded-lg border transition-all ${formData.locale === l.code
+                                                            ? 'bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-900/20 dark:border-blue-800'
+                                                            : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300 dark:bg-slate-950 dark:border-white/5'
+                                                            }`}
+                                                    >
+                                                        {l.label}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
 
                                         <div className="space-y-1.5 pt-2">

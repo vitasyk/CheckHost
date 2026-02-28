@@ -29,9 +29,9 @@ export default async function DocsPage({ params }: { params: Promise<{ locale: s
         const result = await query(`
             SELECT id, slug, title, section, order_index 
             FROM docs_articles 
-            WHERE published = true 
+            WHERE published = true AND locale = $1
             ORDER BY section ASC, order_index ASC
-        `);
+        `, [locale]);
         articles = result.rows;
     } catch (e) {
         console.error('Error fetching docs:', e);

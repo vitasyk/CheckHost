@@ -58,6 +58,7 @@ interface Post {
     status: 'draft' | 'published';
     published_at: string | null;
     created_at: string;
+    locale: string;
 }
 
 interface Keyword {
@@ -154,6 +155,7 @@ export default function AdminBlogList() {
 
     // Posts filtering
     const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published'>('all');
+    const [localeFilter, setLocaleFilter] = useState<string>('all');
     const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'title'>('newest');
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [isBulkDeleting, setIsBulkDeleting] = useState(false);
@@ -343,7 +345,8 @@ export default function AdminBlogList() {
             const q = search.toLowerCase();
             const matchSearch = p.title.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q);
             const matchStatus = statusFilter === 'all' || p.status === statusFilter;
-            return matchSearch && matchStatus;
+            const matchLocale = localeFilter === 'all' || p.locale === localeFilter;
+            return matchSearch && matchStatus && matchLocale;
         })
         .sort((a, b) => {
             if (sortBy === 'newest') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -513,14 +516,25 @@ export default function AdminBlogList() {
                                         <Input placeholder="Search articles..." className="pl-11 h-12 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/5 rounded-xl shadow-sm" value={search} onChange={e => setSearch(e.target.value)} />
                                     </div>
                                     <div className="flex items-center gap-3">
+                                        <Select value={localeFilter} onValueChange={setLocaleFilter}>
+                                            <SelectTrigger className="w-[140px] h-12 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/5 rounded-xl shadow-sm gap-2 px-4 text-xs">
+                                                <div className="flex items-center gap-2"><Globe2 className="h-4 w-4 text-slate-400" /><SelectValue placeholder="All Languages" /></div>
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl">
+                                                <SelectItem value="all">All Languages</SelectItem>
+                                                {ALL_LOCALES.map(l => (
+                                                    <SelectItem key={l.code} value={l.code}>{l.flag} {l.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                         <Select value={statusFilter} onValueChange={v => setStatusFilter(v as any)}>
-                                            <SelectTrigger className="w-[160px] h-12 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/5 rounded-xl shadow-sm gap-2 px-4">
+                                            <SelectTrigger className="w-[140px] h-12 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/5 rounded-xl shadow-sm gap-2 px-4 text-xs">
                                                 <div className="flex items-center gap-2"><Filter className="h-4 w-4 text-slate-400" /><SelectValue /></div>
                                             </SelectTrigger>
                                             <SelectContent className="rounded-xl"><SelectItem value="all">All Status</SelectItem><SelectItem value="published">Published</SelectItem><SelectItem value="draft">Drafts</SelectItem></SelectContent>
                                         </Select>
                                         <Select value={sortBy} onValueChange={v => setSortBy(v as any)}>
-                                            <SelectTrigger className="w-[180px] h-12 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/5 rounded-xl shadow-sm gap-2 px-4">
+                                            <SelectTrigger className="w-[160px] h-12 bg-white dark:bg-slate-900 border-slate-200 dark:border-white/5 rounded-xl shadow-sm gap-2 px-4 text-xs">
                                                 <div className="flex items-center gap-2"><ArrowUpDown className="h-4 w-4 text-slate-400" /><SelectValue /></div>
                                             </SelectTrigger>
                                             <SelectContent className="rounded-xl"><SelectItem value="newest">Newest First</SelectItem><SelectItem value="oldest">Oldest First</SelectItem><SelectItem value="title">Title A-Z</SelectItem></SelectContent>
@@ -560,6 +574,9 @@ export default function AdminBlogList() {
                                                 <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                                     <div className="space-y-2">
                                                         <div className="flex items-center gap-3">
+                                                            <span className="text-xl shrink-0" title={post.locale}>
+                                                                {ALL_LOCALES.find(l => l.code === post.locale)?.flag || '🌐'}
+                                                            </span>
                                                             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 transition-colors">{post.title}</h3>
                                                             <Badge variant="secondary" className={`text-[10px] uppercase font-bold ${post.status === 'published' ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
                                                                 {post.status}

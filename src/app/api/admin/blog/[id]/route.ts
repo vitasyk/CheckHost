@@ -63,7 +63,7 @@ export async function PATCH(
 
     try {
         const body = await request.json();
-        const { title, slug, excerpt, content, cover_image, status, ad_top, ad_bottom } = body;
+        const { title, slug, excerpt, content, cover_image, status, ad_top, ad_bottom, locale } = body;
 
         let published_at = body.published_at;
         if (status === 'published' && !published_at) {
@@ -78,6 +78,7 @@ export async function PATCH(
                 content,
                 cover_image,
                 status,
+                locale,
                 ad_top: ad_top ?? undefined,
                 ad_bottom: ad_bottom ?? undefined,
                 updated_at: new Date().toISOString()
@@ -113,10 +114,10 @@ export async function PATCH(
             const result = await pool.query(
                 `UPDATE posts 
                  SET title = $1, slug = $2, excerpt = $3, content = $4, cover_image = $5, 
-                     status = $6, ad_top = $7, ad_bottom = $8, published_at = $9, updated_at = NOW()
-                 WHERE id = $10
+                     status = $6, ad_top = $7, ad_bottom = $8, published_at = $9, locale = $10, updated_at = NOW()
+                 WHERE id = $11
                  RETURNING *`,
-                [title, slug, excerpt, content, cover_image, status, ad_top, ad_bottom, published_at, id]
+                [title, slug, excerpt, content, cover_image, status, ad_top, ad_bottom, published_at, locale, id]
             );
 
             if (result.rows.length === 0) {

@@ -28,6 +28,7 @@ interface DocArticle {
     section: string;
     published: boolean;
     created_at: string;
+    locale: string;
 }
 
 export default function AdminDocsPage() {
@@ -36,6 +37,7 @@ export default function AdminDocsPage() {
     const [articles, setArticles] = useState<DocArticle[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [localeFilter, setLocaleFilter] = useState<string>('all');
 
     useEffect(() => {
         fetchArticles();
@@ -68,11 +70,13 @@ export default function AdminDocsPage() {
         }
     }
 
-    const filteredArticles = articles.filter(a =>
-        a.title.toLowerCase().includes(search.toLowerCase()) ||
-        a.slug.toLowerCase().includes(search.toLowerCase()) ||
-        a.section.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredArticles = articles.filter(a => {
+        const matchSearch = a.title.toLowerCase().includes(search.toLowerCase()) ||
+            a.slug.toLowerCase().includes(search.toLowerCase()) ||
+            a.section.toLowerCase().includes(search.toLowerCase());
+        const matchLocale = localeFilter === 'all' || a.locale === localeFilter;
+        return matchSearch && matchLocale;
+    });
 
     return (
         <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -103,6 +107,24 @@ export default function AdminDocsPage() {
                                     onChange={(e) => setSearch(e.target.value)}
                                 />
                             </div>
+                            <div className="flex items-center gap-2">
+                                <select
+                                    value={localeFilter}
+                                    onChange={(e) => setLocaleFilter(e.target.value)}
+                                    className="h-11 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/20"
+                                >
+                                    <option value="all">All Languages</option>
+                                    <option value="en">🇬🇧 English</option>
+                                    <option value="uk">🇺🇦 Ukrainian</option>
+                                    <option value="es">🇪🇸 Spanish</option>
+                                    <option value="de">🇩🇪 German</option>
+                                    <option value="fr">🇫🇷 French</option>
+                                    <option value="ru">🇷🇺 Russian</option>
+                                    <option value="nl">🇳🇱 Dutch</option>
+                                    <option value="pl">🇵🇱 Polish</option>
+                                    <option value="it">🇮🇹 Italian</option>
+                                </select>
+                            </div>
                         </div>
                     </Card>
 
@@ -128,6 +150,9 @@ export default function AdminDocsPage() {
                                             </div>
                                             <div className="min-w-0">
                                                 <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-xl mr-1" title={article.locale}>
+                                                        {article.locale === 'uk' ? '🇺🇦' : article.locale === 'en' ? '🇬🇧' : '🌐'}
+                                                    </span>
                                                     <h3 className="font-bold text-slate-900 dark:text-white truncate text-lg">{article.title}</h3>
                                                     <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-600 border border-blue-500/10">
                                                         {td(`sections.${article.section}`) || article.section}

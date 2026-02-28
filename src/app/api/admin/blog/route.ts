@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
     try {
         const body = await request.json();
-        const { title, slug, excerpt, content, cover_image, status, ad_top, ad_bottom } = body;
+        const { title, slug, excerpt, content, cover_image, status, ad_top, ad_bottom, locale } = body;
 
         if (isSupabaseConfigured) {
             const { data, error } = await supabase
@@ -62,6 +62,7 @@ export async function POST(request: Request) {
                     content,
                     cover_image,
                     status,
+                    locale: locale || 'en',
                     ad_top: ad_top || false,
                     ad_bottom: ad_bottom || false,
                     published_at: status === 'published' ? new Date().toISOString() : null,
@@ -88,8 +89,8 @@ export async function POST(request: Request) {
         if (isPostgresConfigured) {
             const result = await pool.query(
                 `INSERT INTO posts (
-                    title, slug, excerpt, content, cover_image, status, ad_top, ad_bottom, published_at, updated_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+                    title, slug, excerpt, content, cover_image, status, locale, ad_top, ad_bottom, published_at, updated_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
                 RETURNING *`,
                 [
                     title,
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
                     content,
                     cover_image,
                     status,
+                    locale || 'en',
                     ad_top || false,
                     ad_bottom || false,
                     status === 'published' ? new Date().toISOString() : null

@@ -10,12 +10,14 @@ export async function GET(request: Request) {
     const slug = searchParams.get('slug');
 
     try {
+        const locale = searchParams.get('locale') || 'en';
         if (isSupabaseConfigured) {
             if (slug) {
                 const { data, error } = await supabase
                     .from('posts')
                     .select('*')
                     .eq('slug', slug)
+                    .eq('locale', locale)
                     .eq('status', 'published')
                     .single();
 
@@ -26,6 +28,7 @@ export async function GET(request: Request) {
                     .from('posts')
                     .select('id, title, slug, excerpt, cover_image, author, published_at')
                     .eq('status', 'published')
+                    .eq('locale', locale)
                     .order('published_at', { ascending: false });
 
                 if (error) throw error;
@@ -34,12 +37,13 @@ export async function GET(request: Request) {
         }
 
         if (isPostgresConfigured) {
+            const locale = searchParams.get('locale') || 'en';
             if (slug) {
                 const result = await pool.query(
                     `SELECT id, title, slug, excerpt, content, cover_image, author, published_at, ad_top, ad_bottom 
                      FROM posts 
-                     WHERE slug = $1 AND status = 'published' LIMIT 1`,
-                    [slug]
+                     WHERE slug = $1 AND locale = $2 AND status = 'published' LIMIT 1`,
+                    [slug, locale]
                 );
 
                 if (result.rows.length > 0) {
@@ -49,8 +53,9 @@ export async function GET(request: Request) {
                 const result = await pool.query(
                     `SELECT id, title, slug, excerpt, cover_image, author, published_at 
                      FROM posts 
-                     WHERE status = 'published' 
-                     ORDER BY published_at DESC`
+                     WHERE status = 'published' AND locale = $1
+                     ORDER BY published_at DESC`,
+                    [locale]
                 );
 
                 return NextResponse.json(result.rows);

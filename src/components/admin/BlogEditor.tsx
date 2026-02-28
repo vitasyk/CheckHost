@@ -32,6 +32,7 @@ interface PostData {
     content: string;
     cover_image: string;
     status: 'draft' | 'published';
+    locale: string;
     ad_top: boolean;
     ad_bottom: boolean;
 }
@@ -56,6 +57,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
         content: '',
         cover_image: '',
         status: 'draft',
+        locale: 'en',
         ad_top: false,
         ad_bottom: false
     });
@@ -277,6 +279,36 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                                             }`}
                                     >
                                         {s}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                <Sparkles className="h-3 w-3" /> Language / Locale
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
+                                {[
+                                    { code: 'en', label: 'English' },
+                                    { code: 'uk', label: 'Ukrainian' },
+                                    { code: 'es', label: 'Spanish' },
+                                    { code: 'de', label: 'German' },
+                                    { code: 'fr', label: 'French' },
+                                    { code: 'ru', label: 'Russian' },
+                                    { code: 'nl', label: 'Dutch' },
+                                    { code: 'pl', label: 'Polish' },
+                                    { code: 'it', label: 'Italian' }
+                                ].map((l) => (
+                                    <button
+                                        key={l.code}
+                                        onClick={() => setPost({ ...post, locale: l.code })}
+                                        className={`py-1.5 px-2 text-[10px] font-bold rounded-lg border transition-all ${post.locale === l.code
+                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-600 dark:bg-indigo-900/20 dark:border-indigo-800'
+                                            : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300 dark:bg-slate-800 dark:border-white/5'
+                                            }`}
+                                    >
+                                        {l.label}
                                     </button>
                                 ))}
                             </div>

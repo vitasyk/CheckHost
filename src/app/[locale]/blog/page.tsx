@@ -15,7 +15,7 @@ import {
     BookOpen,
     Newspaper
 } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 interface Post {
     id: string;
@@ -27,13 +27,13 @@ interface Post {
     published_at: string;
 }
 
-async function getPosts() {
+async function getPosts(locale: string) {
     // We use absolute URL for internal fetch in server components if needed, 
     // but better to use the lib/database directly. However, for now, 
     // let's use a fail-safe approach since we have the URL context.
     try {
         const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-        const res = await fetch(`${baseUrl}/api/blog`, { cache: 'no-store' });
+        const res = await fetch(`${baseUrl}/api/blog?locale=${locale}`, { cache: 'no-store' });
         if (!res.ok) return [];
         return res.json();
     } catch (e) {
@@ -42,8 +42,9 @@ async function getPosts() {
     }
 }
 
-export default async function BlogListPage() {
-    const posts = await getPosts();
+export default async function BlogListPage({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
+    const posts = await getPosts(locale);
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-500">

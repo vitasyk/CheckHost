@@ -38,12 +38,13 @@ export default async function DocArticlePage({ params }: { params: Promise<{ slu
     let otherArticles: { title: string, slug: string, section: string }[] = [];
 
     try {
-        const result = await query('SELECT * FROM docs_articles WHERE slug = $1 AND published = true LIMIT 1', [slug]);
+        const result = await query('SELECT * FROM docs_articles WHERE slug = $1 AND published = true AND locale = $2 LIMIT 1', [slug, locale]);
         if (result.rows.length === 0) notFound();
         article = result.rows[0];
 
         const allResult = await query(
-            'SELECT title, slug, section FROM docs_articles WHERE published = true ORDER BY section ASC, order_index ASC'
+            'SELECT title, slug, section FROM docs_articles WHERE published = true AND locale = $1 ORDER BY section ASC, order_index ASC',
+            [locale]
         );
         otherArticles = allResult.rows;
     } catch (e) {
