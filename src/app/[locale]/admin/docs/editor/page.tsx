@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
     Save,
@@ -17,7 +17,10 @@ import {
     BookOpen,
     ArrowLeft,
     CheckCircle2,
-    Circle
+    Circle,
+    Upload,
+    Image as ImageIcon,
+    Sparkles
 } from 'lucide-react';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { Button } from '@/components/ui/button';
@@ -27,20 +30,21 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { marked } from 'marked';
 
 function EditorContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const articleId = searchParams.get('id');
     const t = useTranslations('Admin');
-    const td = useTranslations('Docs');
 
     const [loading, setLoading] = useState(!!articleId);
     const [saving, setSaving] = useState(false);
-    const [previewMode, setPreviewMode] = useState(false);
+    const [uploadingCover, setUploadingCover] = useState(false);
+    const [generatingCover, setGeneratingCover] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -48,22 +52,15 @@ function EditorContent() {
         content: '',
         section: 'General',
         order_index: 0,
-        published: false
+        published: false,
+        cover_image: ''
     });
-
-    const [previewHtml, setPreviewHtml] = useState('');
 
     useEffect(() => {
         if (articleId) {
             fetchArticle();
         }
     }, [articleId]);
-
-    useEffect(() => {
-        if (previewMode) {
-            updatePreview();
-        }
-    }, [previewMode, formData.content]);
 
     async function fetchArticle() {
         try {
@@ -77,7 +74,8 @@ function EditorContent() {
                     content: found.content,
                     section: found.section,
                     order_index: found.order_index,
-                    published: found.published
+                    published: found.published,
+                    cover_image: found.cover_image || ''
                 });
             }
         } catch (error) {
@@ -87,11 +85,6 @@ function EditorContent() {
         }
     }
 
-    async function updatePreview() {
-        const html = await marked(formData.content);
-        setPreviewHtml(html);
-    }
-
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const title = e.target.value;
         setFormData(prev => ({
@@ -99,6 +92,60 @@ function EditorContent() {
             title,
             slug: articleId ? prev.slug : title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
         }));
+    };
+
+    const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploadingCover(true);
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch('/api/admin/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.url) {
+                setFormData(prev => ({ ...prev, cover_image: data.url }));
+            } else {
+                alert(data.error || 'Upload failed');
+            }
+        } catch (error) {
+            console.error('Failed to upload image:', error);
+            alert('Upload failed');
+        } finally {
+            setUploadingCover(false);
+        }
+    };
+
+    const handleGenerateImage = async () => {
+        if (!formData.title) {
+            alert('Please enter a title first to generate a relevant image.');
+            return;
+        }
+
+        setGeneratingCover(true);
+        try {
+            const res = await fetch('/api/admin/generate-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topic: formData.title })
+            });
+            const data = await res.json();
+            if (data.url) {
+                setFormData(prev => ({ ...prev, cover_image: data.url }));
+            } else {
+                alert(data.error || 'Generation failed');
+            }
+        } catch (error) {
+            console.error('Failed to generate image:', error);
+            alert('Generation failed');
+        } finally {
+            setGeneratingCover(false);
+        }
     };
 
     async function handleSave() {
@@ -195,37 +242,14 @@ function EditorContent() {
                                         </div>
                                         <hr className="border-slate-100 dark:border-white/5" />
 
-                                        <div className="relative group">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <label className="text-xs font-black uppercase tracking-widest text-slate-400">Content</label>
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => setPreviewMode(false)}
-                                                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${!previewMode ? 'bg-slate-200 dark:bg-white/10 text-slate-900 dark:text-white' : 'text-slate-400 hover:text-slate-600'}`}
-                                                    >
-                                                        Editor
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setPreviewMode(true)}
-                                                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${previewMode ? 'bg-slate-200 dark:bg-white/10 text-slate-900 dark:text-white' : 'text-slate-400 hover:text-slate-600'}`}
-                                                    >
-                                                        Preview
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {previewMode ? (
-                                                <div className="min-h-[600px] p-6 rounded-xl border border-dashed border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 prose dark:prose-invert max-w-none">
-                                                    <div dangerouslySetInnerHTML={{ __html: previewHtml || '<i>No content to preview</i>' }} />
-                                                </div>
-                                            ) : (
-                                                <textarea
-                                                    placeholder="Write your article in Markdown..."
-                                                    value={formData.content}
-                                                    onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                                                    className="w-full min-h-[600px] p-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none font-mono text-sm leading-relaxed"
-                                                />
-                                            )}
+                                        <div>
+                                            <label className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 block">Content</label>
+                                            <RichTextEditor
+                                                value={formData.content}
+                                                onChange={(html) => setFormData(prev => ({ ...prev, content: html }))}
+                                                placeholder="Write your article here..."
+                                                minHeight={600}
+                                            />
                                         </div>
                                     </div>
                                 </Card>
@@ -282,6 +306,55 @@ function EditorContent() {
                                             />
                                         </div>
 
+                                        <div className="space-y-1.5 pt-2">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Cover Image</Label>
+                                            <div className="flex gap-2">
+                                                <div className="relative flex-1 group">
+                                                    <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                                                    <Input
+                                                        placeholder="Image URL"
+                                                        value={formData.cover_image}
+                                                        onChange={(e) => setFormData(prev => ({ ...prev, cover_image: e.target.value }))}
+                                                        className="pl-10 h-10 bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-white/10 rounded-xl text-xs"
+                                                    />
+                                                </div>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    className="h-10 w-10 shrink-0 border-slate-200 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-slate-950 text-pink-500 hover:text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-900/10"
+                                                    onClick={handleGenerateImage}
+                                                    disabled={generatingCover || uploadingCover}
+                                                    title="Generate with AI"
+                                                >
+                                                    {generatingCover ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    className="h-10 w-10 shrink-0 border-slate-200 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-slate-950"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    disabled={uploadingCover || generatingCover}
+                                                    title="Upload File"
+                                                >
+                                                    {uploadingCover ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                                                </Button>
+                                                <input
+                                                    type="file"
+                                                    ref={fileInputRef}
+                                                    onChange={handleCoverUpload}
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                />
+                                            </div>
+                                            {formData.cover_image && (
+                                                <div className="mt-2 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 aspect-video relative group bg-slate-100 dark:bg-slate-800">
+                                                    <img src={formData.cover_image} alt="Cover" className="object-cover w-full h-full" />
+                                                </div>
+                                            )}
+                                        </div>
+
                                         <div className="pt-4 mt-2 border-t border-slate-100 dark:border-white/5">
                                             <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-950/50 rounded-xl border border-slate-200 dark:border-white/10">
                                                 <div className="space-y-0.5">
@@ -335,4 +408,3 @@ export default function AdminDocsEditorPage() {
         </Suspense>
     );
 }
-

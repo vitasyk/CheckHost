@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import {
     Save,
     ChevronLeft,
@@ -17,7 +18,9 @@ import {
     CheckCircle2,
     DollarSign,
     Zap,
-    FileText
+    FileText,
+    Upload,
+    Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -42,6 +45,9 @@ export function BlogEditor({ postId }: BlogEditorProps) {
     const [loading, setLoading] = useState(postId ? true : false);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [uploadingCover, setUploadingCover] = useState(false);
+    const [generatingCover, setGeneratingCover] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [post, setPost] = useState<PostData>({
         title: '',
@@ -79,6 +85,60 @@ export function BlogEditor({ postId }: BlogEditorProps) {
             title,
             slug: prev.id ? prev.slug : generateSlug(title) // Auto-slug only for new posts
         }));
+    };
+
+    const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploadingCover(true);
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch('/api/admin/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.url) {
+                setPost(prev => ({ ...prev, cover_image: data.url }));
+            } else {
+                alert(data.error || 'Upload failed');
+            }
+        } catch (error) {
+            console.error('Failed to upload image:', error);
+            alert('Upload failed');
+        } finally {
+            setUploadingCover(false);
+        }
+    };
+
+    const handleGenerateImage = async () => {
+        if (!post.title) {
+            alert('Please enter a title first to generate a relevant image.');
+            return;
+        }
+
+        setGeneratingCover(true);
+        try {
+            const res = await fetch('/api/admin/generate-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topic: post.title })
+            });
+            const data = await res.json();
+            if (data.url) {
+                setPost(prev => ({ ...prev, cover_image: data.url }));
+            } else {
+                alert(data.error || 'Generation failed');
+            }
+        } catch (error) {
+            console.error('Failed to generate image:', error);
+            alert('Generation failed');
+        } finally {
+            setGeneratingCover(false);
+        }
     };
 
     const handleSave = async () => {
@@ -173,13 +233,13 @@ export function BlogEditor({ postId }: BlogEditorProps) {
 
                         <div className="space-y-3">
                             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                <FileText className="h-3 w-3" /> Content (Markdown supported)
+                                <FileText className="h-3 w-3" /> Content
                             </label>
-                            <textarea
+                            <RichTextEditor
                                 value={post.content || ''}
-                                onChange={(e) => setPost({ ...post, content: e.target.value })}
+                                onChange={(html) => setPost({ ...post, content: html })}
                                 placeholder="Write your story here..."
-                                className="w-full min-h-[400px] p-6 bg-slate-50 dark:bg-white/5 border-[1px] border-slate-200 dark:border-white/5 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-serif text-lg leading-relaxed text-slate-800 dark:text-slate-200"
+                                minHeight={500}
                             />
                         </div>
                     </Card>
@@ -238,12 +298,43 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                             <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                 <ImageIcon className="h-3 w-3" /> Cover Image URL
                             </label>
-                            <Input
-                                value={post.cover_image || ''}
-                                onChange={(e) => setPost({ ...post, cover_image: e.target.value })}
-                                placeholder="https://example.com/image.jpg"
-                                className="h-10 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 rounded-lg text-xs"
-                            />
+                            <div className="flex gap-2">
+                                <Input
+                                    value={post.cover_image || ''}
+                                    onChange={(e) => setPost({ ...post, cover_image: e.target.value })}
+                                    placeholder="https://example.com/image.jpg"
+                                    className="h-10 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 rounded-lg text-xs"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-10 w-10 shrink-0 border-slate-200 dark:border-white/5 rounded-lg text-pink-500 hover:text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-900/10"
+                                    onClick={handleGenerateImage}
+                                    disabled={generatingCover || uploadingCover}
+                                    title="Generate with AI"
+                                >
+                                    {generatingCover ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-10 w-10 shrink-0 border-slate-200 dark:border-white/5 rounded-lg"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={uploadingCover || generatingCover}
+                                    title="Upload File"
+                                >
+                                    {uploadingCover ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                                </Button>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleCoverUpload}
+                                    accept="image/*"
+                                    className="hidden"
+                                />
+                            </div>
                             {post.cover_image && (
                                 <div className="mt-2 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 aspect-video relative group">
                                     <img src={post.cover_image} alt="Preview" className="object-cover w-full h-full" />
@@ -299,10 +390,12 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                     </Card>
 
                     <Card className="p-6 border-indigo-100 dark:border-indigo-900/30 bg-indigo-50/30 dark:bg-indigo-900/10">
-                        <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-300 mb-2">Editor Pro-tip</h4>
-                        <p className="text-xs text-indigo-700 dark:text-indigo-400 leading-relaxed">
-                            Use Markdown for better formatting. You can add images, lists, and code blocks using standard syntax.
-                        </p>
+                        <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-300 mb-2">Editor shortcuts</h4>
+                        <ul className="text-xs text-indigo-700 dark:text-indigo-400 leading-relaxed space-y-1">
+                            <li><kbd className="bg-indigo-100 dark:bg-indigo-900/40 px-1 rounded text-[10px]">Ctrl+B</kbd> Bold</li>
+                            <li><kbd className="bg-indigo-100 dark:bg-indigo-900/40 px-1 rounded text-[10px]">Ctrl+I</kbd> Italic</li>
+                            <li><kbd className="bg-indigo-100 dark:bg-indigo-900/40 px-1 rounded text-[10px]">Ctrl+Z</kbd> Undo</li>
+                        </ul>
                     </Card>
                 </div>
             </div>

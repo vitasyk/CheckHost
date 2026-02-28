@@ -48,8 +48,10 @@ export default function BlogPostClient({ post }: { post: Post }) {
             const trimmedPart = part.trim();
             if (!trimmedPart) return null;
 
-            // Render markdown or HTML safely using marked
-            const htmlContent = marked.parse(trimmedPart) as string;
+            // Render markdown or HTML safely
+            // If it's already HTML (starts with common tags), bypass marked
+            const isHtml = /^<[a-z][\s\S]*>$/i.test(trimmedPart);
+            const htmlContent = isHtml ? trimmedPart : marked.parse(trimmedPart) as string;
 
             return (
                 <div key={index}>

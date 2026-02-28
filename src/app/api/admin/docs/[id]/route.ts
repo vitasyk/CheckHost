@@ -14,14 +14,14 @@ export async function PUT(
     try {
         const { id } = await params;
         const body = await req.json();
-        const { title, slug, content, section, order_index, published } = body;
+        const { title, slug, content, section, order_index, published, cover_image } = body;
 
         const result = await query(`
             UPDATE docs_articles 
-            SET title = $1, slug = $2, content = $3, section = $4, order_index = $5, published = $6, updated_at = CURRENT_TIMESTAMP
-            WHERE id = $7
+            SET title = $1, slug = $2, content = $3, section = $4, order_index = $5, published = $6, cover_image = $7, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $8
             RETURNING *
-        `, [title, slug, content, section, order_index, published, id]);
+        `, [title, slug, content, section, order_index, published, cover_image, id]);
 
         if (result.rows.length === 0) {
             return NextResponse.json({ error: 'Article not found' }, { status: 404 });

@@ -28,17 +28,17 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const { title, slug, content, section, order_index, published } = body;
+        const { title, slug, content, section, order_index, published, cover_image } = body;
 
         if (!title || !slug || !content) {
             return NextResponse.json({ error: 'Title, slug and content are required' }, { status: 400 });
         }
 
         const result = await query(`
-            INSERT INTO docs_articles (title, slug, content, section, order_index, published)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO docs_articles (title, slug, content, section, order_index, published, cover_image)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
-        `, [title, slug, content, section || 'General', order_index || 0, published || false]);
+        `, [title, slug, content, section || 'General', order_index || 0, published || false, cover_image || null]);
 
         return NextResponse.json(result.rows[0]);
     } catch (error: any) {
