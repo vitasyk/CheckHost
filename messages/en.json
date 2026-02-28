@@ -620,5 +620,35 @@
             "Network": "Network & Nodes",
             "FAQ": "FAQ"
         }
+    },
+    "About": {
+        "badge": "Democratizing Network Observability",
+        "heroTitle1": "Built for Speed",
+        "heroTitle2": "Engineered for Trust",
+        "heroSubtitle": "CheckNode provides real-time, unfiltered network intelligence from over 20 global locations, helping developers and system administrators keep the internet fast and reliable.",
+        "exploreTools": "Explore Network Tools",
+        "missionTitle": "Our Mission",
+        "missionP1": "The internet is the backbone of modern society, but diagnosing connectivity issues often requires complex setups or expensive enterprise software.",
+        "missionP2": "We built {siteName} to change that. We believe that high-quality, accurate network diagnostic tools should be accessible to everyone—from indie developers launching their first VPS to enterprise site reliability engineers monitoring global infrastructure.",
+        "missionItems": [
+            "100% Free & Transparent results",
+            "No registration required for core tools",
+            "Unfiltered ICMP and TCP routing data",
+            "Privacy-first architecture"
+        ],
+        "infraTitle": "Global Network Infrastructure",
+        "infraSubtitle": "To provide accurate perspectives on latency and routing, we operate a carefully curated network of testing nodes hosted in premium datacenters around the world.",
+        "activeRegions": "Active Regions",
+        "latency": "P99 Query Latency",
+        "uptime": "System Uptime",
+        "principlesTitle": "Our Core Principles",
+        "principle1Title": "Lightning Fast",
+        "principle1Desc": "Network issues don't wait, and neither should you. Our minimalist UI combined with highly optimized background queues ensures you get MTR and Ping results in milliseconds.",
+        "principle2Title": "Uncompromising Reliability",
+        "principle2Desc": "When you're diagnosing an outage, the tool you use must be the most reliable link in the chain. We build with redundancy at every layer of our stack.",
+        "principle3Title": "Actionable Intelligence",
+        "principle3Desc": "Data without context is noise. Instead of just showing raw logs, we are integrating AI and smart visualizers to help you understand what the network data actually means.",
+        "ctaTitle": "Ready to test your infrastructure?",
+        "ctaButton": "Start your first check"
     }
 }

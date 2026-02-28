@@ -602,5 +602,35 @@
             "global": "Global Certificate Validation",
             "globalDesc": "Different regions may resolve to different servers due to CDN or GeoDNS configurations. A global SSL check confirms that all edge servers present a valid certificate, not just your local resolver."
         }
+    },
+    "About": {
+        "badge": "Democratizar la observabilidad de la red",
+        "heroTitle1": "Construido para la velocidad",
+        "heroTitle2": "Diseñado para la confianza",
+        "heroSubtitle": "CheckNode proporciona inteligencia de red sin filtrar en tiempo real desde más de 20 ubicaciones globales, lo que ayuda a los desarrolladores y administradores de sistemas a mantener Internet rápido y confiable.",
+        "exploreTools": "Explorar herramientas de red",
+        "missionTitle": "Nuestra misión",
+        "missionP1": "Internet es la columna vertebral de la sociedad moderna, pero el diagnóstico de problemas de conectividad a menudo requiere configuraciones complejas o software empresarial costoso.",
+        "missionP2": "Construimos {siteName} para cambiar eso. Creemos que las herramientas de diagnóstico de red precisas y de alta calidad deben ser accesibles para todos, desde los desarrolladores independientes que lanzan su primer VPS hasta los ingenieros de confiabilidad de sitios empresariales que monitorean la infraestructura global.",
+        "missionItems": [
+            "Resultados 100% gratuitos y transparentes",
+            "No se requiere registro para las herramientas principales",
+            "Datos de enrutamiento ICMP y TCP sin filtrar",
+            "Arquitectura que prioriza la privacidad"
+        ],
+        "infraTitle": "Infraestructura de red global",
+        "infraSubtitle": "Para proporcionar perspectivas precisas sobre la latencia y el enrutamiento, operamos una red cuidadosamente seleccionada de nodos de prueba alojados en centros de datos premium en todo el mundo.",
+        "activeRegions": "Regiones activas",
+        "latency": "Latencia de consulta P99",
+        "uptime": "Tiempo de actividad del sistema",
+        "principlesTitle": "Nuestros principios básicos",
+        "principle1Title": "Rápido como el rayo",
+        "principle1Desc": "Los problemas de red no esperan, y usted tampoco debería hacerlo. Nuestra interfaz de usuario minimalista combinada con colas de fondo altamente optimizadas garantiza que obtenga resultados de MTR y Ping en milisegundos.",
+        "principle2Title": "Fiabilidad sin concesiones",
+        "principle2Desc": "Cuando diagnostica una interrupción, la herramienta que utiliza debe ser el eslabón más confiable de la cadena. Construimos con redundancia en cada capa de nuestra pila.",
+        "principle3Title": "Inteligencia procesable",
+        "principle3Desc": "Los datos sin contexto son ruido. En lugar de simplemente mostrar registros sin procesar, estamos integrando IA y visualizadores inteligentes para ayudarlo a comprender lo que realmente significan los datos de la red.",
+        "ctaTitle": "¿Listo para probar su infraestructura?",
+        "ctaButton": "Comience su primera comprobación"
     }
 }

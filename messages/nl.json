@@ -602,5 +602,35 @@
             "global": "Global Certificate Validation",
             "globalDesc": "Different regions may resolve to different servers due to CDN or GeoDNS configurations. A global SSL check confirms that all edge servers present a valid certificate, not just your local resolver."
         }
+    },
+    "About": {
+        "badge": "Democratisering van netwerkwaarneembaarheid",
+        "heroTitle1": "Gebouwd voor snelheid",
+        "heroTitle2": "Ontworpen voor vertrouwen",
+        "heroSubtitle": "CheckNode biedt realtime, ongefilterde netwerkinformatie vanuit meer dan 20 wereldwijde locaties, waardoor ontwikkelaars en systeembeheerders het internet snel en betrouwbaar kunnen houden.",
+        "exploreTools": "Ontdek netwerktools",
+        "missionTitle": "Onze missie",
+        "missionP1": "Het internet is de ruggengraat van de moderne samenleving, maar het diagnosticeren van verbindingsproblemen vereist vaak complexe instellingen of dure bedrijfssoftware.",
+        "missionP2": "We hebben {siteName} gebouwd om dat te veranderen. Wij zijn van mening dat nauwkeurige netwerkdiagnosetools van hoge kwaliteit voor iedereen toegankelijk moeten zijn, van indie-ontwikkelaars die hun eerste VPS lanceren tot enterprise site reliability engineers die de wereldwijde infrastructuur bewaken.",
+        "missionItems": [
+            "100% Gratis & transparante resultaten",
+            "Geen registratie vereist voor kerntools",
+            "Ongefilterde ICMP- en TCP-routeringsgegevens",
+            "Privacy-first-architectuur"
+        ],
+        "infraTitle": "Wereldwijde netwerkinfrastructuur",
+        "infraSubtitle": "Om nauwkeurige perspectieven op latentie en routering te bieden, beheren we een zorgvuldig samengesteld netwerk van testnodes in premium datacenters over de hele wereld.",
+        "activeRegions": "Actieve regio's",
+        "latency": "P99-querylatentie",
+        "uptime": "Systeem-uptime",
+        "principlesTitle": "Onze kernprincipes",
+        "principle1Title": "Bliksemsnel",
+        "principle1Desc": "Netwerkprobleme wachten niet, en u ook niet. Onze minimalistische gebruikersinterface, gecombineerd met sterk geoptimaliseerde achtergrondwachtrijen, zorgt ervoor dat u MTR- en Ping-resultaten in millisekunden krijgt.",
+        "principle2Title": "Compromisloze betrouwbaarheid",
+        "principle2Desc": "Wanneer u een storing diagnosticeert, moet de tool die u gebruikt de meest betrouwbare schakel in de keten zijn. We bouwen met redundantie op elke laag van onze stack.",
+        "principle3Title": "Bruikbare informatie",
+        "principle3Desc": "Gegevens zonder context zijn ruis. In plaats van alleen ruwe logboeken te tonen, integreren we AI en slimme visualizers om u te helpen begrijpen wat de netwerkgegevens werkelijk betekenen.",
+        "ctaTitle": "Klaar om uw infrastructuur te testen?",
+        "ctaButton": "Start uw eerste controle"
     }
 }

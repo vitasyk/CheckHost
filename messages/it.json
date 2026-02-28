@@ -602,5 +602,35 @@
             "global": "Global Certificate Validation",
             "globalDesc": "Different regions may resolve to different servers due to CDN or GeoDNS configurations. A global SSL check confirms that all edge servers present a valid certificate, not just your local resolver."
         }
+    },
+    "About": {
+        "badge": "Democratizzare l'osservabilità della rete",
+        "heroTitle1": "Costruito per la velocità",
+        "heroTitle2": "Progettato per la fiducia",
+        "heroSubtitle": "CheckNode fornisce intelligence di rete non filtrata in tempo reale da oltre 20 località globali, aiutando gli sviluppatori e gli amministratori di sistema a mantenere Internet veloce e affidabile.",
+        "exploreTools": "Esplora gli strumenti di rete",
+        "missionTitle": "La nostra missione",
+        "missionP1": "L'Internet è la spina dorsale della società moderna, ma la diagnosi dei problemi di connettività richiede spesso configurazioni complesse o costosi software aziendali.",
+        "missionP2": "Abbiamo creato {siteName} per cambiare questa situazione. Crediamo che strumenti di diagnostica di rete accurati e di alta qualità debbano essere accessibili a tutti: dagli sviluppatori indipendenti che lanciano il loro primo VPS agli ingegneri dell'affidabilità del sito aziendale che monitorano l'infrastruttura globale.",
+        "missionItems": [
+            "Risultati trasparenti e gratuiti al 100%",
+            "Nessuna registrazione richiesta per gli strumenti principali",
+            "Dati di instradamento ICMP e TCP non filtrati",
+            "Architettura orientata alla privacy"
+        ],
+        "infraTitle": "Infrastruttura di rete globale",
+        "infraSubtitle": "Per fornire prospettive accurate su latenza e instradamento, gestiamo una rete accuratamente selezionata di nodi di test ospitati in datacenter premium in tutto il mondo.",
+        "activeRegions": "Regioni attive",
+        "latency": "Latenza query P99",
+        "uptime": "Tempo di attività del sistema",
+        "principlesTitle": "I nostri principi fondamentali",
+        "principle1Title": "Velocità fulminea",
+        "principle1Desc": "I problemi di rete non aspettano e non dovresti farlo nemmeno tu. La nostra interfaccia utente minimalista, combinata con code in background altamente ottimizzate, ti assicura di ottenere risultati MTR e Ping in millisecondi.",
+        "principle2Title": "Affidabilità senza compromessi",
+        "principle2Desc": "Quando diagnostichi un'interruzione, lo strumento che utilizzi deve essere l'anello più affidabile della catena. Costruiamo con ridondanza in ogni livello del nostro stack.",
+        "principle3Title": "Intelligenza operativa",
+        "principle3Desc": "I dati senza contesto sono rumore. Invece di mostrare solo log grezzi, stiamo integrando l'intelligenza artificiale e visualizzatori intelligenti per aiutarti a capire cosa significano realmente i dati di rete.",
+        "ctaTitle": "Pronto a testare la tua infrastruttura?",
+        "ctaButton": "Inizia il tuo primo controllo"
     }
 }

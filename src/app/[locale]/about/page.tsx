@@ -22,8 +22,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
     setRequestLocale(locale);
-    const t = await getTranslations({ locale, namespace: 'Index' });
-    const tTools = await getTranslations({ locale, namespace: 'Tools' });
+    const t = await getTranslations({ locale, namespace: 'About' });
+    const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode';
 
     return (
         <div className="relative">
@@ -34,25 +34,28 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 mb-8">
-                    <img src="/logo.png" alt="CheckNode" className="h-5 w-5 rounded-md" />
-                    <span className="text-sm font-medium bg-gradient-to-r from-blue-700 to-indigo-700 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Democratizing Network Observability</span>
+                    <img src="/logo.png" alt={siteName} className="h-5 w-5 rounded-md" />
+                    <span className="text-sm font-medium bg-gradient-to-r from-blue-700 to-indigo-700 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">{t('badge')}</span>
                 </div>
 
                 <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-8 tracking-tight text-slate-900 dark:text-white">
-                    Built for <span className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Speed</span><br />
-                    Engineered for <span className="relative">Trust
-                        <div className="absolute -bottom-2 left-0 w-full h-2 bg-gradient-to-r from-blue-600/40 to-indigo-600/40 rounded-full" />
-                    </span>
+                    {t('heroTitle1').split(' ').map((word, i) => i === t('heroTitle1').split(' ').length - 1 ? <span key={i} className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">{word}</span> : word + ' ')}
+                    <br />
+                    {t('heroTitle2').split(' ').map((word, i) => i === t('heroTitle2').split(' ').length - 1 ? (
+                        <span key={i} className="relative">{word}
+                            <div className="absolute -bottom-2 left-0 w-full h-2 bg-gradient-to-r from-blue-600/40 to-indigo-600/40 rounded-full" />
+                        </span>
+                    ) : word + ' ')}
                 </h1>
 
                 <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
-                    CheckNode provides real-time, unfiltered network intelligence from over 20 global locations, helping developers and system administrators keep the internet fast and reliable.
+                    {t('heroSubtitle')}
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                     <Link href="/">
                         <Button size="lg" className="h-14 px-8 text-base bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 rounded-xl shadow-lg hover:shadow-xl transition-all font-medium">
-                            Explore Network Tools
+                            {t('exploreTools')}
                             <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     </Link>
@@ -63,21 +66,12 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
             <section className="max-w-[1440px] mx-auto px-4 sm:px-8 py-20 border-y border-slate-200/50 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/20">
                 <div className="grid lg:grid-cols-2 gap-16 items-center max-w-6xl mx-auto">
                     <div>
-                        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6">Our Mission</h2>
+                        <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6">{t('missionTitle')}</h2>
                         <div className="space-y-6 text-lg text-slate-600 dark:text-slate-400">
-                            <p>
-                                The internet is the backbone of modern society, but diagnosing connectivity issues often requires complex setups or expensive enterprise software.
-                            </p>
-                            <p>
-                                We built {process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode'} to change that. We believe that <strong>high-quality, accurate network diagnostic tools should be accessible to everyone</strong>—from indie developers launching their first VPS to enterprise site reliability engineers monitoring global infrastructure.
-                            </p>
+                            <p>{t('missionP1')}</p>
+                            <p dangerouslySetInnerHTML={{ __html: t.raw('missionP2').replace('{siteName}', `<strong>${siteName}</strong>`) }} />
                             <ul className="space-y-3 pt-4">
-                                {[
-                                    '100% Free & Transparent results',
-                                    'No registration required for core tools',
-                                    'Unfiltered ICMP and TCP routing data',
-                                    'Privacy-first architecture'
-                                ].map((item, i) => (
+                                {(t.raw('missionItems') as string[]).map((item, i) => (
                                     <li key={i} className="flex items-center gap-3 text-slate-700 dark:text-slate-300">
                                         <CheckCircle2 className="h-5 w-5 text-indigo-500 flex-shrink-0" />
                                         <span>{item}</span>
@@ -111,9 +105,9 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
             {/* Global Network Infrastructure */}
             <section className="max-w-[1440px] mx-auto px-4 sm:px-8 py-24">
                 <div className="text-center mb-16 max-w-3xl mx-auto">
-                    <h2 className="text-3xl md:text-5xl font-bold mb-6 text-slate-900 dark:text-white">Global Network Infrastructure</h2>
+                    <h2 className="text-3xl md:text-5xl font-bold mb-6 text-slate-900 dark:text-white">{t('infraTitle')}</h2>
                     <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
-                        To provide accurate perspectives on latency and routing, we operate a carefully curated network of testing nodes hosted in premium datacenters around the world.
+                        {t('infraSubtitle')}
                     </p>
                 </div>
 
@@ -124,7 +118,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                                 <Globe2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                             </div>
                             <CardTitle className="text-4xl font-black text-slate-900 dark:text-white">20+</CardTitle>
-                            <CardDescription className="text-base font-medium mt-2">Active Regions</CardDescription>
+                            <CardDescription className="text-base font-medium mt-2">{t('activeRegions')}</CardDescription>
                         </CardHeader>
                     </Card>
 
@@ -134,7 +128,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                                 <Server className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
                             </div>
                             <CardTitle className="text-4xl font-black text-slate-900 dark:text-white">&lt;2s</CardTitle>
-                            <CardDescription className="text-base font-medium mt-2">P99 Query Latency</CardDescription>
+                            <CardDescription className="text-base font-medium mt-2">{t('latency')}</CardDescription>
                         </CardHeader>
                     </Card>
 
@@ -144,7 +138,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                                 <Shield className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                             </div>
                             <CardTitle className="text-4xl font-black text-slate-900 dark:text-white">99.9%</CardTitle>
-                            <CardDescription className="text-base font-medium mt-2">System Uptime</CardDescription>
+                            <CardDescription className="text-base font-medium mt-2">{t('uptime')}</CardDescription>
                         </CardHeader>
                     </Card>
                 </div>
@@ -154,7 +148,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
             <section className="max-w-[1440px] mx-auto px-4 sm:px-8 py-24 bg-slate-50 dark:bg-slate-900/30 border-y border-slate-200 dark:border-white/5">
                 <div className="w-full max-w-6xl mx-auto">
                     <h2 className="text-3xl md:text-5xl font-bold text-center mb-16 text-slate-900 dark:text-white">
-                        Our Core Principles
+                        {t('principlesTitle')}
                     </h2>
 
                     <div className="grid md:grid-cols-3 gap-8">
@@ -164,9 +158,9 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                                 <div className="h-12 w-12 bg-blue-500 text-white rounded-xl flex items-center justify-center shadow-md mb-4 group-hover:shadow-blue-500/25 transition-shadow">
                                     <Zap className="h-6 w-6" />
                                 </div>
-                                <CardTitle className="text-2xl mb-2">Lightning Fast</CardTitle>
+                                <CardTitle className="text-2xl mb-2">{t('principle1Title')}</CardTitle>
                                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                    Network issues don't wait, and neither should you. Our minimalist UI combined with highly optimized background queues ensures you get MTR and Ping results in milliseconds.
+                                    {t('principle1Desc')}
                                 </p>
                             </CardHeader>
                         </Card>
@@ -177,9 +171,9 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                                 <div className="h-12 w-12 bg-indigo-500 text-white rounded-xl flex items-center justify-center shadow-md mb-4 group-hover:shadow-indigo-500/25 transition-shadow">
                                     <Shield className="h-6 w-6" />
                                 </div>
-                                <CardTitle className="text-2xl mb-2">Uncompromising Reliability</CardTitle>
+                                <CardTitle className="text-2xl mb-2">{t('principle2Title')}</CardTitle>
                                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                    When you're diagnosing an outage, the tool you use must be the most reliable link in the chain. We build with redundancy at every layer of our stack.
+                                    {t('principle2Desc')}
                                 </p>
                             </CardHeader>
                         </Card>
@@ -190,9 +184,9 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                                 <div className="h-12 w-12 bg-purple-500 text-white rounded-xl flex items-center justify-center shadow-md mb-4 group-hover:shadow-purple-500/25 transition-shadow">
                                     <Globe2 className="h-6 w-6" />
                                 </div>
-                                <CardTitle className="text-2xl mb-2">Actionable Intelligence</CardTitle>
+                                <CardTitle className="text-2xl mb-2">{t('principle3Title')}</CardTitle>
                                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                                    Data without context is noise. Instead of just showing raw logs, we are integrating AI and smart visualizers to help you understand what the network data actually means.
+                                    {t('principle3Desc')}
                                 </p>
                             </CardHeader>
                         </Card>
@@ -206,16 +200,14 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
 
             {/* Final CTA */}
             <section className="max-w-4xl mx-auto px-4 sm:px-8 py-20 text-center">
-                <h2 className="text-3xl font-bold mb-6 text-slate-900 dark:text-white">Ready to test your infrastructure?</h2>
+                <h2 className="text-3xl font-bold mb-6 text-slate-900 dark:text-white">{t('ctaTitle')}</h2>
                 <Link href="/">
                     <Button size="lg" className="h-14 px-8 text-base bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-600/25">
-                        Start your first check
+                        {t('ctaButton')}
                         <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                 </Link>
             </section>
-
-
         </div>
     );
 }
