@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { Globe, Wifi, Activity, Database, Info, Shield, FileText, Phone, BookOpen, ArrowLeftRight, Cloud, Route, Search, Lock } from 'lucide-react';
+import { Globe, Wifi, Activity, Database, Info, Shield, FileText, Phone, BookOpen, ArrowLeftRight, Cloud, Route, Search, Lock, HelpCircle } from 'lucide-react';
 
 export function SiteFooter() {
     const t = useTranslations('Footer');
@@ -93,6 +93,7 @@ export function SiteFooter() {
                             <ul className="space-y-2.5">
                                 {[
                                     { href: "/about", icon: Globe, label: t('about') },
+                                    { href: "/faq", icon: HelpCircle, label: "FAQ" },
                                     { href: "/docs", icon: BookOpen, label: t('docs') },
                                     { href: "/contact", icon: Phone, label: t('contact') },
                                     { href: "/blog", icon: BookOpen, label: t('blog') },

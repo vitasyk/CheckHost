@@ -667,5 +667,10 @@
       "terms": "Términos",
       "privacy": "Privacidad"
     }
+  },
+  "FAQ": {
+    "title": "Preguntas Frecuentes",
+    "subtitle": "Encuentra respuestas a las preguntas más comunes sobre nuestras herramientas.",
+    "noFaqs": "No se encontraron preguntas."
   }
 }
