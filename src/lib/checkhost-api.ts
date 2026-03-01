@@ -79,7 +79,7 @@ export class CheckHostAPI {
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 throw new Error(
-                    `CheckHost API error: ${error.response?.data?.message || error.message}`,
+                    `Service connection failed: ${error.response?.data?.message || error.message}`,
                     { cause: error }
                 );
             }
@@ -99,7 +99,7 @@ export class CheckHostAPI {
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 throw new Error(
-                    `Failed to get results: ${error.response?.data?.message || error.message}`,
+                    `Results retrieval failed: ${error.response?.data?.message || error.message}`,
                     { cause: error }
                 );
             }
@@ -119,7 +119,7 @@ export class CheckHostAPI {
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 throw new Error(
-                    `Failed to get extended results: ${error.response?.data?.message || error.message}`,
+                    `Extended results retrieval failed: ${error.response?.data?.message || error.message}`,
                     { cause: error }
                 );
             }

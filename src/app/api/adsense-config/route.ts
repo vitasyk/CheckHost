@@ -35,7 +35,7 @@ export async function GET() {
             placements: adsenseConfig.placements || []
         });
     } catch (error) {
-        console.error('[AdSense] API Error:', error);
+        console.error('[System] Config Error:', error);
         return NextResponse.json({
             client_id: "",
             enabled: false,

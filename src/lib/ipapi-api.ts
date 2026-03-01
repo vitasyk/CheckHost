@@ -47,7 +47,7 @@ export async function fetchIpApiData(ip: string): Promise<IpApiResponse | null> 
         });
 
         if (!response.ok) {
-            throw new Error(`IP-API error: ${response.status} ${response.statusText}`);
+            throw new Error(`Location lookup error: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();

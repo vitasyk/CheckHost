@@ -19,7 +19,7 @@ export function VisitorIpInfo() {
                     const data = await res.json();
                     setInfo(data);
                 } else {
-                    console.warn(`[VisitorIpInfo] API error: ${res.status} ${res.statusText}`);
+                    console.warn(`[VisitorIpInfo] Request failed: ${res.status} ${res.statusText}`);
                 }
             } catch (err) {
                 console.error('[VisitorIpInfo] Fetch failed:', err);

@@ -89,7 +89,7 @@ export async function fetchFromIpiz(ip: string): Promise<any> {
     });
 
     if (!response.ok) {
-        throw new Error(`IPIz API error: ${response.status} ${response.statusText}`);
+        throw new Error(`Provider service error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
