@@ -667,5 +667,10 @@
       "terms": "Conditions",
       "privacy": "Confidentialité"
     }
+  },
+  "FAQ": {
+    "title": "Foire Aux Questions",
+    "subtitle": "Trouvez des réponses aux questions les plus fréquentes sur nos outils.",
+    "noFaqs": "Aucune FAQ trouvée."
   }
 }

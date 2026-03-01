@@ -667,5 +667,10 @@
       "terms": "Voorwaarden",
       "privacy": "Privacy"
     }
+  },
+  "FAQ": {
+    "title": "Veelgestelde Vragen",
+    "subtitle": "Vind antwoorden op de meest gestelde vragen over onze tools.",
+    "noFaqs": "Geen FAQ gevonden."
   }
 }

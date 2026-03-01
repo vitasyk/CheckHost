@@ -667,5 +667,10 @@
       "terms": "Warunki",
       "privacy": "Prywatność"
     }
+  },
+  "FAQ": {
+    "title": "Często Zadawane Pytania",
+    "subtitle": "Znajdź odpowiedzi na najczęstsze pytania dotyczące naszych narzędzi.",
+    "noFaqs": "Nie znaleziono FAQ."
   }
 }
