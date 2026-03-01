@@ -1,12 +1,7 @@
-const CACHE_NAME = 'checkhost-v2';
+const CACHE_NAME = 'checkhost-v2.1';
 
-// Core assets to cache on install
+// Core assets to cache on install (Static only)
 const STATIC_CACHE = [
-    '/',
-    '/ping',
-    '/http',
-    '/dns',
-    '/ip-info',
     '/manifest.json',
     '/icons/icon-192x192.png',
     '/icons/icon-512x512.png',
@@ -49,14 +44,18 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // API routes: always go to network
-    if (url.pathname.startsWith('/api/')) {
+    // API routes and Auth routes: always go to network, never cache
+    if (url.pathname.startsWith('/api/') || url.pathname.includes('/auth/')) {
         event.respondWith(
             fetch(request).catch(() => {
-                return new Response(
-                    JSON.stringify({ error: 'Offline', message: 'Network unavailable' }),
-                    { status: 503, headers: { 'Content-Type': 'application/json' } }
-                );
+                if (url.pathname.startsWith('/api/')) {
+                    return new Response(
+                        JSON.stringify({ error: 'Offline', message: 'Network unavailable' }),
+                        { status: 503, headers: { 'Content-Type': 'application/json' } }
+                    );
+                }
+                // For HTML auth pages, if offline, we can't do much
+                return new Response('Offline', { status: 503 });
             })
         );
         return;
