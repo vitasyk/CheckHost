@@ -13,10 +13,8 @@ export function getRealIp(headers: Headers): string | null {
   const xReal = headers.get('x-real-ip');
   const xForwarded = headers.get('x-forwarded-for')?.split(',')[0].trim();
 
-  // Diagnostic log
-  if (process.env.NODE_ENV === 'development' || process.env.DEBUG_IP === 'true') {
-    console.log(`[IP Detection] CF: ${cf}, X-Real: ${xReal}, X-Forwarded: ${xForwarded}`);
-  }
+  // Diagnostic log (Force visible for now to debug VPN)
+  console.log(`[IP Detection] CF: ${cf}, X-Real: ${xReal}, X-Forwarded: ${xForwarded}`);
 
   return cf || xReal || xForwarded || null;
 }

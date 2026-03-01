@@ -18,9 +18,11 @@ export function VisitorIpInfo() {
                 if (res.ok) {
                     const data = await res.json();
                     setInfo(data);
+                } else {
+                    console.warn(`[VisitorIpInfo] API error: ${res.status} ${res.statusText}`);
                 }
             } catch (err) {
-                console.error('Failed to fetch visitor IP info:', err);
+                console.error('[VisitorIpInfo] Fetch failed:', err);
             } finally {
                 setLoading(false);
             }
