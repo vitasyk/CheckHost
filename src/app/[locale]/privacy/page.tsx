@@ -75,9 +75,9 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
                 <section>
                     <h2>{t('thirdPartyTitle')}</h2>
                     <ul>
-                        <li><strong>Google AdSense:</strong> {t('thirdPartyAdsense')}</li>
-                        <li><strong>Cloudflare:</strong> {t('thirdPartyCloudflare')}</li>
-                        <li><strong>Google Analytics:</strong> {t('thirdPartyAnalytics')}</li>
+                        <li><strong>Infrastructure:</strong> {t('thirdPartyAdsense')}</li>
+                        <li><strong>Infrastructure:</strong> {t('thirdPartyCloudflare')}</li>
+                        <li><strong>Analytics:</strong> {t('thirdPartyAnalytics')}</li>
                     </ul>
                 </section>
 

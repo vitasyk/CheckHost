@@ -44,15 +44,10 @@ export function SiteFooter() {
                             </h3>
                             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2.5">
                                 {[
-                                    { href: "/ping", icon: Wifi, label: t('ping') },
-                                    { href: "/http", icon: Activity, label: t('http') },
-                                    { href: "/tcp", icon: ArrowLeftRight, label: t('tcp') },
-                                    { href: "/udp", icon: Cloud, label: t('udp') },
-                                    { href: "/dns", icon: Database, label: t('dns') },
-                                    { href: "/mtr", icon: Route, label: t('mtr') },
-                                    { href: "/?tab=dnsinfo", icon: Search, label: t('dnsinfo') },
-                                    { href: "/ssl", icon: Lock, label: t('ssl') },
-                                    { href: "/ip-info", icon: Info, label: t('ipinfo') },
+                                    { href: "/?tab=info", icon: Info, label: t('ipinfo') },
+                                    { href: "/?tab=mtr", icon: Route, label: t('mtr') },
+                                    { href: "/?tab=dns-all", icon: Search, label: t('dnsinfo') },
+                                    { href: "/?tab=ssl", icon: Lock, label: t('ssl') },
                                 ].map((tool) => (
                                     <li key={tool.label}>
                                         <Link

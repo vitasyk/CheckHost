@@ -125,6 +125,15 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
 
     const [host, setHost] = useState(initialHost || searchParams.get('host') || '');
     const [activeTab, setActiveTab] = useState<string>(initialTab || searchParams.get('tab') || "info");
+
+    // Sync activeTab when URL changes externally (e.g. footer links)
+    useEffect(() => {
+        const tabFromUrl = searchParams.get('tab');
+        if (tabFromUrl && tabFromUrl !== activeTab) {
+            setActiveTab(tabFromUrl);
+        }
+    }, [searchParams]);
+
     const [pendingCheck, setPendingCheck] = useState<{ type: CheckType, host: string } | null>(null);
     const [maxNodes, setMaxNodes] = useState(20);
     const [activeChecks, setActiveChecks] = useState<Set<CheckType>>(new Set());
