@@ -249,7 +249,7 @@ export default function AdminSettings() {
             const res = await fetch('/api/admin/db-sync', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tables: ['site_settings', 'posts', 'admin_audit_logs', 'share_snapshots'] })
+                body: JSON.stringify({ tables: ['site_settings', 'posts', 'admin_audit_logs', 'share_snapshots', 'docs_articles'] })
             });
             if (res.ok) {
                 const data = await res.json();

@@ -12,7 +12,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { tables = ['site_settings', 'posts', 'admin_audit_logs'] } = await request.json();
+    const { tables = ['site_settings', 'posts', 'admin_audit_logs', 'docs_articles'] } = await request.json();
     const results: any = {};
 
     try {
@@ -169,7 +169,7 @@ async function initDockerDbSchema() {
             -- Docs
             CREATE TABLE IF NOT EXISTS docs_articles (
                 id SERIAL PRIMARY KEY,
-                slug VARCHAR(255) UNIQUE NOT NULL,
+                slug VARCHAR(255) NOT NULL,
                 title VARCHAR(255) NOT NULL,
                 content TEXT NOT NULL,
                 section VARCHAR(100) NOT NULL DEFAULT 'General',
@@ -178,6 +178,17 @@ async function initDockerDbSchema() {
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
+
+            -- Ensure composite unique constraint for multi-language slugs
+            DO $$ BEGIN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE table_name = 'docs_articles' AND constraint_name = 'docs_articles_slug_locale_key') THEN
+                    -- Remove old single slug constraint if exists
+                    IF EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE table_name = 'docs_articles' AND constraint_name = 'docs_articles_slug_key') THEN
+                        ALTER TABLE docs_articles DROP CONSTRAINT docs_articles_slug_key;
+                    END IF;
+                    ALTER TABLE docs_articles ADD CONSTRAINT docs_articles_slug_locale_key UNIQUE (slug, locale);
+                END IF;
+            END $$;
 
             -- Snapshots (if not already renamed)
             CREATE TABLE IF NOT EXISTS share_snapshots (
