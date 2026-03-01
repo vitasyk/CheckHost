@@ -359,7 +359,7 @@ export async function resolveNameservers(domain: string): Promise<string[]> {
  * Fetch RDAP information from rdap.org (WHOIS JSON)
  */
 export async function fetchRdapInfo(query: string): Promise<any> {
-    const isIp = /^(?:\d{1,3}\.){3}\d{1,3}$|^(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}$/.test(query);
+    const isIp = query.includes(':') || /^(?:\d{1,3}\.){3}\d{1,3}$/.test(query);
     const isAsn = /^as\s*\d+$/i.test(query);
     const type = isAsn ? 'autnum' : (isIp ? 'ip' : 'domain');
 
