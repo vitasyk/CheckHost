@@ -6,7 +6,7 @@ import { lookupLocalIpInfo } from './ipinfo-local';
 export async function getMockIpInfo(host: string): Promise<IpInfoResponse> {
     // Resolve hostname to IP
     const resolvedIp = await resolveHostToIp(host);
-    const isIpInput = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host);
+    const isIpInput = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host) || host.includes(':');
     const ip = resolvedIp ?? (isIpInput ? host : null);
     if (!ip) {
         // IP couldn't be resolved, but we can still try RDAP/WHOIS for domain registration data
