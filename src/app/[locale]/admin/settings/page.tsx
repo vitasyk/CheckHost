@@ -120,6 +120,7 @@ export default function AdminSettings() {
     const [clearingSeo, setClearingSeo] = useState(false);
     const [saved, setSaved] = useState(false);
     const [purgingCache, setPurgingCache] = useState(false);
+    const [runningMasterSetup, setRunningMasterSetup] = useState(false);
     const [replacingDomain, setReplacingDomain] = useState(false);
     const [replaceDomainConfig, setReplaceDomainConfig] = useState({
         oldDomain: 'check-host.top',
@@ -266,6 +267,28 @@ export default function AdminSettings() {
             alert('Failed to sync databases. Check logs.');
         } finally {
             setSyncing(false);
+        }
+    };
+
+    const handleMasterSetup = async () => {
+        if (!confirm('This will perform a database repair, add missing columns, and re-seed all FAQ content. It will not delete your existing data. Proceed?')) {
+            return;
+        }
+
+        setRunningMasterSetup(true);
+        try {
+            const res = await fetch('/api/admin/master-setup');
+            const data = await res.json();
+            if (res.ok) {
+                alert(`Success! ${data.message}\nTotal FAQs seeded: ${data.count}`);
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Failed to run master setup:', error);
+            alert('Failed to run master setup. Check console.');
+        } finally {
+            setRunningMasterSetup(false);
         }
     };
 
@@ -464,6 +487,22 @@ export default function AdminSettings() {
                                     {clearing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                                     Clear All Snapshots
                                 </Button>
+
+                                <div className="h-px bg-slate-100 dark:bg-white/5 my-2" />
+
+                                <div className="space-y-2">
+                                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">System Repair</h4>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 gap-2"
+                                        onClick={handleMasterSetup}
+                                        disabled={runningMasterSetup}
+                                    >
+                                        {runningMasterSetup ? <Loader2 className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
+                                        {runningMasterSetup ? 'Repairing and Seeding...' : 'Repair DB & Seed FAQs'}
+                                    </Button>
+                                    <p className="text-[10px] text-slate-500 italic">Use this if FAQs are missing or if you just updated the server.</p>
+                                </div>
                             </Card>
                         </div>
 
