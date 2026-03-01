@@ -72,9 +72,11 @@ export async function GET(request: NextRequest) {
 
             if (isASN) {
                 // Fetch ASN details and RDAP info in parallel
-                let [asnData, rdapData] = await Promise.all([
-                    fetchAsnInfo(host!),
+                const [rdapData] = await Promise.all([
                     fetchRdapInfo(host!).catch(() => null)
+                ]);
+                let [asnData] = await Promise.all([
+                    fetchAsnInfo(host!)
                 ]);
 
                 if (!asnData || asnData.error) {

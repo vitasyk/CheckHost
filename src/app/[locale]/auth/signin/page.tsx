@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MonitorPlay, Mail, Lock, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 
 function SignInContent() {
     const router = useRouter();
@@ -194,9 +195,9 @@ function SignInContent() {
                 </Card>
 
                 <div className="text-center mt-6 space-x-4 text-xs font-medium text-slate-400 dark:text-slate-500">
-                    <a href="/terms" className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">{t('terms')}</a>
+                    <Link href="/terms" className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">{t('terms')}</Link>
                     <span>&middot;</span>
-                    <a href="/privacy" className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">{t('privacy')}</a>
+                    <Link href="/privacy" className="hover:text-slate-600 dark:hover:text-slate-300 transition-colors">{t('privacy')}</Link>
                 </div>
             </div>
         </div>

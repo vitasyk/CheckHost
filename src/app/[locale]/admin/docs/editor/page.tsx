@@ -44,6 +44,7 @@ function EditorContent() {
     const [saving, setSaving] = useState(false);
     const [uploadingCover, setUploadingCover] = useState(false);
     const [generatingCover, setGeneratingCover] = useState(false);
+    const [imageModel, setImageModel] = useState<'dall-e-3' | 'dall-e-2' | 'gpt-image-1'>('dall-e-3');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [formData, setFormData] = useState({
@@ -134,7 +135,7 @@ function EditorContent() {
             const res = await fetch('/api/admin/generate-image', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic: formData.title })
+                body: JSON.stringify({ topic: formData.title, model: imageModel })
             });
             const data = await res.json();
             if (data.url) {
@@ -194,11 +195,9 @@ function EditorContent() {
                         {/* Header */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
-                                <Link href="/admin/docs">
-                                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-200 dark:hover:bg-white/5">
-                                        <ArrowLeft className="w-5 h-5" />
-                                    </Button>
-                                </Link>
+                                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-200 dark:hover:bg-white/5" onClick={() => router.back()}>
+                                    <ArrowLeft className="w-5 h-5" />
+                                </Button>
                                 <div>
                                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
                                         {articleId ? 'Edit Article' : 'Create New Article'}
@@ -377,6 +376,33 @@ function EditorContent() {
                                                     accept="image/*"
                                                     className="hidden"
                                                 />
+                                            </div>
+                                            {/* AI Model Selector */}
+                                            <div className="flex items-center gap-2 mt-1.5">
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Model:</span>
+                                                <div className="flex gap-1 flex-wrap">
+                                                    {([
+                                                        { value: 'dall-e-3', label: 'DALL·E 3', badge: 'HD' },
+                                                        { value: 'dall-e-2', label: 'DALL·E 2', badge: 'Fast' },
+                                                        { value: 'gpt-image-1', label: 'GPT Image', badge: 'New' },
+                                                    ] as const).map(({ value, label, badge }) => (
+                                                        <button
+                                                            key={value}
+                                                            type="button"
+                                                            onClick={() => setImageModel(value)}
+                                                            className={`flex items-center gap-1 py-0.5 px-1.5 rounded-md border text-[9px] font-bold transition-all ${imageModel === value
+                                                                ? 'bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400'
+                                                                : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300 dark:bg-slate-950 dark:border-white/5'
+                                                                }`}
+                                                        >
+                                                            {label}
+                                                            <span className={`text-[7px] px-0.5 rounded font-black ${imageModel === value
+                                                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40'
+                                                                : 'bg-slate-100 text-slate-400 dark:bg-slate-700'
+                                                                }`}>{badge}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
                                             {formData.cover_image && (
                                                 <div className="mt-2 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 aspect-video relative group bg-slate-100 dark:bg-slate-800">

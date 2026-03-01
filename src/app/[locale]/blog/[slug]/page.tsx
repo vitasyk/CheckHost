@@ -184,7 +184,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string, locale: string }> }) {
     const { slug, locale } = await params;
     const session = await getServerSession(authOptions);
-    let post = await getPost(slug, locale, !!session);
+    const post = await getPost(slug, locale, !!session);
 
     if (!post) {
         // SMART REDIRECT: If post not found, maybe user switched language and the slug changed?

@@ -108,13 +108,8 @@ export const authOptions: NextAuthOptions = {
 
                 if (allAllowedAdminEmails.includes(userEmail) || (process.env.NODE_ENV === "development" && allAllowedAdminEmails.length === 0)) {
                     role = 'admin';
-                } else if (allAllowedUserEmails.includes(userEmail)) {
-                    // Explicitly defined in DB as 'user' (optional, but keep for backwards compat)
-                    role = 'user';
-                } else {
-                    // Open registration: any valid google account that isn't blocked becomes a 'user'
-                    role = 'user';
                 }
+                // else: any valid google account (including those explicitly defined as 'user' in DB) becomes a 'user'
 
                 // Sync user with Database
                 try {

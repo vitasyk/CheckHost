@@ -9,7 +9,7 @@ export async function POST(req: Request) {
 
     let findText: string;
     let replaceWith: string;
-    let dryRun = false;
+    let dryRun: boolean;
 
     try {
         const body = await req.json();
@@ -67,12 +67,12 @@ export async function POST(req: Request) {
                     for (const post of posts) {
                         const newContent = post.content?.replaceAll(findText, replaceWith);
                         const newExcerpt = post.excerpt?.replaceAll(findText, replaceWith);
-                        
+
                         const { error: updateError } = await supabase
                             .from('posts')
                             .update({ content: newContent, excerpt: newExcerpt })
                             .eq('id', post.id);
-                        
+
                         if (!updateError) affectedCount++;
                     }
                 }

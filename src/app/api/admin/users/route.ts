@@ -36,7 +36,7 @@ export async function GET(req: Request) {
 
         // Count query
         let countQs = `SELECT COUNT(*) as total FROM users`;
-        let countParams: any[] = [];
+        const countParams: any[] = [];
         if (search) {
             countQs += ` WHERE email ILIKE $1 OR name ILIKE $1`;
             countParams.push(`%${search}%`);

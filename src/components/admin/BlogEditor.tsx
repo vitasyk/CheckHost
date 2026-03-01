@@ -50,6 +50,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
     const [saved, setSaved] = useState(false);
     const [uploadingCover, setUploadingCover] = useState(false);
     const [generatingCover, setGeneratingCover] = useState(false);
+    const [imageModel, setImageModel] = useState<'dall-e-3' | 'dall-e-2' | 'gpt-image-1'>('dall-e-3');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [post, setPost] = useState<PostData>({
@@ -130,7 +131,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
             const res = await fetch('/api/admin/generate-image', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ topic: post.title })
+                body: JSON.stringify({ topic: post.title, model: imageModel })
             });
             const data = await res.json();
             if (data.url) {
@@ -187,11 +188,9 @@ export function BlogEditor({ postId }: BlogEditorProps) {
             {/* Header / Actions */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Link href="/admin/blog">
-                        <Button variant="ghost" size="icon" className="rounded-xl border border-slate-200 dark:border-white/5">
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                    </Link>
+                    <Button variant="ghost" size="icon" className="rounded-xl border border-slate-200 dark:border-white/5" onClick={() => router.back()}>
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                             {postId ? 'Edit Article' : 'New Article'}
@@ -359,7 +358,7 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                                     className="h-10 w-10 shrink-0 border-slate-200 dark:border-white/5 rounded-lg text-pink-500 hover:text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-900/10"
                                     onClick={handleGenerateImage}
                                     disabled={generatingCover || uploadingCover}
-                                    title="Generate with AI"
+                                    title={`Generate with AI (${imageModel})`}
                                 >
                                     {generatingCover ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                                 </Button>
@@ -381,6 +380,33 @@ export function BlogEditor({ postId }: BlogEditorProps) {
                                     accept="image/*"
                                     className="hidden"
                                 />
+                            </div>
+                            {/* AI Model Selector */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">AI Model:</span>
+                                <div className="flex gap-1 flex-wrap">
+                                    {([
+                                        { value: 'dall-e-3', label: 'DALL·E 3', badge: 'HD', color: 'pink' },
+                                        { value: 'dall-e-2', label: 'DALL·E 2', badge: 'Fast', color: 'violet' },
+                                        { value: 'gpt-image-1', label: 'GPT Image', badge: 'New', color: 'indigo' },
+                                    ] as const).map(({ value, label, badge, color }) => (
+                                        <button
+                                            key={value}
+                                            type="button"
+                                            onClick={() => setImageModel(value)}
+                                            className={`flex items-center gap-1 py-1 px-2 rounded-lg border text-[10px] font-bold transition-all ${imageModel === value
+                                                ? `bg-${color}-50 border-${color}-200 text-${color}-600 dark:bg-${color}-900/20 dark:border-${color}-800 dark:text-${color}-400`
+                                                : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300 dark:bg-slate-800 dark:border-white/5 dark:hover:border-white/10'
+                                                }`}
+                                        >
+                                            {label}
+                                            <span className={`text-[8px] px-1 rounded font-black ${imageModel === value
+                                                ? `bg-${color}-100 text-${color}-700 dark:bg-${color}-900/40 dark:text-${color}-300`
+                                                : 'bg-slate-100 text-slate-400 dark:bg-slate-700'
+                                                }`}>{badge}</span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                             {post.cover_image && (
                                 <div className="mt-2 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 aspect-video relative group">

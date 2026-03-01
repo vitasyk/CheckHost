@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
         let errors = 0;
         let toolDistribution: any[] = [];
         let countryStats: any[] = [];
-        let blogStats: any = { published: 0, draft: 0, keywordsPending: 0, keywordsCompleted: 0 };
+        const blogStats: any = { published: 0, draft: 0, keywordsPending: 0, keywordsCompleted: 0 };
 
         // Date calculations
         const now = new Date();
@@ -166,6 +166,10 @@ export async function GET(req: NextRequest) {
             const { count: draftCount } = await supabase.from('posts').select('*', { count: 'exact', head: true }).eq('status', 'draft');
             const { count: kwPCount } = await supabase.from('blog_keywords').select('*', { count: 'exact', head: true }).eq('status', 'pending');
             const { count: kwCCount } = await supabase.from('blog_keywords').select('*', { count: 'exact', head: true }).eq('status', 'completed');
+            blogStats.published = pubCount || 0;
+            blogStats.draft = draftCount || 0;
+            blogStats.keywordsPending = kwPCount || 0;
+            blogStats.keywordsCompleted = kwCCount || 0;
 
             // AdSense Config (to check status and slots)
             const adsenseConfig = await getSiteSetting('adsense');
@@ -296,6 +300,12 @@ export async function GET(req: NextRequest) {
                     (SELECT COUNT(*) FROM blog_keywords WHERE status = 'pending') as pending_kw,
                     (SELECT COUNT(*) FROM blog_keywords WHERE status = 'completed') as completed_kw
             `);
+            if (blogRes.rows[0]) {
+                blogStats.published = parseInt(blogRes.rows[0].published);
+                blogStats.draft = parseInt(blogRes.rows[0].draft);
+                blogStats.keywordsPending = parseInt(blogRes.rows[0].pending_kw);
+                blogStats.keywordsCompleted = parseInt(blogRes.rows[0].completed_kw);
+            }
             // AdSense Config (to check status and slots)
             const adsenseConfig = await getSiteSetting('adsense');
 

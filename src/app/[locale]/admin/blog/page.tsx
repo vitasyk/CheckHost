@@ -52,6 +52,8 @@ import {
 } from '@/components/ui/select';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { Suspense } from 'react';
 
 interface Post {
     id: string;
@@ -107,12 +109,65 @@ const ALL_LOCALES = [
 ];
 
 export default function AdminBlogList() {
+    return (
+        <Suspense fallback={
+            <div className="fixed inset-0 flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            </div>
+        }>
+            <AdminBlogListContent />
+        </Suspense>
+    );
+}
+
+function AdminBlogListContent() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
     const { data: _session } = useSession();
     const t = useTranslations('Admin.blog');
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
-    const [activeTab, setActiveTab] = useState<ActiveTab>('posts');
+
+    // Posts filtering state initialized from URL
+    const [search, setSearch] = useState(searchParams.get('search') || '');
+    const [debouncedSearch, setDebouncedSearch] = useState(search);
+    const [activeTab, setActiveTab] = useState<ActiveTab>((searchParams.get('tab') as ActiveTab) || 'posts');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published'>((searchParams.get('status') as any) || 'all');
+    const [localeFilter, setLocaleFilter] = useState<string>(searchParams.get('locale') || 'all');
+    const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'title'>((searchParams.get('sort') as any) || 'newest');
+
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [search]);
+
+    // Sync state to URL
+    useEffect(() => {
+        const params = new URLSearchParams();
+        if (debouncedSearch) params.set('search', debouncedSearch);
+        if (activeTab !== 'posts') params.set('tab', activeTab);
+        if (statusFilter !== 'all') params.set('status', statusFilter);
+        if (localeFilter !== 'all') params.set('locale', localeFilter);
+        if (sortBy !== 'newest') params.set('sort', sortBy);
+
+        const query = params.toString();
+        router.replace(`${pathname}${query ? `?${query}` : ''}`, { scroll: false });
+    }, [debouncedSearch, activeTab, statusFilter, localeFilter, sortBy, router, pathname]);
+
+    const clearFilters = () => {
+        setSearch('');
+        setStatusFilter('all');
+        setLocaleFilter('all');
+        setSortBy('newest');
+    };
+
+    const hasFilters = search !== '' || statusFilter !== 'all' || localeFilter !== 'all' || sortBy !== 'newest';
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
     // Keywords state
     const [keywords, setKeywords] = useState<Keyword[]>([]);
@@ -162,11 +217,8 @@ export default function AdminBlogList() {
     const [selectedKwIds, setSelectedKwIds] = useState<string[]>([]);
 
     // Posts filtering
-    const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published'>('all');
-    const [localeFilter, setLocaleFilter] = useState<string>('all');
-    const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'title'>('newest');
-    const [selectedIds, setSelectedIds] = useState<string[]>([]);
-    const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+
+
 
     const fetchPosts = async () => {
         try {
@@ -575,6 +627,17 @@ export default function AdminBlogList() {
                                             </SelectTrigger>
                                             <SelectContent className="rounded-xl"><SelectItem value="newest">Newest First</SelectItem><SelectItem value="oldest">Oldest First</SelectItem><SelectItem value="title">Title A-Z</SelectItem></SelectContent>
                                         </Select>
+
+                                        {hasFilters && (
+                                            <Button
+                                                variant="ghost"
+                                                onClick={clearFilters}
+                                                className="h-12 px-4 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 gap-2 text-xs font-bold"
+                                            >
+                                                <X className="h-4 w-4" />
+                                                Clear
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
 
@@ -1136,7 +1199,7 @@ export default function AdminBlogList() {
                                             Link & Text Replacer
                                         </h3>
                                         <p className="text-sm text-slate-500 max-w-2xl">
-                                            Perform bulk "Search and Replace" operations across all blog posts.
+                                            Perform bulk &quot;Search and Replace&quot; operations across all blog posts.
                                             Useful for updating broken links, changing company names, or fixing common typos.
                                             <strong> Caution:</strong> This directly modifies the database.
                                         </p>

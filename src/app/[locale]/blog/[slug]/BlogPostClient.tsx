@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { AdSlot } from '@/components/AdSlot';
 import { marked } from 'marked';
+import { useMemo } from 'react';
 
 // Configure marked to handle line breaks professionally
 marked.setOptions({
@@ -38,28 +39,32 @@ interface Post {
 export default function BlogPostClient({ post }: { post: Post }) {
     const isDraft = post.status === 'draft';
 
-    const renderContent = (content: string) => {
-        if (!content) return null;
+    // Pre-compute all HTML parts outside JSX so server and client produce
+    // identical strings (avoids hydration mismatch from marked non-determinism)
+    const contentParts = useMemo(() => {
+        if (!post.content) return [];
+        return post.content.split('{{AD}}').map((part) => {
+            const trimmed = part.trim();
+            if (!trimmed) return null;
+            // If it's already HTML (starts with a tag), bypass marked
+            const isHtml = /^<[a-z][\s\S]*>/i.test(trimmed);
+            return isHtml ? trimmed : (marked.parse(trimmed) as string);
+        });
+    }, [post.content]);
 
-        // Split by {{AD}} but keep the structure
-        const parts = content.split('{{AD}}');
+    const renderContent = () => {
+        if (!contentParts.length) return null;
 
-        return parts.map((part, index) => {
-            const trimmedPart = part.trim();
-            if (!trimmedPart) return null;
-
-            // Render markdown or HTML safely
-            // If it's already HTML (starts with common tags), bypass marked
-            const isHtml = /^<[a-z][\s\S]*>$/i.test(trimmedPart);
-            const htmlContent = isHtml ? trimmedPart : marked.parse(trimmedPart) as string;
-
+        return contentParts.map((html, index) => {
+            if (html === null) return null;
             return (
                 <div key={index}>
                     <div
                         className="article-content-wrapper"
-                        dangerouslySetInnerHTML={{ __html: htmlContent }}
+                        dangerouslySetInnerHTML={{ __html: html }}
+                        suppressHydrationWarning
                     />
-                    {index < parts.length - 1 && (
+                    {index < contentParts.length - 1 && (
                         <div className="my-16 flex justify-center">
                             <AdSlot slotType="blog_content" className="w-full max-w-2xl px-4" />
                         </div>
@@ -143,7 +148,7 @@ export default function BlogPostClient({ post }: { post: Post }) {
                                 prose-code:bg-slate-100 dark:prose-code:bg-slate-800 prose-code:px-2 prose-code:py-1 prose-code:rounded-lg prose-code:before:content-none prose-code:after:content-none
                                 prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-a:font-bold prose-a:underline decoration-indigo-500/30 underline-offset-4 hover:decoration-indigo-500 transition-all
                             ">
-                                {renderContent(post.content)}
+                                {renderContent()}
                             </div>
 
                             {(post.ad_bottom || process.env.NODE_ENV === 'development') && <AdSlot slotType="blog_bottom" className="mt-12" />}
