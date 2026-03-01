@@ -2,38 +2,46 @@ import { Pool } from 'pg';
 
 const connectionString = process.env.DATABASE_URL;
 
+const globalForPg = globalThis as unknown as {
+    pgPool: Pool | undefined;
+    pgPoolConnectionString: string | undefined;
+};
+
 function createPool() {
-    if (process.env.NODE_ENV === 'development') {
+    const isDev = process.env.NODE_ENV === 'development';
+
+    if (isDev) {
         console.log('[Postgres] Initializing new connection pool...');
     }
 
     const newPool = new Pool({
         connectionString,
-        max: 20,
+        max: isDev ? 10 : 20, // Lower max connections in dev
         idleTimeoutMillis: 30000,
         connectionTimeoutMillis: 10000,
         ssl: connectionString?.includes('supabase.co') ? { rejectUnauthorized: false } : undefined
     });
 
     newPool.on('error', (err) => {
-        console.error('Unexpected error on idle PostgreSQL client', err);
+        console.error('[Postgres] Unexpected error on idle client:', err);
     });
 
     return newPool;
 }
 
-const globalForPg = globalThis as unknown as {
-    pgPool: Pool | undefined;
-    pgPoolConnectionString: string | undefined;
-};
+// Ensure we only have one pool even with HMR in development
+// We normalize the connection string to avoid re-creating pool on minor string differences
+const normalizedConnString = connectionString?.trim();
 
-if (!globalForPg.pgPool || globalForPg.pgPoolConnectionString !== connectionString) {
+if (!globalForPg.pgPool || globalForPg.pgPoolConnectionString !== normalizedConnString) {
     if (globalForPg.pgPool) {
-        console.log('[Postgres] Connection string changed, ending old pool...');
+        if (process.env.NODE_ENV === 'development') {
+            console.log('[Postgres] Connection string changed or module reloaded, ending old pool...');
+        }
         globalForPg.pgPool.end().catch(err => console.error('[Postgres] Error ending old pool:', err));
     }
     globalForPg.pgPool = createPool();
-    globalForPg.pgPoolConnectionString = connectionString;
+    globalForPg.pgPoolConnectionString = normalizedConnString;
 }
 
 const pool = globalForPg.pgPool;
