@@ -20,8 +20,9 @@
 
 📖 **[Детальна покрокова інструкція з розгортання](docs/DEPLOYMENT.md)**
 
-### Короткий старт:
+### Автоматичний старт (Ubuntu/Debian):
 ```bash
+chmod +x scripts/setup-server.sh && ./scripts/setup-server.sh
 cp .env.example .env   # Налаштуйте DOMAIN_NAME та ADMIN_EMAIL
 npm run docker:up      # Запустіть проект
 ```
