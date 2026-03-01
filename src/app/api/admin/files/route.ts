@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth';
 import fs from 'fs/promises';
 import path from 'path';
 
-const ALLOWED_FILES = ['robots.txt', 'ads.txt', 'security.txt'];
+const ALLOWED_REGEX = /^(robots\.txt|ads\.txt|security\.txt|google[a-z0-9]+\.html)$/;
 
 export async function GET(request: Request) {
     const session = await getServerSession(authOptions);
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const fileName = searchParams.get('file');
 
-    if (!fileName || !ALLOWED_FILES.includes(fileName)) {
+    if (!fileName || !ALLOWED_REGEX.test(fileName)) {
         return NextResponse.json({ error: 'Invalid file requested' }, { status: 400 });
     }
 
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     try {
         const { file, content } = await request.json();
 
-        if (!file || !ALLOWED_FILES.includes(file)) {
+        if (!file || !ALLOWED_REGEX.test(file)) {
             return NextResponse.json({ error: 'Invalid file' }, { status: 400 });
         }
 
