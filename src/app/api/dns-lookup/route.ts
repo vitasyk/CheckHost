@@ -94,8 +94,8 @@ export async function GET(request: Request) {
     // 2. Deduplicate concurrent requests
     try {
         const responseData = await memoryCache.deduplicate(cacheKey, async () => {
-            // Detect if input is already an IP address
-            const ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}$/;
+            // Detect if input is already an IP address (IPv4 or IPv6)
+            const ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}$|^(?:[a-fA-F0-9]{1,4}:){2,7}[a-fA-F0-9]{1,4}$/;
             const isIP = ipRegex.test(cleanDomain);
 
             const records: DnsRecord[] = [];

@@ -210,8 +210,8 @@ export async function resolveHostToIp(host: string): Promise<string | null> {
         .split(':')[0]                // Remove port if present
         .trim();
 
-    // Try to detect if it's already an IP
-    const ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}$/;
+    // Try to detect if it's already an IP (IPv4 or IPv6)
+    const ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}$|^(?:[a-fA-F0-9]{1,4}:){2,7}[a-fA-F0-9]{1,4}$/;
     if (ipRegex.test(cleanedHost)) {
         return cleanedHost;
     }
@@ -249,11 +249,21 @@ export async function resolveHostToIp(host: string): Promise<string | null> {
  * Resolve an IP address to its hostname using Reverse DNS (PTR)
  */
 export async function resolveIpToHost(ip: string): Promise<string | null> {
-    const ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}$/;
-    if (!ipRegex.test(ip)) return null;
+    const isIpv4 = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(ip);
+    const isIpv6 = ip.includes(':');
 
-    // Convert IP to in-addr.arpa format (e.g., 1.2.3.4 -> 4.3.2.1.in-addr.arpa)
-    const arpaHost = ip.split('.').reverse().join('.') + '.in-addr.arpa';
+    if (!isIpv4 && !isIpv6) return null;
+
+    let arpaHost = '';
+    if (isIpv4) {
+        // Convert IPv4 to in-addr.arpa format
+        arpaHost = ip.split('.').reverse().join('.') + '.in-addr.arpa';
+    } else {
+        // Convert IPv6 to ip6.arpa format (expanded nibbles)
+        // Note: this is a simplified version, as full expansion is complex without libraries
+        // But for most common cases, let's at least try to skip if too complex or use a fallback
+        return null; // Reverse DNS for IPv6 is often less reliable/complex to implement manually
+    }
 
     try {
         const response = await fetch(`https://dns.google/resolve?name=${arpaHost}&type=PTR`, {

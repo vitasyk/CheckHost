@@ -90,8 +90,8 @@ export async function getMockIpInfo(host: string): Promise<IpInfoResponse> {
         console.warn('RDAP lookup chain failed:', err);
     }
 
-    const isGoogle = host.toLowerCase().includes('google') || ip === '8.8.8.8';
-    const isCloudflare = host.includes('cloudflare') || ip === '1.1.1.1';
+    const isGoogle = host.toLowerCase().includes('google') || ip === '8.8.8.8' || ip === '2001:4860:4860::8888';
+    const isCloudflare = host.includes('cloudflare') || ip === '1.1.1.1' || ip === '2606:4700:4700::1111';
 
     // Priority: PTR record > API hostname > Input host (if domain) > IP
     const resolvedHostname = ptrHost || realIpInfo?.as_domain || (isIpInput ? null : host);
