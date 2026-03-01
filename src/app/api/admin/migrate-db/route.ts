@@ -112,6 +112,13 @@ export async function GET() {
                     ALTER TABLE posts ADD COLUMN translation_group UUID;
                 END IF;
             END $$;
+
+            -- Add columns to docs_articles if missing
+            DO $$ BEGIN
+                IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'docs_articles' AND column_name = 'locale') THEN
+                    ALTER TABLE docs_articles ADD COLUMN locale VARCHAR(10) DEFAULT 'en';
+                END IF;
+            END $$;
         `);
 
         // 3. Indexes
