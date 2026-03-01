@@ -43,6 +43,9 @@ services:
     restart: always
     env_file:
       - .env
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME:-localhost}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@localhost}
     ports:
       - "80:80"
       - "443:443"
