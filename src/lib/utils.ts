@@ -9,10 +9,14 @@ export function cn(...inputs: ClassValue[]) {
  * Detect client IP with priority order for proxies/CDN (especially Cloudflare)
  */
 export function getRealIp(headers: Headers): string | null {
-  return (
-    headers.get('cf-connecting-ip') || // Cloudflare (most reliable behind CF)
-    headers.get('x-real-ip') || // Caddy/Nginx
-    headers.get('x-forwarded-for')?.split(',')[0].trim() || // Standard proxy chain
-    null
-  );
+  const cf = headers.get('cf-connecting-ip');
+  const xReal = headers.get('x-real-ip');
+  const xForwarded = headers.get('x-forwarded-for')?.split(',')[0].trim();
+
+  // Diagnostic log
+  if (process.env.NODE_ENV === 'development' || process.env.DEBUG_IP === 'true') {
+    console.log(`[IP Detection] CF: ${cf}, X-Real: ${xReal}, X-Forwarded: ${xForwarded}`);
+  }
+
+  return cf || xReal || xForwarded || null;
 }
