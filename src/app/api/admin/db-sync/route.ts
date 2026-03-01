@@ -99,16 +99,23 @@ async function upsertToPg(table: string, item: any) {
     const values = Object.values(filteredItem);
     const placeholders = keys.map((_, _i) => `$${_i + 1}`).join(', ');
 
-    const updatePart = keys
+    const updateClauses = keys
         .filter(k => k !== pk && k !== 'updated_at')
-        .map((k, _i) => `${k} = EXCLUDED.${k}`)
-        .join(', ');
+        .map(k => `${k} = EXCLUDED.${k}`);
+
+    if (keys.includes('updated_at')) {
+        updateClauses.push('updated_at = NOW()');
+    }
+
+    const updateString = updateClauses.join(', ');
+    const onConflictClause = updateClauses.length > 0
+        ? `DO UPDATE SET ${updateString}`
+        : `DO NOTHING`;
 
     const query = `
         INSERT INTO ${table} (${keys.join(', ')})
         VALUES (${placeholders})
-        ON CONFLICT (${pk}) 
-        DO UPDATE SET ${updatePart}${updatePart ? ', ' : ''}updated_at = NOW()
+        ON CONFLICT (${pk}) ${onConflictClause}
     `;
 
     await pool.query(query, values);
