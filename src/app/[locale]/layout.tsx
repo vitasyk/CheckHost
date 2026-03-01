@@ -215,7 +215,7 @@ export default async function RootLayout({
                 <JsonLd data={jsonLdData} />
                 <JsonLd data={softwareApplicationData} />
             </head>
-            <body className={inter.className}>
+            <body className={`${inter.className} bg-slate-50 dark:bg-slate-950 min-h-screen`}>
                 <NextIntlClientProvider messages={messages} locale={locale}>
                     <PwaProvider>
                         <Providers attribute="class" defaultTheme="system" enableSystem>
@@ -230,7 +230,7 @@ export default async function RootLayout({
                                             type={globalNotice.type}
                                         />
                                     )}
-                                    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
+                                    <div className="flex flex-col min-h-screen">
                                         <Header />
 
                                         <Suspense fallback={<div className="h-[90px]" />}>
