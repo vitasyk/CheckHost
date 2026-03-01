@@ -86,13 +86,19 @@ async function syncTable(tableName: string) {
 }
 
 async function upsertToPg(table: string, item: any) {
-    const keys = Object.keys(item);
-    const values = Object.values(item);
+    const pk = item.key ? 'key' : 'id';
+
+    // Filter out 'id' if it's a 'key' based table and vice versa to avoid "column does not exist" errors
+    const filteredItem = { ...item };
+    if (pk === 'key' && filteredItem.id) delete filteredItem.id;
+    if (pk === 'id' && filteredItem.key) delete filteredItem.key;
+
+    const keys = Object.keys(filteredItem);
+    const values = Object.values(filteredItem);
     const placeholders = keys.map((_, _i) => `$${_i + 1}`).join(', ');
-    const pk = keys.includes('key') ? 'key' : 'id';
 
     const updatePart = keys
-        .filter(k => k !== pk)
+        .filter(k => k !== pk && k !== 'updated_at')
         .map((k, _i) => `${k} = EXCLUDED.${k}`)
         .join(', ');
 
@@ -100,7 +106,7 @@ async function upsertToPg(table: string, item: any) {
         INSERT INTO ${table} (${keys.join(', ')})
         VALUES (${placeholders})
         ON CONFLICT (${pk}) 
-        DO UPDATE SET ${updatePart}, updated_at = NOW()
+        DO UPDATE SET ${updatePart}${updatePart ? ', ' : ''}updated_at = NOW()
     `;
 
     await pool.query(query, values);

@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS posts (
 );
 
 -- Table for sharing check results (Snapshots)
-CREATE TABLE IF NOT EXISTS result_snapshots (
+CREATE TABLE IF NOT EXISTS share_snapshots (
     id VARCHAR(12) PRIMARY KEY, -- Short NanoID
     check_type VARCHAR(20) NOT NULL,
     target_host TEXT NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS seo_pages (
 );
 
 -- Indexing for performance
-CREATE INDEX IF NOT EXISTS idx_result_snapshots_expires_at ON result_snapshots(expires_at);
+CREATE INDEX IF NOT EXISTS idx_share_snapshots_expires_at ON share_snapshots(expires_at);
 CREATE INDEX IF NOT EXISTS idx_check_logs_created_at ON check_logs(created_at);
 CREATE INDEX IF NOT EXISTS idx_check_logs_type ON check_logs(check_type);
 CREATE INDEX IF NOT EXISTS idx_api_usage_created_at ON api_usage_logs(created_at);

@@ -51,8 +51,7 @@ export default pool;
 // Helper to check if Postgres is configured (and not just a placeholder)
 export const isPostgresConfigured = !!connectionString &&
     !connectionString.includes('@host') &&
-    !connectionString.includes('your-password') &&
-    connectionString !== 'postgresql://postgres:postgres@localhost:5432/postgres';
+    !connectionString.includes('your-password');
 
 // Helper to run queries with basic error wrapping
 export const query = (text: string, params?: any[]) => {
