@@ -7,12 +7,7 @@ import { checkHostAPI } from '@/lib/checkhost-api';
 import { CheckForm } from '@/components/checks/CheckForm';
 import { ResultsDisplay } from '@/components/checks/ResultsDisplay';
 import { SslDashboard } from '@/components/checks/SslDashboard';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
-import { ChevronDown, Activity, Wifi, Database, Network, Loader2, CheckCircle2, Info, Map as Globe, Zap, FileText, Shield, } from 'lucide-react';
+import { Activity, Wifi, Database, Network, Loader2, CheckCircle2, Info, Map as Globe, Zap, FileText, Shield, } from 'lucide-react';
 import { IpInfoResponse } from '@/types/ip-info';
 import IpInfoResult from '@/components/ip-info/IpInfoResult';
 import { AdSlot } from '@/components/AdSlot';
@@ -366,43 +361,83 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                     <div className="w-full">
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full relative">
                             <div className="flex flex-col items-center justify-center gap-3 mb-4">
-                                <div className="w-full max-w-sm lg:hidden mx-auto mb-2">
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <button className="w-full h-12 px-5 flex items-center justify-center gap-2 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-white/10 rounded-2xl shadow-sm hover:border-indigo-200 dark:hover:border-indigo-500/30 transition-all font-medium text-slate-900 dark:text-slate-100 group">
-                                                <div className="text-indigo-500 transition-transform group-hover:scale-110">
-                                                    {getTabIcon(activeTab)}
-                                                </div>
-                                                <span className="text-base">{activeTab === 'dns-all' ? 'DNS INFO' : activeTab.toUpperCase()}</span>
-                                                <ChevronDown className="h-5 w-5 text-slate-400 ml-auto group-hover:text-indigo-500 transition-colors" />
-                                            </button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-80 p-4 rounded-2xl shadow-xl border-slate-200 dark:border-white/10" align="center">
-                                            <div className="grid grid-cols-3 gap-2">
-                                                {['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'mtr', 'dns-all', 'ssl'].map(t => (
-                                                    <button key={t} onClick={() => { setActiveTab(t); handleTabCheck(t as any); }} className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${activeTab === t ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 ring-1 ring-indigo-500/20 shadow-sm' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>
-                                                        <div className={cn("p-2 rounded-lg transition-transform duration-300 relative", activeTab === t ? "bg-white dark:bg-slate-800 scale-110 shadow-sm" : "bg-slate-50 dark:bg-slate-900/50")}>
-                                                            {getTabIcon(t)}
-                                                            {activeChecks.has(t as any) && <Loader2 className="h-3 w-3 animate-spin absolute -top-1 -right-1 text-indigo-500 bg-white dark:bg-slate-800 rounded-full" />}
-                                                            {completedChecks.has(t as any) && <CheckCircle2 className="h-3 w-3 absolute -top-1 -right-1 text-emerald-500 bg-white dark:bg-slate-800 rounded-full" />}
+                                <div className="w-full lg:hidden mx-auto mb-4 px-4">
+                                    {/* Mobile Integrated Grid (< md) */}
+                                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 md:hidden text-center justify-center">
+                                        {['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'mtr', 'dns-all', 'ssl'].map(t => (
+                                            <button
+                                                key={t}
+                                                onClick={() => { setActiveTab(t); handleTabCheck(t as any); }}
+                                                className={cn(
+                                                    "flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all border",
+                                                    activeTab === t
+                                                        ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/30"
+                                                        : "bg-white dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-slate-800"
+                                                )}
+                                            >
+                                                <div className="relative">
+                                                    {getTabIcon(t)}
+                                                    {activeChecks.has(t as any) && (
+                                                        <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center p-0.5 shadow-sm">
+                                                            <Loader2 className="h-full w-full animate-spin text-indigo-500" />
                                                         </div>
-                                                        <span className="text-xs font-medium">{t === 'dns-all' ? 'DNS Info' : t.toUpperCase()}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
+                                                    )}
+                                                    {completedChecks.has(t as any) && (
+                                                        <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center p-0.5 shadow-sm border border-emerald-500/20">
+                                                            <CheckCircle2 className="h-full w-full text-emerald-500" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className="text-[10px] font-bold uppercase tracking-tighter truncate w-full">
+                                                    {t === 'dns-all' ? 'DNS' : t}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {/* Tablet Compact Dock (md to lg) */}
+                                    <div className="hidden md:flex lg:hidden items-center justify-center gap-2 bg-slate-100/50 dark:bg-slate-900/40 backdrop-blur-md p-2 rounded-2xl border border-slate-200/80 dark:border-white/5 shadow-sm mx-auto w-fit">
+                                        {['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'mtr', 'dns-all', 'ssl'].map(t => (
+                                            <button
+                                                key={t}
+                                                onClick={() => { setActiveTab(t); handleTabCheck(t as any); }}
+                                                className={cn(
+                                                    "relative flex flex-col items-center justify-center w-14 h-14 rounded-xl transition-all hover:scale-105 active:scale-95 group",
+                                                    activeTab === t
+                                                        ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-md ring-1 ring-indigo-500/10"
+                                                        : "text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/5"
+                                                )}
+                                                title={t === 'dns-all' ? 'DNS Info' : t.toUpperCase()}
+                                            >
+                                                <div className={cn("transition-all duration-300", activeTab === t ? "scale-110" : "group-hover:scale-110 opacity-70 group-hover:opacity-100")}>
+                                                    {getTabIcon(t)}
+                                                </div>
+                                                {activeChecks.has(t as any) && <Loader2 className="h-3 w-3 animate-spin absolute top-1 right-1 text-indigo-500 bg-white dark:bg-slate-800 rounded-full shadow-sm" />}
+                                                {completedChecks.has(t as any) && <CheckCircle2 className="h-3 w-3 absolute top-1 right-1 text-emerald-500 bg-white dark:bg-slate-800 rounded-full shadow-sm" />}
+
+                                                {activeTab === t && (
+                                                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
+                                                )}
+                                                <span className="absolute -bottom-5 opacity-0 group-hover:opacity-100 transition-opacity text-[8px] font-bold uppercase tracking-widest text-indigo-500 dark:text-indigo-400 whitespace-nowrap">
+                                                    {t === 'dns-all' ? 'DNS' : t}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
 
-                                <TabsList className="hidden lg:flex w-auto h-12 p-1 bg-slate-100/80 dark:bg-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-200/80 dark:border-white/5 items-center gap-0.5 shadow-sm">
+                                <TabsList className="hidden lg:flex w-auto h-12 p-1 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-white/10 items-center gap-0.5 shadow-xl shadow-indigo-500/5">
                                     {['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'mtr', 'dns-all', 'ssl'].map(t => (
-                                        <TabsTrigger key={t} value={t} className="gap-1.5 px-3 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-md data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 transition-all duration-300 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-xl group" onClick={() => handleTabCheck(t as any)}>
-                                            <div className={cn("transition-transform duration-300", activeTab === t ? "scale-110 text-indigo-600 dark:text-indigo-400" : "opacity-50 group-hover:opacity-100 group-hover:text-slate-700 dark:group-hover:text-slate-300 text-slate-500 dark:text-slate-400")}>
+                                        <TabsTrigger key={t} value={t} className="gap-1.5 px-4 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-lg data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 transition-all duration-300 hover:bg-white/30 dark:hover:bg-white/5 rounded-xl group" onClick={() => handleTabCheck(t as any)}>
+                                            <div className={cn("transition-all duration-300", activeTab === t ? "scale-110 text-indigo-600 dark:text-indigo-400" : "opacity-40 group-hover:opacity-100 group-hover:text-slate-700 dark:group-hover:text-slate-300 text-slate-500 dark:text-slate-400")}>
                                                 {getTabIcon(t)}
                                             </div>
-                                            <span className="font-medium text-sm tracking-widest uppercase">{t === 'dns-all' ? 'DNS Info' : t}</span>
-                                            {activeChecks.has(t as any) && <Loader2 className="h-3.5 w-3.5 animate-spin absolute -top-1.5 -right-1 text-indigo-500 bg-white dark:bg-slate-800 rounded-full shadow-sm" />}
-                                            {completedChecks.has(t as any) && <CheckCircle2 className="h-3.5 w-3.5 absolute -top-1.5 -right-1 text-emerald-500 bg-white dark:bg-slate-800 rounded-full shadow-sm" />}
+                                            <span className="font-bold text-[10px] tracking-[0.2em] uppercase">{t === 'dns-all' ? 'DNS Info' : t}</span>
+                                            {activeChecks.has(t as any) && <Loader2 className="h-3.5 w-3.5 animate-spin absolute -top-1.5 -right-1 text-indigo-500 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-indigo-100 dark:border-indigo-900/50" />}
+                                            {completedChecks.has(t as any) && <CheckCircle2 className="h-3.5 w-3.5 absolute -top-1.5 -right-1 text-emerald-500 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-emerald-100 dark:border-emerald-900/50" />}
+                                            {activeTab === t && (
+                                                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-indigo-500 rounded-full opacity-50 blur-[1px]" />
+                                            )}
                                         </TabsTrigger>
                                     ))}
                                 </TabsList>
