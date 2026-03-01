@@ -51,9 +51,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Copy data directory (for IP geolocation, etc.)
-# Note: ipinfo_lite.json (~1GB) should be mounted as a volume in production
+# Note: ipinfo_lite.json (~1GB) and GeoLite2 files should be mounted as a volume in production
 RUN mkdir -p ./data && chown -R nextjs:nodejs ./data
-COPY --from=builder --chown=nextjs:nodejs /app/data ./data
 
 # Switch to non-root user
 USER nextjs
