@@ -5,6 +5,7 @@ import { apiLogger } from '@/lib/api-logger';
 import { headers } from 'next/headers';
 import { memoryCache } from '@/lib/cache';
 import { logSeoPage } from '@/lib/seo-logger';
+import { getRealIp } from '@/lib/utils';
 import { maskNodes, unmaskUrl } from '@/lib/node-masker';
 
 export async function GET(
@@ -59,7 +60,7 @@ export async function GET(
 
             // Logging
             const headerList = await headers();
-            const userIp = headerList.get('x-forwarded-for') || '127.0.0.1';
+            const userIp = getRealIp(headerList) || '127.0.0.1';
 
             const checkId = await apiLogger.logCheck({
                 check_type: type,

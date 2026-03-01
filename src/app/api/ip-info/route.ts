@@ -4,17 +4,14 @@ import { fetchAsnInfo, fetchRdapInfo } from '@/lib/ipinfo-api';
 import { parseRdapData } from '@/lib/rdap-parser';
 import { memoryCache } from '@/lib/cache';
 import { logSeoPage } from '@/lib/seo-logger';
+import { getRealIp } from '@/lib/utils';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     let host = searchParams.get('host');
 
     // Detect client IP with priority order for proxies/CDN
-    const clientIp =
-        request.headers.get('x-real-ip') ||
-        request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
-        request.headers.get('cf-connecting-ip') || // Cloudflare
-        null;
+    const clientIp = getRealIp(request.headers);
 
     // If no host provided, return just the detected IP (for Reverse MTR)
     if (!host) {
