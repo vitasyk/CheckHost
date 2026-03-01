@@ -1,8 +1,8 @@
 {
-    email admin@yourdomain.com
+    email {$ADMIN_EMAIL}
 }
 
-yourdomain.com, www.yourdomain.com {
+{$DOMAIN_NAME} {
     reverse_proxy app:3000
 
     # Gzip and Brotli compression

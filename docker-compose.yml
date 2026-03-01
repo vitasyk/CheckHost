@@ -9,6 +9,7 @@ services:
       - .env
     environment:
       - NODE_ENV=production
+      - DOMAIN_NAME=${DOMAIN_NAME:-localhost}
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-checkhost}?schema=public
     networks:
       - checkhost-net
@@ -40,6 +41,8 @@ services:
     image: caddy:latest
     container_name: checkhost-caddy
     restart: always
+    env_file:
+      - .env
     ports:
       - "80:80"
       - "443:443"
