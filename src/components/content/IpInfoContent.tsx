@@ -1,5 +1,13 @@
+import { useLocale } from 'next-intl';
 import { ToolSeoBlock } from './ToolSeoBlock';
+import { ToolFaqBlock } from './ToolFaqBlock';
 
 export function IpInfoContent() {
-    return <ToolSeoBlock toolId="ipInfo" />;
+    const locale = useLocale();
+    return (
+        <>
+            <ToolSeoBlock toolId="ipInfo" />
+            <ToolFaqBlock toolId="ipInfo" locale={locale} />
+        </>
+    );
 }

@@ -3,6 +3,7 @@ import { setRequestLocale } from 'next-intl/server';
 import { ChecksClient } from '@/components/checks/ChecksClient';
 import { HomePageSeoBlock } from '@/components/HomePageSeoBlock';
 import { ToolSeoBlock } from '@/components/content/ToolSeoBlock';
+import { ToolFaqBlock } from '@/components/content/ToolFaqBlock';
 import { Suspense } from 'react';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -39,6 +40,7 @@ export default async function HomePage({
             {showToolSeo ? (
                 <Suspense fallback={null}>
                     <ToolSeoBlock toolId={tab} />
+                    <ToolFaqBlock toolId={tab} locale={locale} />
                 </Suspense>
             ) : (
                 <HomePageSeoBlock />
