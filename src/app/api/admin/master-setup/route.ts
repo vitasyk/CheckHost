@@ -29,6 +29,9 @@ export async function GET(req: Request) {
                 IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'docs_articles' AND column_name = 'section') THEN
                     ALTER TABLE docs_articles ADD COLUMN section VARCHAR(100) NOT NULL DEFAULT 'General';
                 END IF;
+                IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'docs_articles' AND column_name = 'translation_group') THEN
+                    ALTER TABLE docs_articles ADD COLUMN translation_group UUID;
+                END IF;
             END $$;
 
             -- 2. Fix Unique Constraint: Prefer (slug, locale) over just (slug)

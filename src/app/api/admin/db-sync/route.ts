@@ -246,6 +246,9 @@ async function initDockerDbSchema() {
                 IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'docs_articles' AND column_name = 'locale') THEN
                     ALTER TABLE docs_articles ADD COLUMN locale VARCHAR(10) DEFAULT 'en';
                 END IF;
+                IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'docs_articles' AND column_name = 'translation_group') THEN
+                    ALTER TABLE docs_articles ADD COLUMN translation_group UUID;
+                END IF;
             END $$;
         `);
 
@@ -253,6 +256,7 @@ async function initDockerDbSchema() {
         await pool.query(`
             CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_email ON admin_audit_logs(admin_email);
             CREATE INDEX IF NOT EXISTS idx_docs_articles_slug ON docs_articles(slug);
+            CREATE INDEX IF NOT EXISTS idx_docs_articles_lang_group ON docs_articles(translation_group);
             CREATE INDEX IF NOT EXISTS idx_share_snapshots_expires_at ON share_snapshots(expires_at);
             CREATE INDEX IF NOT EXISTS idx_user_monitors_user_id ON user_monitors(user_id);
             CREATE INDEX IF NOT EXISTS idx_user_feed_user_id_created ON user_activity_feed(user_id, created_at DESC);
