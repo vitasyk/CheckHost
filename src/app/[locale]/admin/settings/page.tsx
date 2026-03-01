@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { useTranslations } from 'next-intl';
+import { FileEditor } from '@/components/admin/FileEditor';
 
 interface SystemConfig {
     maintenanceMode: boolean;
@@ -1072,6 +1073,9 @@ export default function AdminSettings() {
                             />
                         </div>
                     </Card>
+
+                    {/* System File Editor */}
+                    <FileEditor />
                 </div>
             </div>
         </div>
