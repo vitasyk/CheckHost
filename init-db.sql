@@ -45,7 +45,9 @@ CREATE TABLE IF NOT EXISTS posts (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     ad_top BOOLEAN DEFAULT FALSE,
-    ad_bottom BOOLEAN DEFAULT FALSE
+    ad_bottom BOOLEAN DEFAULT FALSE,
+    locale VARCHAR(10) DEFAULT 'en',
+    translation_group UUID
 );
 
 -- Table for sharing check results (Snapshots)
