@@ -432,7 +432,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                                             <div className={cn("transition-all duration-300", activeTab === t ? "scale-110 text-indigo-600 dark:text-indigo-400" : "opacity-40 group-hover:opacity-100 group-hover:text-slate-700 dark:group-hover:text-slate-300 text-slate-500 dark:text-slate-400")}>
                                                 {getTabIcon(t)}
                                             </div>
-                                            <span className="font-bold text-[10px] tracking-[0.2em] uppercase">{t === 'dns-all' ? 'DNS Info' : t}</span>
+                                            <span className="font-bold text-xs tracking-wider uppercase">{t === 'dns-all' ? 'DNS Info' : t}</span>
                                             {activeChecks.has(t as any) && <Loader2 className="h-3.5 w-3.5 animate-spin absolute -top-1.5 -right-1 text-indigo-500 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-indigo-100 dark:border-indigo-900/50" />}
                                             {completedChecks.has(t as any) && <CheckCircle2 className="h-3.5 w-3.5 absolute -top-1.5 -right-1 text-emerald-500 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-emerald-100 dark:border-emerald-900/50" />}
                                             {activeTab === t && (
