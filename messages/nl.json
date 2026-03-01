@@ -618,7 +618,8 @@
       "Guides": "Handleidingen",
       "API": "API-referentie",
       "Network": "Netwerk & Nodes",
-      "FAQ": "FAQ"
+      "FAQ": "FAQ",
+      "faq": "FAQ"
     }
   },
   "About": {

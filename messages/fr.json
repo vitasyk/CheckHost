@@ -618,7 +618,8 @@
       "Guides": "Guides",
       "API": "Référence API",
       "Network": "Réseau et Noeuds",
-      "FAQ": "FAQ"
+      "FAQ": "FAQ",
+      "faq": "FAQ"
     }
   },
   "About": {

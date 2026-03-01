@@ -618,7 +618,8 @@
       "Guides": "Guías",
       "API": "Referencia de API",
       "Network": "Red y Nodos",
-      "FAQ": "FAQ"
+      "FAQ": "FAQ",
+      "faq": "FAQ"
     }
   },
   "About": {
