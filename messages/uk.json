@@ -618,7 +618,8 @@
       "Guides": "Гайди",
       "API": "API Довідка",
       "Network": "Мережа та Ноди",
-      "FAQ": "FAQ"
+      "FAQ": "FAQ",
+      "faq": "FAQ"
     }
   },
   "About": {

@@ -618,7 +618,8 @@
       "Guides": "Руководства",
       "API": "Справочник API",
       "Network": "Сеть и Узлы",
-      "FAQ": "FAQ"
+      "FAQ": "FAQ",
+      "faq": "FAQ"
     }
   },
   "About": {
