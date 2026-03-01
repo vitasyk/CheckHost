@@ -302,9 +302,9 @@ export function Header() {
                         </Link>
                     </div>
 
-                    {/* Center: Navigation & Visitor Info — desktop only (lg+) */}
-                    <div className="hidden lg:flex items-center justify-center gap-4">
-                        <NavIsland />
+                    {/* Center: Navigation & Visitor Info — md+ support */}
+                    <div className="hidden md:flex items-center justify-center gap-4">
+                        <div className="hidden lg:block"><NavIsland /></div>
                         <VisitorIpInfo />
                     </div>
 
@@ -327,7 +327,7 @@ export function Header() {
                         </div>
 
                         {/* Admin/Dashboard pill button + Login — desktop only (mobile uses burger menu) */}
-                        <div className="hidden lg:flex items-center gap-2 min-h-[44px] justify-end">
+                        <div className="hidden md:flex items-center gap-2 min-h-[44px] justify-end">
                             {isAuthenticated ? (
                                 <Button
                                     asChild
@@ -365,12 +365,12 @@ export function Header() {
                                     </Link>
                                 </Button>
                             )}
-                            <LanguageSwitcher />
                         </div>
                     </div>
 
                     {/* Single unified mobile nav burger */}
-                    <div className="h-10 flex items-center border-l border-slate-200 dark:border-white/5 pl-3 sm:pl-4 ml-1 gap-2 sm:gap-4">
+                    <div className="h-10 flex items-center border-l border-slate-200 dark:border-white/5 pl-3 sm:pl-4 ml-1 gap-1.5 sm:gap-4">
+                        <LanguageSwitcher />
                         <ThemeToggle />
                         <MobileUnifiedNav />
                     </div>
