@@ -51,13 +51,13 @@ export async function POST(req: NextRequest) {
         // 3. Save snapshot to database
         if (isPostgresConfigured) {
             await pool.query(
-                `INSERT INTO result_snapshots (id, check_type, target_host, results, check_nodes, expires_at, metadata)
+                `INSERT INTO share_snapshots (id, check_type, target_host, results, check_nodes, expires_at, metadata)
                  VALUES ($1, $2, $3, $4, $5, $6, $7)`,
                 [id, type, host, JSON.stringify(results), JSON.stringify(checkNodes), expiresAt, JSON.stringify(metadata)]
             );
         } else if (isSupabaseConfigured) {
             const { error } = await supabase
-                .from('result_snapshots')
+                .from('share_snapshots')
                 .insert({
                     id,
                     check_type: type,

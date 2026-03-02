@@ -18,7 +18,7 @@ export async function GET(
         if (isPostgresConfigured) {
             try {
                 const res = await pool.query(
-                    `SELECT * FROM result_snapshots WHERE id = $1`,
+                    `SELECT * FROM share_snapshots WHERE id = $1`,
                     [id]
                 );
                 if (res.rows.length > 0) {
@@ -32,7 +32,7 @@ export async function GET(
 
         if (!snapshot && isSupabaseConfigured) {
             const { data, error: _error } = await supabase
-                .from('result_snapshots')
+                .from('share_snapshots')
                 .select('*')
                 .eq('id', id)
                 .single();

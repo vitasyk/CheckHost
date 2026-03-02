@@ -22,12 +22,12 @@ export async function DELETE(req: NextRequest) {
 
     try {
         if (isPostgresConfigured) {
-            await pool.query('TRUNCATE TABLE result_snapshots');
+            await pool.query('TRUNCATE TABLE share_snapshots');
         } else if (isSupabaseConfigured) {
             // Supabase doesn't support TRUNCATE via REST API easily, 
             // so we delete all rows. For large tables, a stored procedure would be better.
             const { error } = await supabase
-                .from('result_snapshots')
+                .from('share_snapshots')
                 .delete()
                 .neq('id', 'placeholder-non-existent-id'); // Delete all rows
             if (error) throw error;

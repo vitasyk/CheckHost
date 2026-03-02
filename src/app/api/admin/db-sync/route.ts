@@ -12,7 +12,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { tables = ['site_settings', 'posts', 'admin_audit_logs', 'docs_articles'] } = await request.json();
+    const { tables = ['site_settings', 'posts', 'admin_audit_logs', 'docs_articles', 'share_snapshots'] } = await request.json();
     const results: any = {};
 
     try {

@@ -5,12 +5,12 @@ import pool, { isPostgresConfigured } from '@/lib/postgres';
 async function getSnapshot(id: string) {
     try {
         if (isPostgresConfigured) {
-            const res = await pool.query('SELECT target_host, check_type FROM result_snapshots WHERE id = $1', [id]);
+            const res = await pool.query('SELECT target_host, check_type FROM share_snapshots WHERE id = $1', [id]);
             if (res.rows.length > 0) return res.rows[0];
         }
         if (isSupabaseConfigured) {
             const { data } = await supabase
-                .from('result_snapshots')
+                .from('share_snapshots')
                 .select('target_host, check_type')
                 .eq('id', id)
                 .single();
