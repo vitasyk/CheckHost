@@ -118,8 +118,11 @@ export async function GET(request: Request) {
                 return data;
             }
 
+            // Common DKIM selectors to probe
+            const dkimSelectors = ['default', 'google', 'k1', 'mail', 'sign', 'dkim', 'cloudflare', 'mandrill', 'postmark', 'sendgrid'];
+
             // Run all DNS lookups in parallel
-            const [a, aaaa, mx, ns, cname, txt, soa, dmarc, dkim_mail, dkim_sign, mail_a, mail_mx, www_a, www_cname] = await Promise.all([
+            const [a, aaaa, mx, ns, cname, txt, soa, dmarc, ...dkimResults] = await Promise.all([
                 fastResolve<string[]>('resolve4', cleanDomain),
                 fastResolve<string[]>('resolve6', cleanDomain),
                 fastResolve<dns.MxRecord[]>('resolveMx', cleanDomain),
@@ -129,14 +132,27 @@ export async function GET(request: Request) {
                 fastResolve<dns.SoaRecord>('resolveSoa', cleanDomain),
                 // Service records
                 fastResolve<string[][]>('resolveTxt', `_dmarc.${cleanDomain}`),
-                fastResolve<string[][]>('resolveTxt', `mail._domainkey.${cleanDomain}`),
-                fastResolve<string[][]>('resolveTxt', `sign._domainkey.${cleanDomain}`),
+                // DKIM selectors
+                ...dkimSelectors.map(selector => fastResolve<string[][]>('resolveTxt', `${selector}._domainkey.${cleanDomain}`)),
                 // Common subdomains
                 fastResolve<string[]>('resolve4', `mail.${cleanDomain}`),
                 fastResolve<dns.MxRecord[]>('resolveMx', `mail.${cleanDomain}`),
                 fastResolve<string[]>('resolve4', `www.${cleanDomain}`),
                 fastResolve<string[]>('resolveCname', `www.${cleanDomain}`),
             ]);
+
+            // Splitting results at the end
+            const subdomainStartIndex = dmarc !== undefined ? 8 + dkimSelectors.length : 8 + dkimSelectors.length; // simplified
+            // Wait, dmarc is at index 7. dkimResults starts at 8.
+            // Let's count properly:
+            // 0: a, 1: aaaa, 2: mx, 3: ns, 4: cname, 5: txt, 6: soa, 7: dmarc
+            // 8 to 8 + dkimSelectors.length - 1: dkim results
+            // last 4: subdomains
+            const subdomainOffset = 8 + dkimSelectors.length;
+            const mail_a = dkimResults[dkimSelectors.length] as string[] | null;
+            const mail_mx = dkimResults[dkimSelectors.length + 1] as dns.MxRecord[] | null;
+            const www_a = dkimResults[dkimSelectors.length + 2] as string[] | null;
+            const www_cname = dkimResults[dkimSelectors.length + 3] as string[] | null;
 
             // A records
             if (a) {
@@ -201,12 +217,20 @@ export async function GET(request: Request) {
             if (dmarc) {
                 (dmarc as string[][]).forEach(chunks => records.push({ type: 'TXT', value: chunks.join(''), auxiliary: '_dmarc.@' }));
             }
-            if (dkim_mail) {
-                (dkim_mail as string[][]).forEach(chunks => records.push({ type: 'TXT', value: chunks.join(''), auxiliary: 'mail._domainkey.@' }));
-            }
-            if (dkim_sign) {
-                (dkim_sign as string[][]).forEach(chunks => records.push({ type: 'TXT', value: chunks.join(''), auxiliary: 'sign._domainkey.@' }));
-            }
+
+            // DKIM records with various selectors
+            dkimSelectors.forEach((selector, index) => {
+                const dkimResult = dkimResults[index] as string[][] | null;
+                if (dkimResult) {
+                    dkimResult.forEach(chunks => {
+                        records.push({
+                            type: 'TXT',
+                            value: chunks.join(''),
+                            auxiliary: `${selector}._domainkey.@`
+                        });
+                    });
+                }
+            });
 
             // Subdomain records
             if (mail_a) {
