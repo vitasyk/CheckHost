@@ -1,5 +1,5 @@
 // CheckHost API types
-export type CheckType = 'info' | 'ping' | 'http' | 'tcp' | 'dns' | 'udp' | 'mtr' | 'dns-all' | 'ssl';
+export type CheckType = 'info' | 'ping' | 'http' | 'tcp' | 'dns' | 'udp' | 'mtr' | 'dns-all' | 'ssl' | 'smtp';
 
 export interface MtrHop {
     host: string;
@@ -43,6 +43,8 @@ export interface CheckResponse {
     request_id: string;
     permanent_link: string;
     nodes: Record<string, [string, string, string, string, string]>;
+    error?: string;
+    msg?: string;
 }
 
 export interface PingResult {
@@ -87,4 +89,27 @@ export interface ExtendedResultsResponse {
     created: number;
     host: string;
     results: ResultsResponse;
+}
+
+// SMTP Backend Aggregation Types
+export interface SmtpAuditResult {
+    spf: { record: string | null; status: 'pass' | 'fail' | 'none'; error?: string };
+    dmarc: { record: string | null; status: 'pass' | 'fail' | 'none' };
+    ptr: { record: string | null; status: 'pass' | 'fail' | 'none' };
+    mx: { priority: number; exchange: string }[];
+    rbl: Record<string, 'CLEAR' | 'LISTED' | 'ERROR'>;
+}
+
+export interface SmtpAggregatedResult {
+    ok: boolean;
+    error?: string;
+    resolvedHost: string;
+    ip: string | null;
+    asn: string | null;
+    port: number;
+    banner: string | null;
+    starttls: boolean;
+    audit: SmtpAuditResult;
+    log: string;
+    globalTcpId?: string; // Request ID for Check-Host TCP check
 }

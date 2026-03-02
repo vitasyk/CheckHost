@@ -7,9 +7,11 @@ import { checkHostAPI } from '@/lib/checkhost-api';
 import { CheckForm } from '@/components/checks/CheckForm';
 import { ResultsDisplay } from '@/components/checks/ResultsDisplay';
 import { SslDashboard } from '@/components/checks/SslDashboard';
-import { Activity, Wifi, Database, Network, Loader2, CheckCircle2, Info, Map as Globe, Zap, FileText, Shield, } from 'lucide-react';
+import { Activity, Wifi, Database, Network, Loader2, CheckCircle2, Info, Map as Globe, Zap, FileText, Shield, Mail } from 'lucide-react';
 import { IpInfoResponse } from '@/types/ip-info';
 import IpInfoResult from '@/components/ip-info/IpInfoResult';
+import { SmtpAggregatedResult } from '@/types/checkhost';
+import { SmtpDashboard } from '@/components/checks/SmtpDashboard';
 import { AdSlot } from '@/components/AdSlot';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -37,6 +39,7 @@ const getTabIcon = (t: string) => {
         case 'mtr': return <Activity className="h-4 w-4" />;
         case 'dns-all': return <FileText className="h-4 w-4" />;
         case 'ssl': return <Shield className="h-4 w-4" />;
+        case 'smtp': return <Mail className="h-4 w-4" />;
         default: return null;
     }
 };
@@ -69,6 +72,8 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
     const [mtrNodes, setMtrNodes] = useState<Record<string, any>>({});
 
     const [sslResults, setSslResults] = useState<any | null>(null);
+    const [smtpResults, setSmtpResults] = useState<SmtpAggregatedResult | null>(null);
+    const [smtpPort, setSmtpPort] = useState<number>(25);
     const [ipInfoResult, setIpInfoResult] = useState<IpInfoResponse | null>(null);
 
     useEffect(() => {
@@ -246,6 +251,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                 case 'dns-all': setDnsInfoResults(results); break;
                 case 'mtr': setMtrResults(results); break;
                 case 'ssl': setSslResults(results); break;
+                case 'smtp': setSmtpResults(null); break; // handled specially via fetch
             }
         });
 
@@ -289,6 +295,21 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
             return;
         }
 
+        if (type === 'smtp') {
+            handleCheckStart('smtp', {}, () => { }, () => setSmtpResults(null));
+            // Utilize smtpPort state which is managed by CheckForm
+            checkHostAPI.performSmtpCheck(sanitized, smtpPort, refresh)
+                .then(data => {
+                    setSmtpResults(data);
+                    handleCheckComplete('smtp');
+                })
+                .catch(err => {
+                    setErrorMessage(err.message || "Failed to perform SMTP check.");
+                    handleCheckComplete('smtp');
+                });
+            return;
+        }
+
         checkHostAPI.performCheck(type, sanitized, { maxNodes, nodes: selectedNodeIds.length > 0 ? selectedNodeIds : undefined },
             (results) => {
                 switch (type) {
@@ -315,7 +336,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
 
     const handleCheckAll = () => {
         if (!host.trim()) return;
-        const checkTypes: CheckType[] = ['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'dns-all', 'ssl'];
+        const checkTypes: CheckType[] = ['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'dns-all', 'ssl', 'smtp'];
         setActiveChecks(new Set(checkTypes));
         setCompletedChecks(new Set());
         checkTypes.forEach(type => runCheck(type, host));
@@ -364,7 +385,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                                 <div className="w-full lg:hidden mx-auto mb-4 px-4">
                                     {/* Mobile Integrated Grid (< md) */}
                                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 md:hidden text-center justify-center">
-                                        {['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'mtr', 'dns-all', 'ssl'].map(t => (
+                                        {['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'mtr', 'dns-all', 'ssl', 'smtp'].map(t => (
                                             <button
                                                 key={t}
                                                 onClick={() => { setActiveTab(t); handleTabCheck(t as any); }}
@@ -397,7 +418,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
 
                                     {/* Tablet Compact Dock (md to lg) */}
                                     <div className="hidden md:flex lg:hidden items-center justify-center gap-2 bg-slate-100/50 dark:bg-slate-900/40 backdrop-blur-md p-2 rounded-2xl border border-slate-200/80 dark:border-white/5 shadow-sm mx-auto w-fit">
-                                        {['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'mtr', 'dns-all', 'ssl'].map(t => (
+                                        {['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'mtr', 'dns-all', 'ssl', 'smtp'].map(t => (
                                             <button
                                                 key={t}
                                                 onClick={() => { setActiveTab(t); handleTabCheck(t as any); }}
@@ -427,7 +448,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                                 </div>
 
                                 <TabsList className="hidden lg:flex w-auto h-12 p-1 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-white/10 items-center gap-0.5 shadow-xl shadow-indigo-500/5">
-                                    {['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'mtr', 'dns-all', 'ssl'].map(t => (
+                                    {['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'mtr', 'dns-all', 'ssl', 'smtp'].map(t => (
                                         <TabsTrigger key={t} value={t} className="gap-1.5 px-4 relative data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-lg data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 transition-all duration-300 hover:bg-white/30 dark:hover:bg-white/5 rounded-xl group" onClick={() => handleTabCheck(t as any)}>
                                             <div className={cn("transition-all duration-300", activeTab === t ? "scale-110 text-indigo-600 dark:text-indigo-400" : "opacity-40 group-hover:opacity-100 group-hover:text-slate-700 dark:group-hover:text-slate-300 text-slate-500 dark:text-slate-400")}>
                                                 {getTabIcon(t)}
@@ -500,6 +521,18 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                                 <TabsContent value="ssl">
                                     <CheckForm type="ssl" host={host} maxNodes={maxNodes} onMaxNodesChange={setMaxNodes} onHostChange={setHost} onResults={() => { }} onCheckStart={() => { }} onCheckComplete={() => host.trim() && runCheck('ssl', host)} errorMessage={errorMessage} isLoading={activeChecks.has('ssl')} nodes={nodes} isReverseMtr={isReverseMtr} onReverseMtrToggle={handleReverseMtrToggle} selectedNodeIds={selectedNodeIds} autoStart={autoStart && activeTab === 'ssl'} />
                                     {sslResults && <SslDashboard data={sslResults} host={host} />}
+                                </TabsContent>
+
+                                <TabsContent value="smtp">
+                                    <CheckForm type="smtp" host={host} maxNodes={maxNodes} onMaxNodesChange={setMaxNodes} onHostChange={setHost} onResults={() => { }} onCheckStart={() => { }} onCheckComplete={() => host.trim() && runCheck('smtp', host)} errorMessage={errorMessage} isLoading={activeChecks.has('smtp')} nodes={nodes} isReverseMtr={isReverseMtr} onReverseMtrToggle={handleReverseMtrToggle} selectedNodeIds={selectedNodeIds} autoStart={autoStart && activeTab === 'smtp'} smtpPort={smtpPort} onSmtpPortChange={setSmtpPort} />
+                                    <SmtpDashboard
+                                        data={smtpResults}
+                                        isLoading={activeChecks.has('smtp')}
+                                        onRefresh={() => runCheck('smtp', host, true)}
+                                        isRefreshing={activeChecks.has('smtp')}
+                                        host={host || undefined}
+                                        port={smtpPort}
+                                    />
                                 </TabsContent>
                             </div>
                         </Tabs>

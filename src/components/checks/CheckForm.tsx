@@ -30,7 +30,8 @@ const QUICK_LINKS: Record<CheckType, string[]> = {
     'dns': ['google.com', 'cloudflare.com'],
     'mtr': ['google.com', '1.1.1.1'],
     'dns-all': ['google.com', 'github.com'],
-    'ssl': ['google.com', 'cloudflare.com']
+    'ssl': ['google.com', 'cloudflare.com'],
+    'smtp': ['gmail-smtp-in.l.google.com', 'outlook-com.olc.protection.outlook.com']
 };
 
 interface CheckFormProps {
@@ -57,6 +58,8 @@ interface CheckFormProps {
     isMapVisible?: boolean;
     autoStart?: boolean;
     showQuickLinks?: boolean;
+    smtpPort?: number;
+    onSmtpPortChange?: (port: number) => void;
 }
 
 export function CheckForm({
@@ -82,7 +85,9 @@ export function CheckForm({
     onClearSelection,
     isMapVisible = false,
     autoStart = false,
-    showQuickLinks = false
+    showQuickLinks = false,
+    smtpPort = 25,
+    onSmtpPortChange
 }: CheckFormProps) {
     // Smart parsing logic
     const sanitizeInput = useCallback((input: string) => {
@@ -169,8 +174,8 @@ export function CheckForm({
 
         const cleanHost = sanitizeInput(host);
         if (cleanHost) {
-            // For 'info' and 'ssl' type, don't use CheckHost API - parent handles it
-            if (type === 'info' || type === 'ssl') {
+            // For 'info', 'ssl', 'smtp', and 'dns-all' type, don't use CheckHost API mutation - parent handles it
+            if (type === 'info' || type === 'ssl' || type === 'smtp' || type === 'dns-all') {
                 // Just trigger completion, parent component will handle the actual check
                 onCheckComplete(type);
                 return;
@@ -184,7 +189,7 @@ export function CheckForm({
         if (autoStart && host && !isLoading && !checkMutation.isPending) {
             const cleanHost = sanitizeInput(host);
             if (cleanHost) {
-                if (type === 'info' || type === 'ssl') {
+                if (type === 'info' || type === 'ssl' || type === 'smtp' || type === 'dns-all') {
                     onCheckComplete(type);
                 } else {
                     checkMutation.mutate(cleanHost);
@@ -269,7 +274,7 @@ export function CheckForm({
                             />
 
                             <div className="absolute right-2 top-2 bottom-2 flex items-center gap-2">
-                                {type !== 'dns-all' && type !== 'info' && type !== 'ssl' && (
+                                {type !== 'dns-all' && type !== 'info' && type !== 'ssl' && type !== 'smtp' && (
                                     <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200/50 dark:border-white/5 backdrop-blur-sm">
                                         {!isMapVisible ? (
                                             <>
@@ -365,6 +370,27 @@ export function CheckForm({
                                     </div>
                                 )}
 
+                                {/* SMTP Port Selector */}
+                                {type === 'smtp' && (
+                                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-xl border border-slate-200/60 dark:border-white/10 backdrop-blur-sm mr-2 hidden sm:flex shadow-inner">
+                                        {[25, 465, 587].map((port) => (
+                                            <button
+                                                key={port}
+                                                type="button"
+                                                onClick={() => onSmtpPortChange?.(port)}
+                                                className={cn(
+                                                    "px-3.5 py-1.5 rounded-lg text-[12px] font-extrabold tracking-tight transition-all duration-300",
+                                                    smtpPort === port
+                                                        ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200/50 dark:ring-white/5"
+                                                        : "text-slate-500 hover:text-slate-700 hover:bg-white/50 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-700/50"
+                                                )}
+                                            >
+                                                {port}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
                                 <Button
                                     type="submit"
                                     size="sm"
@@ -424,6 +450,30 @@ export function CheckForm({
                         {checkMutation.isError && (
                             <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
                                 Error: {checkMutation.error?.message || 'Failed to perform check'}
+                            </div>
+                        )}
+
+                        {/* Mobile view SMTP Port Selector (below input) */}
+                        {type === 'smtp' && (
+                            <div className="flex sm:hidden items-center justify-center gap-2 pt-2 pb-1">
+                                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mr-1">Port:</span>
+                                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/60 dark:border-white/10 shadow-inner">
+                                    {[25, 465, 587].map((port) => (
+                                        <button
+                                            key={port}
+                                            type="button"
+                                            onClick={() => onSmtpPortChange?.(port)}
+                                            className={cn(
+                                                "px-5 py-2 rounded-lg text-[13px] font-extrabold tracking-tight transition-all duration-300",
+                                                smtpPort === port
+                                                    ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200/50 dark:ring-white/5"
+                                                    : "text-slate-500 hover:text-slate-700 hover:bg-white/50 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-700/50"
+                                            )}
+                                        >
+                                            {port}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>

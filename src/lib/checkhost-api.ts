@@ -7,6 +7,7 @@ import type {
     ResultsResponse,
     ExtendedResultsResponse,
     Node,
+    SmtpAggregatedResult
 } from '@/types/checkhost';
 
 const POLL_INTERVAL = 2000; // 2 seconds
@@ -173,6 +174,10 @@ export class CheckHostAPI {
         onProgress?: (results: ResultsResponse) => void,
         type?: CheckType
     ): Promise<ResultsResponse> {
+        if (!requestId) {
+            throw new Error('Cannot poll results: Check was initiated but request ID is missing. The primary API might be currently unavailable.');
+        }
+
         let attempts = 0;
         // Для MTR: відстежуємо попередню кількість хопів щоб визначити стабілізацію
         let prevMtrHopCounts: Record<string, number> = {};
@@ -266,6 +271,11 @@ export class CheckHostAPI {
         onInit?: (response: CheckResponse) => void
     ): Promise<{ results: ResultsResponse; checkNodes: Record<string, any> }> {
         const checkResponse = await this.initiateCheck(type, host, options);
+
+        // Check if the upstream API returned an error payload without a 4xx HTTP status
+        if (checkResponse.ok === 0 || checkResponse.error || !checkResponse.request_id) {
+            throw new Error('Cannot poll results: Check was initiated but request ID is missing. The primary API might be currently unavailable.');
+        }
         if (onInit) {
             onInit(checkResponse);
         }
@@ -295,6 +305,22 @@ export class CheckHostAPI {
                 );
             }
             throw error;
+        }
+    }
+
+    /**
+     * Perform an aggregated SMTP check (Server-Side Aggregation)
+     */
+    async performSmtpCheck(host: string, port = 25, refresh = false): Promise<SmtpAggregatedResult> {
+        try {
+            const refreshParam = refresh ? '&refresh=true' : '';
+            const response = await this.client.get<SmtpAggregatedResult>(`/check/smtp?host=${encodeURIComponent(host)}&port=${port}${refreshParam}`);
+            return response.data;
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+                return error.response.data as SmtpAggregatedResult;
+            }
+            throw new Error(`SMTP check failed: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 }

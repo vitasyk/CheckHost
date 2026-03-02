@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ResultsDisplay } from '@/components/checks/ResultsDisplay';
 import { SslDashboard } from '@/components/checks/SslDashboard';
 import { DnsDashboard } from '@/components/checks/DnsDashboard';
+import { SmtpDashboard } from '@/components/checks/SmtpDashboard';
 import IpInfoResult from '@/components/ip-info/IpInfoResult';
 import { } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -114,6 +115,7 @@ export default function SharePage() {
     const isSsl = snapshot.check_type === 'ssl';
     const isIpInfo = snapshot.check_type === 'info';
     const isDnsInfo = snapshot.check_type === 'dns-all';
+    const isSmtp = snapshot.check_type === 'smtp';
 
     return (
         <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
@@ -178,6 +180,14 @@ export default function SharePage() {
                     isSharedView={true}
                     filterType={dnsFilter}
                     onFilterTypeChange={setDnsFilter}
+                />
+            ) : isSmtp ? (
+                <SmtpDashboard
+                    data={snapshot.results}
+                    isLoading={false}
+                    host={snapshot.target_host}
+                    port={snapshot.metadata?.port ?? 25}
+                    isSharedView={true}
                 />
             ) : (
                 <ResultsDisplay
