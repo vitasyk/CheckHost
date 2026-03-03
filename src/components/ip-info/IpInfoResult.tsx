@@ -778,8 +778,8 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
                                     if (d.loc) {
                                         [featuredLat, featuredLng] = d.loc.split(',').map(parseFloat);
                                     } else {
-                                        featuredLat = d.latitude || d.lat;
-                                        featuredLng = d.longitude || d.lon;
+                                        featuredLat = Number(d.latitude || d.lat || 0);
+                                        featuredLng = Number(d.longitude || d.lon || 0);
                                     }
                                     sourceName = fallbackSource.name;
                                 }
@@ -822,7 +822,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
                                                 <div className="flex justify-between items-end border-b border-slate-200/50 dark:border-white/5 pb-2">
                                                     <div>
                                                         <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mb-0.5">Primary Coordinates</div>
-                                                        <div className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400">{featuredLat.toFixed(5)}, {featuredLng.toFixed(5)}</div>
+                                                        <div className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400">{Number(featuredLat || 0).toFixed(5)}, {Number(featuredLng || 0).toFixed(5)}</div>
                                                     </div>
                                                     <button
                                                         onClick={() => {

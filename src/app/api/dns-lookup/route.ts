@@ -75,7 +75,7 @@ export async function GET(request: Request) {
     }
 
     // Clean domain
-    const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim();
+    const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim().toLowerCase();
 
     // Normalized cache key
     const cacheKey = `dns-lookup:${cleanDomain}`;

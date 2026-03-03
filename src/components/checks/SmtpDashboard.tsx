@@ -3,7 +3,7 @@ import { SmtpAggregatedResult } from '@/types/checkhost';
 import {
     Loader2, Shield, ShieldAlert, CheckCircle2, AlertTriangle, XCircle,
     Server, Network, Globe, Lock, Unlock, MailWarning, Map as MapIcon,
-    Copy, Check, Link, RefreshCw
+    Copy, Check, Link, RefreshCw, ExternalLink
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -17,9 +17,10 @@ interface SmtpDashboardProps {
     host?: string;
     port?: number;
     isSharedView?: boolean;
+    onViewTcpDetails?: (reqId: string) => void;
 }
 
-export function SmtpDashboard({ data, isLoading, onRefresh, isRefreshing, host, port, isSharedView = false }: SmtpDashboardProps) {
+export function SmtpDashboard({ data, isLoading, onRefresh, isRefreshing, host, port, isSharedView = false, onViewTcpDetails }: SmtpDashboardProps) {
     const [ipCopied, setIpCopied] = useState(false);
     const [isSharing, setIsSharing] = useState(false);
     const [shareCopied, setShareCopied] = useState(false);
@@ -186,12 +187,25 @@ export function SmtpDashboard({ data, isLoading, onRefresh, isRefreshing, host, 
                     <div className={cn("p-3 rounded-xl", data.globalTcpId ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400" : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400")}>
                         <Globe className="h-6 w-6" />
                     </div>
-                    <div>
+                    <div className="flex flex-col gap-0.5">
                         <p className="text-xs font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Reachability</p>
                         {data.globalTcpId ? (
-                            <span className="text-base font-bold text-indigo-600 dark:text-indigo-400">
-                                Yes (Global TCP)
-                            </span>
+                            <>
+                                <span className="text-base font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
+                                    {data.globalTcpNodeCount ? `${data.globalTcpNodeCount} nodes` : 'Global'}
+                                    <span className="text-slate-400 dark:text-slate-500 font-normal"> · TCP</span>
+                                </span>
+                                <button
+                                    onClick={() => {
+                                        if (onViewTcpDetails && data.globalTcpId) {
+                                            onViewTcpDetails(data.globalTcpId);
+                                        }
+                                    }}
+                                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors mt-0.5 w-fit"
+                                >
+                                    TCP Details <ExternalLink className="h-2.5 w-2.5" />
+                                </button>
+                            </>
                         ) : (
                             <span className="text-base font-bold text-slate-900 dark:text-white">Local Only</span>
                         )}

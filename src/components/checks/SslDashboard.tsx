@@ -315,7 +315,8 @@ export function SslDashboard({ data, host, isSharedView = false }: SslDashboardP
     const isExpired = daysRemaining < 0;
     const isExpiringSoon = daysRemaining < 30 && !isExpired;
 
-    const hostnameMatches = certificate.subjectaltname?.includes(displayHost) || certificate.subject.CN === displayHost;
+    const lowerHost = displayHost.toLowerCase();
+    const hostnameMatches = certificate.subjectaltname?.toLowerCase().includes(lowerHost) || certificate.subject.CN?.toLowerCase() === lowerHost;
 
     // Determine overall status
     const getStatus = () => {

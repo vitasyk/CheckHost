@@ -39,7 +39,11 @@ export async function getSiteSetting(key: string) {
             if (error && error.code !== 'PGRST116') throw error;
             if (data) return data.value;
         } catch (error: any) {
-            console.error(`[Settings] Supabase error for ${key}:`, error?.message || JSON.stringify(error) || error);
+            const errorMsg = error?.message || JSON.stringify(error) || String(error);
+            // Hide expected fetch errors since we fallback to other sources anyway
+            if (!errorMsg.includes('fetch failed')) {
+                console.error(`[Settings] Supabase error for ${key}:`, errorMsg);
+            }
         }
     }
 

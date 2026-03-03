@@ -8,7 +8,8 @@ import { getRealIp } from '@/lib/utils';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
-    let host = searchParams.get('host');
+    const hostRaw = searchParams.get('host');
+    let host = hostRaw ? hostRaw.trim().toLowerCase() : null;
 
     // Detect client IP with priority order for proxies/CDN
     const clientIp = getRealIp(request.headers);

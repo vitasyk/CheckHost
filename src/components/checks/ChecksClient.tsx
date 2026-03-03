@@ -134,6 +134,57 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
         }
     }, [searchParams]);
 
+    const loadTcpResultsFromId = (reqId: string) => {
+        setActiveTab('tcp');
+        setActiveChecks(prev => new Set(prev).add('tcp'));
+        setErrorMessage(null);
+
+        fetch(`/api/result/${reqId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) throw new Error(data.error);
+
+                // Create nodes object based on the IDs present in results
+                // Real node details will be populated via the global nodes state in ResultsDisplay
+                const resultNodeIds = Object.keys(data);
+                const virtualNodes: Record<string, any> = {};
+                resultNodeIds.forEach(id => {
+                    virtualNodes[id] = ['', '', ''];
+                });
+
+                setTcpNodes(virtualNodes);
+                setTcpResults(data);
+                setCompletedChecks(prev => new Set(prev).add('tcp'));
+            })
+            .catch(err => {
+                console.error('Failed to load TCP results:', err);
+                setErrorMessage(err.message || 'Failed to load TCP results');
+            })
+            .finally(() => {
+                setActiveChecks(prev => {
+                    const next = new Set(prev);
+                    next.delete('tcp');
+                    return next;
+                });
+            });
+    };
+
+    // Handle initial loading of results directly by requestId
+    useEffect(() => {
+        const reqId = searchParams.get('requestId');
+        const type = searchParams.get('type');
+
+        if (reqId && type === 'tcp') {
+            if (host.trim() === '') {
+                const urlHost = searchParams.get('host');
+                if (urlHost) setHost(urlHost);
+            }
+            loadTcpResultsFromId(reqId);
+        }
+        // Run only once on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const [pendingCheck, setPendingCheck] = useState<{ type: CheckType, host: string } | null>(null);
     const [maxNodes, setMaxNodes] = useState(20);
     const [activeChecks, setActiveChecks] = useState<Set<CheckType>>(new Set());
@@ -217,7 +268,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
     };
 
     const runCheck = (type: CheckType, currentHost: string, refresh = false) => {
-        let sanitized = currentHost.trim();
+        let sanitized = currentHost.trim().toLowerCase();
 
         // Special sanitization for ASN
         if (type === 'info' && /^as\s*\d+$/i.test(sanitized)) {
@@ -230,6 +281,16 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
             sanitized = sanitized.split('/')[0];
         }
         if (!sanitized) return;
+
+        // Validation against local/internal targets
+        if (type !== 'info') {
+            const isLocalhost = sanitized === 'localhost' || sanitized.startsWith('localhost:');
+            const isInternalIp = /^(127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|0\.0\.0\.0)/.test(sanitized);
+            if (isLocalhost || isInternalIp) {
+                setErrorMessage(`Cannot perform global check: '${sanitized}' is a local or internal address.`);
+                return;
+            }
+        }
 
         handleCheckStart(type, {}, (nodes) => {
             switch (type) {
@@ -331,7 +392,9 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                     case 'mtr': setMtrNodes(initResponse.nodes); break;
                 }
             }
-        ).finally(() => handleCheckComplete(type));
+        ).catch(err => {
+            setErrorMessage(err.message || "Failed to perform check.");
+        }).finally(() => handleCheckComplete(type));
     };
 
     const handleCheckAll = () => {
@@ -532,6 +595,10 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                                         isRefreshing={activeChecks.has('smtp')}
                                         host={host || undefined}
                                         port={smtpPort}
+                                        onViewTcpDetails={(reqId) => {
+                                            const tcpHost = host.includes(':') ? host : `${host}:${smtpPort}`;
+                                            window.location.href = `/?requestId=${reqId}&type=tcp&host=${encodeURIComponent(tcpHost)}&tab=tcp`;
+                                        }}
                                     />
                                 </TabsContent>
                             </div>

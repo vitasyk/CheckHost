@@ -288,7 +288,8 @@ function parseDmarc(records: string[]) {
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
-    const hostParam = searchParams.get('host');
+    const hostParamRaw = searchParams.get('host');
+    const hostParam = hostParamRaw ? hostParamRaw.trim().toLowerCase() : null;
     const portParam = parseInt(searchParams.get('port') || '25');
     const isRefresh = searchParams.get('refresh') === 'true';
     const isCacheOnly = searchParams.get('cacheOnly') === 'true';
@@ -367,6 +368,7 @@ export async function GET(request: Request) {
 
     // Initiate Global TCP check via Check-Host API directly
     let globalTcpId: string | undefined;
+    let globalTcpNodeCount: number | undefined;
     const smtpCheckStart = Date.now();
     try {
         await apiLogger.info(`Initiating global tcp check for smtp host: ${targetHost}:${portParam}`);
@@ -377,14 +379,23 @@ export async function GET(request: Request) {
                 Accept: 'application/json',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36',
             },
-            timeout: 10000
+            timeout: 15000
         });
 
         const data = response.data;
         globalTcpId = data.request_id;
+        // Count how many probe nodes were assigned for this check
+        if (data.nodes && typeof data.nodes === 'object') {
+            globalTcpNodeCount = Object.keys(data.nodes).length;
+        }
 
-    } catch (e) {
-        console.error("Failed to initiate global checkhost check:", e);
+    } catch (e: any) {
+        if (e.code === 'ECONNABORTED' || e.message?.includes('timeout')) {
+            // It's just a timeout initiating the secondary check, not critical for SMTP results
+            // console.warn("Timeout initiating global checkhost TCP check (non-critical)");
+        } else {
+            console.error("Failed to initiate global checkhost check:", e.message || e);
+        }
     }
 
     // Run deep audit checks and handshake concurrently
@@ -423,7 +434,8 @@ export async function GET(request: Request) {
         starttls: handshake.starttls,
         audit,
         log: handshake.log,
-        globalTcpId
+        globalTcpId,
+        globalTcpNodeCount
     };
 
     if (!isOk) {

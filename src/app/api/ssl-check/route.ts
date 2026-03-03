@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Host is required' }, { status: 400 });
     }
 
-    // Sanitize host (remove protocol/path)
-    host = host.replace(/^https?:\/\//, '').split('/')[0].split(':')[0];
+    // Sanitize host (remove protocol/path) and ensure lowercase
+    host = host.replace(/^https?:\/\//, '').split('/')[0].split(':')[0].toLowerCase();
 
     try {
         const result = await checkSsl(host);

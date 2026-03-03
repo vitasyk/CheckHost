@@ -111,5 +111,6 @@ export interface SmtpAggregatedResult {
     starttls: boolean;
     audit: SmtpAuditResult;
     log: string;
-    globalTcpId?: string; // Request ID for Check-Host TCP check
+    globalTcpId?: string;       // Request ID for Check-Host TCP check
+    globalTcpNodeCount?: number; // Number of global probe nodes used
 }

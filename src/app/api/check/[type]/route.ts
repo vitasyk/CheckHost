@@ -14,7 +14,7 @@ export async function GET(
 ) {
     const type = (await context.params).type;
     const { searchParams } = new URL(request.url);
-    const host = searchParams.get('host') || 'unknown';
+    const host = searchParams.get('host')?.toLowerCase() || 'unknown';
     const refresh = searchParams.get('refresh') === 'true';
 
     // Unmask the searchParams so that we correctly request check-host.net nodes
