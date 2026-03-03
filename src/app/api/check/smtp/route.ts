@@ -60,11 +60,10 @@ async function resolvePtr(ip: string): Promise<string | null> {
 }
 
 const RBL_SERVERS = [
+    'sbl.spamhaus.org',
+    'xbl.spamhaus.org',
     'zen.spamhaus.org',
-    'b.barracudacentral.org',
-    'bl.spamcop.net',
-    'dnsbl.sorbs.net',
-    'psbl.surriel.com'
+    'bl.spamcop.net'
 ];
 
 async function checkRbl(ip: string): Promise<Record<string, 'CLEAR' | 'LISTED' | 'ERROR'>> {
