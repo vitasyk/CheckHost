@@ -174,6 +174,8 @@ export default function AdminCharts({ toolData, countryData, loading, timeRange,
                                 <SelectItem value="ping">Ping</SelectItem>
                                 <SelectItem value="dns">DNS</SelectItem>
                                 <SelectItem value="http">HTTP</SelectItem>
+                                <SelectItem value="smtp">SMTP</SelectItem>
+                                <SelectItem value="ssl">SSL Check</SelectItem>
                                 <SelectItem value="info">IP Info</SelectItem>
                             </SelectContent>
                         </Select>

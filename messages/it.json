@@ -27,8 +27,12 @@
     "dnsDesc": "Verifica la propagazione DNS globale. Controlla istantaneamente i record A, AAAA, MX, CNAME e TXT su più server dei nomi.",
     "ipinfoTitle": "Info IP e Geolocalizzazione - Dettagli di rete",
     "ipinfoDesc": "Trova dati dettagliati di geolocalizzazione, ISP e rete per qualsiasi indirizzo IP o dominio. Confronto di più fornitori.",
-    "checksTitle": "Strumenti diagnostici - Monitoraggio globale del sito web",
-    "checksDesc": "Strumenti diagnostici completi per siti web, inclusi controlli Ping, HTTP, DNS, SSL e MTR. Analisi multimodale da oltre 20 località."
+    "checksTitle": "Strumenti di diagnostica - Monitoraggio globale delle prestazioni",
+    "checksDesc": "Strumenti completi per la diagnostica del sito, inclusi Ping, HTTP, DNS, SSL e MTR. Analisi da oltre 20 località.",
+    "smtpTitle": "Test SMTP - Verifica della connessione e della sicurezza del server mail",
+    "smtpDesc": "Controlla la connessione al server SMTP e il tempo di risposta da oltre 20 località. Testa le porte 25, 465, 587.",
+    "sslTitle": "Controllo certificato SSL - Convalida sicurezza TLS e scadenza",
+    "sslDesc": "Verifica la validità del certificato SSL/TLS, la data di scadenza, la catena di fiducia e la forza della crittografia da più località globali. Gratuito e istantaneo."
   },
   "Share": {
     "snapshot": "Istantanea",
@@ -395,7 +399,7 @@
     "acceptableUseDesc": "Accetti di NON utilizzare questo servizio per:",
     "prohibited1": "Condurre attacchi DDoS o stress test senza autorizzazione",
     "prohibited2": "Ricercare vulnerabilità o eseguire test di penetrazione non autorizzati",
-    "prohibited3": "Violare leggi o normative applicabili",
+    "prohibited3": "Violare leggi o regolamenti applicabili",
     "prohibited4": "Scraping automatizzato o abuso delle API oltre i limiti documentati",
     "disclaimerTitle": "Esclusione di garanzia",
     "disclaimerDesc": "{siteName} viene fornito 'così com'è' senza garanzia di alcun tipo. Non garantiamo l'accuratezza o la completezza dei risultati.",
@@ -481,10 +485,16 @@
         "checkSuffix": " Controllo"
       },
       "ipInfo": {
-        "name": "IP Info",
+        "name": "Info IP",
         "measures": "Geolocalizzazione, ISP, ASN, WHOIS",
-        "useCase": "Identifica la proprietà e il routing IP",
-        "checkSuffix": " Ricerca"
+        "useCase": "Identificare il proprietario dell'IP e i percorsi",
+        "checkSuffix": " ricerca"
+      },
+      "smtp": {
+        "name": "SMTP",
+        "measures": "Banner SMTP, connessione, risposta EHLO",
+        "useCase": "Verificare la disponibilità del server mail",
+        "checkSuffix": " verifica"
       }
     },
     "faq": {
@@ -589,18 +599,32 @@
       "globalDesc": "In addition to location data, advanced lookups provide administrative contact information (WHOIS) for an IP block, which is necessary for reporting network abuse or spam."
     },
     "ssl": {
-      "title": "SSL/TLS Certificate Checker",
-      "understanding": "What Does an SSL Certificate Check Verify?",
-      "understandingDesc": "An SSL/TLS check analyzes the security certificate of a website, confirming it is valid, trusted by major browsers, and not expired. It reveals the certificate authority (CA), expiry date, and encryption strength.",
-      "latency": "Why Monitor Your SSL Certificate?",
-      "latencyDesc": "An expired or misconfigured SSL certificate causes browser security warnings, blocking visitors immediately. Proactive monitoring prevents unexpected outages.",
+      "title": "Controllo certificato SSL/TLS",
+      "understanding": "Cosa verifica un controllo del certificato SSL/TLS?",
+      "understandingDesc": "Un controllo SSL/TLS analizza il certificato di sicurezza di un sito web, confermando che sia valido, affidabile per i principali browser e non scaduto. Rivela l'autorità di certificazione (CA), la data di scadenza e la forza della crittografia.",
+      "latency": "Perché monitorare il tuo certificato SSL?",
+      "latencyDesc": "Un certificato SSL scaduto o configurato male causa avvisi di sicurezza nel browser, bloccando immediatamente i visitatori. Il monitoraggio proattivo previene interruzioni impreviste.",
       "latencyList": {
-        "expiry": "Certificate Expiry: Certificates have a validity period. An expired cert immediately breaks HTTPS for all visitors.",
-        "chain": "Chain of Trust: A broken chain (missing intermediate certificate) causes untrusted warnings on some browsers.",
-        "cipher": "Cipher Suite: Weak encryption algorithms (like RC4 or MD5) expose users to man-in-the-middle attacks."
+        "expiry": "Scadenza certificato: I certificati hanno un periodo di validità. Un certificato scaduto interrompe immediatamente l'HTTPS per tutti i visitatori.",
+        "chain": "Catena di fiducia: Una catena interrotta (certificato intermedio mancante) causa avvisi di non affidabilità su alcuni browser.",
+        "cipher": "Suite di cifratura: Algoritmi di crittografia deboli (come RC4 o MD5) espongono gli utenti ad attacchi man-in-the-middle."
       },
-      "global": "Global Certificate Validation",
-      "globalDesc": "Different regions may resolve to different servers due to CDN or GeoDNS configurations. A global SSL check confirms that all edge servers present a valid certificate, not just your local resolver."
+      "global": "Validazione globale del certificato",
+      "globalDesc": "Diverse regioni possono risolversi in server diversi a causa delle configurazioni CDN o GeoDNS. Un controllo SSL globale conferma che tutti i server edge presentino un certificato valido, non solo il tuo resolver locale."
+    },
+    "smtp": {
+      "title": "Test di connettività del server mail SMTP",
+      "understanding": "Comprendere i controlli di connessione SMTP",
+      "understandingDesc": "Un controllo SMTP verifica se il tuo server di posta accetta correttamente le connessioni da reti esterne. Segue il protocollo di comunicazione SMTP standard (EHLO/HELO) per garantire che il server risponda in modo appropriato.",
+      "latency": "Perché testare la risposta del server mail?",
+      "latencyDesc": "I ritardi del server di posta possono causare fallimenti nella consegna delle e-mail o ritardi significativi nell'elaborazione dei messaggi. Monitorare la velocità di risposta è fondamentale per una comunicazione affidabile.",
+      "latencyList": {
+        "connection": "Tempo di connessione: Misura quanto tempo occorre per stabilire un handshake TCP con il server di posta.",
+        "banner": "Banner SMTP: La risposta iniziale del server che si identifica. Banner mancanti o lenti possono indicare un sovraccarico.",
+        "auth": "Sicurezza/Porte: Verifica dell'accessibilità tramite porte standard come 25 (SMTP), 587 (Submission) o 465 (SMTPS)."
+      },
+      "global": "Verifica della raggiungibilità globale della posta",
+      "globalDesc": "Errori di configurazione del firewall o blocchi degli ISP regionali spesso impediscono ai server di posta di ricevere e-mail legittime. Un test SMTP globale assicura che il tuo server sia raggiungibile da ogni parte del mondo."
     }
   },
   "Docs": {

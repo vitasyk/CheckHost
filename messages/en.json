@@ -28,7 +28,11 @@
     "ipinfoTitle": "IP Info & Geolocation - Detailed Network Intelligence",
     "ipinfoDesc": "Find detailed geolocation, ISP, and network data for any IP address or domain. Multiple provider comparison.",
     "checksTitle": "Diagnostic Tools - Global Website Performance Monitoring",
-    "checksDesc": "Comprehensive website diagnostic tools including Ping, HTTP, DNS, SSL, and MTR checks. Multimodal analysis from 20+ locations."
+    "checksDesc": "Comprehensive website diagnostic tools including Ping, HTTP, DNS, SSL, and MTR checks. Multimodal analysis from 20+ locations.",
+    "smtpTitle": "SMTP Test - Check Mail Server Connection & Security",
+    "smtpDesc": "Verify SMTP server connectivity and response from 20+ locations. Test ports 25, 465, 587 and check mail server availability worldwide.",
+    "sslTitle": "SSL Certificate Checker - Validate TLS Security & Expiry",
+    "sslDesc": "Check SSL/TLS certificate validity, expiry date, chain of trust and cipher strength from multiple global locations. Free and instant."
   },
   "Share": {
     "snapshot": "Snapshot",
@@ -485,6 +489,12 @@
         "measures": "Geolocation, ISP, ASN, WHOIS",
         "useCase": "Identify IP ownership & routing",
         "checkSuffix": " Lookup"
+      },
+      "smtp": {
+        "name": "SMTP",
+        "measures": "SMTP banner, connection, EHLO response",
+        "useCase": "Verify mail server availability",
+        "checkSuffix": " Test"
       }
     },
     "faq": {
@@ -601,6 +611,20 @@
       },
       "global": "Global Certificate Validation",
       "globalDesc": "Different regions may resolve to different servers due to CDN or GeoDNS configurations. A global SSL check confirms that all edge servers present a valid certificate, not just your local resolver."
+    },
+    "smtp": {
+      "title": "SMTP Mail Server Connectivity Test",
+      "understanding": "Understanding SMTP Connection Checks",
+      "understandingDesc": "An SMTP check verifies if your mail server is correctly accepting connections from external networks. It follows the standard SMTP communication protocol (EHLO/HELO) to ensure the server responds appropriately.",
+      "latency": "Why Test Mail Server Response?",
+      "latencyDesc": "Mail server delays can cause email delivery failures or significant delays in message processing. Monitoring response speed is crucial for reliable communication.",
+      "latencyList": {
+        "connection": "Connection Time: Measures how long it takes to establish a TCP handshake with the mail server.",
+        "banner": "SMTP Banner: The initial response from the server identifying itself. Missing or slow banners can indicate overload.",
+        "auth": "Security/Ports: Verifying accessibility via standard ports like 25 (SMTP), 587 (Submission), or 465 (SMTPS)."
+      },
+      "global": "Verifying Global Mail Reachability",
+      "globalDesc": "Firewall misconfigurations or regional ISP blocks often prevent mail servers from receiving legitimate emails. A global SMTP test ensures your mail server is reachable from all parts of the world."
     }
   },
   "Docs": {

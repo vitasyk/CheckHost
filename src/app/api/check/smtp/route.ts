@@ -282,11 +282,11 @@ export async function GET(request: Request) {
 
     // Initiate Global TCP check via Check-Host API directly
     let globalTcpId: string | undefined;
+    const smtpCheckStart = Date.now();
     try {
         await apiLogger.info(`Initiating global tcp check for smtp host: ${targetHost}:${portParam}`);
         const url = `https://check-host.net/check-tcp?host=${encodeURIComponent(targetHost + ':' + portParam)}`;
 
-        const startTime = Date.now();
         const response = await axios.get(url, {
             headers: {
                 Accept: 'application/json',
@@ -297,19 +297,6 @@ export async function GET(request: Request) {
 
         const data = response.data;
         globalTcpId = data.request_id;
-
-        const duration = Date.now() - startTime;
-        const checkId = await apiLogger.logCheck({
-            check_type: 'tcp',
-            target_host: `${targetHost}:${portParam}`,
-            user_ip: userIp
-        });
-        await apiLogger.logApiUsage({
-            api_endpoint: `/check/tcp`,
-            check_id: checkId || undefined,
-            response_time_ms: duration,
-            status_code: 200
-        });
 
     } catch (e) {
         console.error("Failed to initiate global checkhost check:", e);
@@ -357,6 +344,22 @@ export async function GET(request: Request) {
     if (!isOk) {
         result.error = "Connection failed locally and globally.";
     }
+
+    // Log the SMTP check properly for activity feed
+    const smtpDuration = Date.now() - smtpCheckStart;
+    const checkId = await apiLogger.logCheck({
+        check_type: 'smtp',
+        target_host: `${hostParam}:${portParam}`,
+        user_ip: userIp,
+        status: isOk ? 'success' : 'error',
+        error_message: result.error
+    });
+    await apiLogger.logApiUsage({
+        api_endpoint: `/check/smtp`,
+        check_id: checkId || undefined,
+        response_time_ms: smtpDuration,
+        status_code: 200
+    });
 
     // Store in cache
     smtpCache.set(cacheKey, { data: result, ts: Date.now() });

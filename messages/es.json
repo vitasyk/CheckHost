@@ -28,7 +28,11 @@
     "ipinfoTitle": "Info de IP y Geolocalización - Inteligencia de red",
     "ipinfoDesc": "Encuentre datos detallados de geolocalización, ISP y de red para cualquier dirección IP o dominio. Comparación de múltiples proveedores.",
     "checksTitle": "Herramientas de diagnóstico - Monitoreo global de rendimiento",
-    "checksDesc": "Completas herramientas de diagnóstico web que incluyen pruebas de Ping, HTTP, DNS, SSL y MTR. Análisis multimodal desde más de 20 ubicaciones."
+    "checksDesc": "Herramientas completas de diagnóstico de sitios web, incluyendo Ping, HTTP, DNS, SSL y MTR. Análisis desde más de 20 ubicaciones.",
+    "smtpTitle": "Prueba SMTP - Verificación de conexión y seguridad del servidor de correo",
+    "smtpDesc": "Verifique la conexión con el servidor SMTP y el tiempo de respuesta desde más de 20 ubicaciones. Pruebe los puertos 25, 465, 587.",
+    "sslTitle": "Prueba de certificado SSL - Validar seguridad TLS y fecha de vencimiento",
+    "sslDesc": "Verifique la validez del certificado SSL/TLS, la fecha de vencimiento, la cadena de confianza y la fuerza del cifrado desde múltiples ubicaciones globales. Gratis e instantáneo."
   },
   "Share": {
     "snapshot": "Instantánea",
@@ -483,8 +487,14 @@
       "ipInfo": {
         "name": "Info IP",
         "measures": "Geolocalización, ISP, ASN, WHOIS",
-        "useCase": "Identificar propiedad de IP y enrutamiento",
-        "checkSuffix": " Búsqueda de"
+        "useCase": "Identificar el propietario de la IP y las rutas",
+        "checkSuffix": " búsqueda"
+      },
+      "smtp": {
+        "name": "SMTP",
+        "measures": "Banner SMTP, conexión, respuesta EHLO",
+        "useCase": "Verificar la disponibilidad del servidor de correo",
+        "checkSuffix": " verificación"
       }
     },
     "faq": {
@@ -589,18 +599,32 @@
       "globalDesc": "In addition to location data, advanced lookups provide administrative contact information (WHOIS) for an IP block, which is necessary for reporting network abuse or spam."
     },
     "ssl": {
-      "title": "SSL/TLS Certificate Checker",
-      "understanding": "What Does an SSL Certificate Check Verify?",
-      "understandingDesc": "An SSL/TLS check analyzes the security certificate of a website, confirming it is valid, trusted by major browsers, and not expired. It reveals the certificate authority (CA), expiry date, and encryption strength.",
-      "latency": "Why Monitor Your SSL Certificate?",
-      "latencyDesc": "An expired or misconfigured SSL certificate causes browser security warnings, blocking visitors immediately. Proactive monitoring prevents unexpected outages.",
+      "title": "Verificación del certificado SSL/TLS",
+      "understanding": "¿Qué verifica la prueba SSL/TLS?",
+      "understandingDesc": "La verificación SSL/TLS analiza el certificado de seguridad de un sitio, confirmando su validez y fecha de vencimiento.",
+      "latency": "¿Por qué monitorear el certificado SSL?",
+      "latencyDesc": "Un certificado SSL vencido o mal configurado bloquea instantáneamente a los visitantes.",
       "latencyList": {
-        "expiry": "Certificate Expiry: Certificates have a validity period. An expired cert immediately breaks HTTPS for all visitors.",
-        "chain": "Chain of Trust: A broken chain (missing intermediate certificate) causes untrusted warnings on some browsers.",
-        "cipher": "Cipher Suite: Weak encryption algorithms (like RC4 or MD5) expose users to man-in-the-middle attacks."
+        "expiry": "Vencimiento: Los certificados caducan. Uno vencido rompe el HTTPS.",
+        "chain": "Cadena de confianza: Una cadena rota causa advertencias en los navegadores.",
+        "cipher": "Cifrado: Algoritmos débiles abren vulnerabilidades."
       },
-      "global": "Global Certificate Validation",
-      "globalDesc": "Different regions may resolve to different servers due to CDN or GeoDNS configurations. A global SSL check confirms that all edge servers present a valid certificate, not just your local resolver."
+      "global": "Verificación global de certificados",
+      "globalDesc": "La verificación global SSL confirma que todos los servidores tienen un certificado válido."
+    },
+    "smtp": {
+      "title": "Prueba de conexión al servidor de correo SMTP",
+      "understanding": "Cómo funciona la verificación SMTP",
+      "understandingDesc": "La verificación SMTP confirma si su servidor de correo acepta conexiones externas correctamente.",
+      "latency": "¿Por qué verificar la respuesta del servidor de correo?",
+      "latencyDesc": "Los retrasos en el servidor de correo pueden causar errores de entrega.",
+      "latencyList": {
+        "connection": "Tiempo de conexión: Mide el tiempo para establecer la conexión TCP.",
+        "banner": "Banner SMTP: Respuesta inicial del servidor donde se identifica.",
+        "auth": "Seguridad/Puertos: Verificación a través de puertos estándar como 25, 587 o 465."
+      },
+      "global": "Verificación de disponibilidad global de correo",
+      "globalDesc": "La prueba SMTP global garantiza que su servidor sea accesible en todo el mundo."
     }
   },
   "Docs": {

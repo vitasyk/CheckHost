@@ -158,8 +158,12 @@ export function GlobalActivityFeed() {
                             <SelectItem value="ping">Ping</SelectItem>
                             <SelectItem value="http">HTTP</SelectItem>
                             <SelectItem value="dns">DNS</SelectItem>
+                            <SelectItem value="dns-all">DNS Info</SelectItem>
                             <SelectItem value="tcp">TCP</SelectItem>
                             <SelectItem value="udp">UDP</SelectItem>
+                            <SelectItem value="mtr">MTR</SelectItem>
+                            <SelectItem value="ssl">SSL</SelectItem>
+                            <SelectItem value="smtp">SMTP</SelectItem>
                             <SelectItem value="info">Info</SelectItem>
                         </SelectContent>
                     </Select>
@@ -272,9 +276,26 @@ export function GlobalActivityFeed() {
                                         {new Date(log.created_at).toLocaleString()}
                                     </TableCell>
                                     <TableCell>
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium uppercase tracking-wider bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-slate-200">
-                                            {log.check_type}
-                                        </span>
+                                        {(() => {
+                                            const typeColors: Record<string, string> = {
+                                                smtp: 'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300',
+                                                ssl: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
+                                                ping: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
+                                                http: 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300',
+                                                dns: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
+                                                'dns-all': 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300',
+                                                tcp: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300',
+                                                udp: 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
+                                                mtr: 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300',
+                                                info: 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-200',
+                                            };
+                                            const colorClass = typeColors[log.check_type] || 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-200';
+                                            return (
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${colorClass}`}>
+                                                    {log.check_type}
+                                                </span>
+                                            );
+                                        })()}
                                     </TableCell>
                                     <TableCell className="font-mono text-sm max-w-[200px] truncate" title={log.target_host}>
                                         {log.target_host}

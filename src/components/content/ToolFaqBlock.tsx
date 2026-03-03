@@ -21,7 +21,8 @@ export async function ToolFaqBlock({ toolId, locale }: ToolFaqBlockProps) {
         'dns-all': 'dns',
         'ssl': 'ssl',
         'info': 'ipinfo',
-        'ip-info': 'ipinfo'
+        'ip-info': 'ipinfo',
+        'smtp': 'smtp'
     };
 
     const mappedId = toolMapping[toolId] || toolId;

@@ -28,7 +28,11 @@
     "ipinfoTitle": "Informacje IP i Geolokalizacja - Szczegółowe dane sieciowe",
     "ipinfoDesc": "Znajdź szczegółowe dane geolokalizacyjne, ISP i sieciowe dla dowolnego adresu IP lub domeny. Porównanie wielu dostawców.",
     "checksTitle": "Narzędzia diagnostyczne - Globalne monitorowanie wydajności",
-    "checksDesc": "Kompleksowe narzędzia diagnostyczne stron internetowych obejmujące testy Ping, HTTP, DNS, SSL i MTR. Wielomodalna analiza z ponad 20 lokalizacji."
+    "checksDesc": "Kompleksowe narzędzia do diagnostyki stron internetowych, w tym testy Ping, HTTP, DNS, SSL i MTR. Analiza z ponad 20 lokalizacji.",
+    "smtpTitle": "Test SMTP - Sprawdzanie połączenia i bezpieczeństwa serwera pocztowego",
+    "smtpDesc": "Sprawdź połączenie z serwerem SMTP i czas reakcji z ponad 20 lokalizacji. Przetestuj porty 25, 465, 587.",
+    "sslTitle": "Sprawdzanie certyfikatu SSL - Walidacja bezpieczeństwa TLS i wygaśnięcia",
+    "sslDesc": "Sprawdź ważność certyfikatu SSL/TLS, datę wygaśnięcia, łańcuch zaufania i siłę szyfrowania z wielu globalnych lokalizacji. Bezpłatnie i natychmiast."
   },
   "Share": {
     "snapshot": "Migawka",
@@ -481,10 +485,16 @@
         "checkSuffix": " (Test)"
       },
       "ipInfo": {
-        "name": "IP Info",
+        "name": "Info IP",
         "measures": "Geolokacja, ISP, ASN, WHOIS",
-        "useCase": "Identyfikacja własności IP i trasowania",
-        "checkSuffix": " (Sprawdzenie)"
+        "useCase": "Identyfikacja właściciela IP i tras",
+        "checkSuffix": " szukaj"
+      },
+      "smtp": {
+        "name": "SMTP",
+        "measures": "Baner SMTP, połączenie, odpowiedź EHLO",
+        "useCase": "Sprawdź dostępność serwera pocztowego",
+        "checkSuffix": " sprawdź"
       }
     },
     "faq": {
@@ -589,18 +599,32 @@
       "globalDesc": "In addition to location data, advanced lookups provide administrative contact information (WHOIS) for an IP block, which is necessary for reporting network abuse or spam."
     },
     "ssl": {
-      "title": "SSL/TLS Certificate Checker",
-      "understanding": "What Does an SSL Certificate Check Verify?",
-      "understandingDesc": "An SSL/TLS check analyzes the security certificate of a website, confirming it is valid, trusted by major browsers, and not expired. It reveals the certificate authority (CA), expiry date, and encryption strength.",
-      "latency": "Why Monitor Your SSL Certificate?",
-      "latencyDesc": "An expired or misconfigured SSL certificate causes browser security warnings, blocking visitors immediately. Proactive monitoring prevents unexpected outages.",
+      "title": "Sprawdzanie certyfikatu SSL/TLS",
+      "understanding": "Co weryfikuje sprawdzenie certyfikatu SSL/TLS?",
+      "understandingDesc": "Sprawdzenie SSL/TLS analizuje certyfikat bezpieczeństwa witryny, potwierdzając, że jest on ważny, zaufany przez główne przeglądarki i nie wygasł. Ujawnia urząd certyfikacji (CA), datę wygaśnięcia i siłę szyfrowania.",
+      "latency": "Dlaczego warto monitorować certyfikat SSL?",
+      "latencyDesc": "Wygasły lub błędnie skonfigurowany certyfikat SSL powoduje ostrzeżenia bezpieczeństwa w przeglądarce, natychmiast blokując odwiedzających. Proaktywne monitorowanie zapobiega nieoczekiwanym przestojom.",
       "latencyList": {
-        "expiry": "Certificate Expiry: Certificates have a validity period. An expired cert immediately breaks HTTPS for all visitors.",
-        "chain": "Chain of Trust: A broken chain (missing intermediate certificate) causes untrusted warnings on some browsers.",
-        "cipher": "Cipher Suite: Weak encryption algorithms (like RC4 or MD5) expose users to man-in-the-middle attacks."
+        "expiry": "Wygaśnięcie certyfikatu: Certyfikaty mają okres ważności. Wygasły certyfikat natychmiast przerywa działanie HTTPS dla wszystkich odwiedzających.",
+        "chain": "Łańcuch zaufania: Przerwany łańcuch (brak certyfikatu pośredniego) powoduje ostrzeżenia o braku zaufania w niektórych przeglądarkach.",
+        "cipher": "Zestawy szyfrów: Słabe algorytmy szyfrowania (takie jak RC4 lub MD5) narażają użytkowników на ataki man-in-the-middle."
       },
-      "global": "Global Certificate Validation",
-      "globalDesc": "Different regions may resolve to different servers due to CDN or GeoDNS configurations. A global SSL check confirms that all edge servers present a valid certificate, not just your local resolver."
+      "global": "Globalna walidacja certyfikatu",
+      "globalDesc": "Różne regiony mogą kierować do różnych serwerów ze względu na konfiguracje CDN lub GeoDNS. Globalne sprawdzenie SSL potwierdza, że wszystkie serwery brzegowe prezentują ważny certyfikat, а nie tylko Twój lokalny serwer DNS."
+    },
+    "smtp": {
+      "title": "Test łączności serwera pocztowego SMTP",
+      "understanding": "Zrozumienie testów połączenia SMTP",
+      "understandingDesc": "Test SMTP sprawdza, czy Twój serwer pocztowy poprawnie akceptuje połączenia z sieci zewnętrznych. Postępuje zgodnie ze standardowym protokołem komunikacyjnym SMTP (EHLO/HELO), aby upewnić się, że serwer odpowiada prawidłowo.",
+      "latency": "Dlaczego warto testować odpowiedź serwera pocztowego?",
+      "latencyDesc": "Opóźnienia serwera pocztowego mogą powodować błędy w dostarczaniu wiadomości e-mail lub znaczne opóźnienia w ich przetwarzaniu. Monitorowanie szybkości odpowiedzi jest kluczowe dla niezawodnej komunikacji.",
+      "latencyList": {
+        "connection": "Czas połączenia: Mierzy czas potrzebny na ustanowienie uścisku dłoni (handshake) TCP z serwerem pocztowym.",
+        "banner": "Baner SMTP: Początkowa odpowiedź serwera, w której się on identyfikuje. Brakujące lub powolne banery mogą wskazywać na przeciążenie.",
+        "auth": "Bezpieczeństwo/Porty: Weryfikacja dostępności przez standardowe porty, takie як 25 (SMTP), 587 (Submission) lub 465 (SMTPS)."
+      },
+      "global": "Weryfikacja globalnej dostępności poczty",
+      "globalDesc": "Błędy w konfiguracji zapory ogniowej lub blokady regionalnych dostawców Internetu często uniemożliwiają serwerom pocztowym odbieranie legalnych wiadomości e-mail. Globalny test SMTP zapewnia, że Twój serwer jest dostępny z każdego zakątka świata."
     }
   },
   "Docs": {

@@ -73,6 +73,16 @@ function DefaultSeoContent() {
       lightBg: 'bg-indigo-50 dark:bg-indigo-950/30',
       border: 'border-indigo-100 dark:border-indigo-900/40',
     },
+    {
+      name: t('tools.smtp.name'),
+      icon: '📧',
+      measures: t('tools.smtp.measures'),
+      useCase: t('tools.smtp.useCase'),
+      checkSuffix: t('tools.smtp.checkSuffix'),
+      color: 'from-amber-500 to-orange-500',
+      lightBg: 'bg-amber-50 dark:bg-amber-950/30',
+      border: 'border-amber-100 dark:border-amber-900/40',
+    },
   ];
 
   const FEATURES = [

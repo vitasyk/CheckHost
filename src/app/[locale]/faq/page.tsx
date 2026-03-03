@@ -2,13 +2,23 @@ import { getTranslations } from 'next-intl/server';
 import { query } from '@/lib/postgres';
 import { FaqAccordion } from '@/components/common/FaqAccordion';
 import { HelpCircle } from 'lucide-react';
+import { JsonLd } from '@/components/SEO/JsonLd';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
     const t = await getTranslations({ locale, namespace: 'FAQ' });
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
     return {
         title: `${t('title')} | CheckNode`,
         description: t('subtitle'),
+        alternates: {
+            canonical: `${siteUrl}/faq`,
+        },
+        openGraph: {
+            title: `${t('title')} | CheckNode`,
+            description: t('subtitle'),
+            url: `${siteUrl}/faq`,
+        },
     };
 }
 
@@ -47,8 +57,22 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
         answer: faq.content
     }));
 
+    const faqJsonLd = accordionItems.length > 0 ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": accordionItems.map(item => ({
+            "@type": "Question",
+            "name": item.question,
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": item.answer?.replace(/<[^>]*>/g, '').substring(0, 500) || ''
+            }
+        }))
+    } : null;
+
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F1A] pb-20">
+            {faqJsonLd && <JsonLd data={faqJsonLd} />}
             {/* Hero Section */}
             <section className="relative overflow-hidden pt-24 pb-16 md:pt-32 md:pb-24 border-b border-slate-200 dark:border-white/5">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-from)_0%,_transparent_70%)] from-indigo-500/10 to-transparent blur-3xl pointer-events-none" />

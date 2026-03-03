@@ -27,8 +27,12 @@
     "dnsDesc": "Vérifiez la propagation DNS mondiale. Interrogez les enregistrements A, AAAA, MX, CNAME et TXT sur plusieurs serveurs de noms instantanément.",
     "ipinfoTitle": "Info IP & Géolocalisation - Renseignement réseau",
     "ipinfoDesc": "Trouvez des données de géolocalisation, de FAI et réseau détaillées pour toute adresse IP ou domaine. Comparaison de plusieurs fournisseurs.",
-    "checksTitle": "Outils de diagnostic - Surveillance mondiale des performances",
-    "checksDesc": "Des outils complets de diagnostic de site web comprenant des vérifications Ping, HTTP, DNS, SSL et MTR. Analyse multimodale depuis 20+ emplacements."
+    "checksTitle": "Outils de diagnostic - Surveillance globale des performances",
+    "checksDesc": "Outils de diagnostic complets, incluant Ping, HTTP, DNS, SSL et MTR. Analyse multimodale depuis plus de 20 localisations.",
+    "smtpTitle": "Test SMTP - Vérification de connexion et de sécurité du serveur mail",
+    "smtpDesc": "Vérifiez la connexion au serveur SMTP et le temps de réponse depuis plus de 20 localisations. Testez les ports 25, 465, 587.",
+    "sslTitle": "Vérificateur de certificat SSL - Valider la sécurité TLS et l'expiration",
+    "sslDesc": "Vérifiez la validité du certificat SSL/TLS, la date d'expiration, la chaîne de confiance et la force du chiffrement depuis plusieurs emplacements mondiaux. Gratuit et instantané."
   },
   "Share": {
     "snapshot": "Instantané",
@@ -481,10 +485,16 @@
         "checkSuffix": " Vérification"
       },
       "ipInfo": {
-        "name": "Infos IP",
+        "name": "Info IP",
         "measures": "Géolocalisation, FAI, ASN, WHOIS",
-        "useCase": "Identifier la propriété et le routage IP",
-        "checkSuffix": " Recherche"
+        "useCase": "Identifier le propriétaire de l'IP et les routes",
+        "checkSuffix": " recherche"
+      },
+      "smtp": {
+        "name": "SMTP",
+        "measures": "Bannière SMTP, connexion, réponse EHLO",
+        "useCase": "Vérifier la disponibilité du serveur mail",
+        "checkSuffix": " vérification"
       }
     },
     "faq": {
@@ -501,7 +511,7 @@
         "a": "Contrairement aux outils à emplacement unique, CheckNode vérifie à partir de nombreuses régions à la fois. Cela révèle des problèmes CDN, des pannes régionales et des différences de propagation DNS que les vérifications locales ne peuvent pas détecter."
       }
     },
-    "footerText": "Que vous déboguiez une réponse lente du serveur, vérifiiez la propagation DNS après une migration de domaine ou contrôliez l'accessibilité dans le monde entier — CheckNode fournit les outils de précision dont vous avez besoin, tout à fait gratuitement."
+    "footerText": "Que vous déboguiez une réponse lente du serveur, vérifiez la propagation DNS après une migration de domaine ou contrôliez l'accessibilité dans le monde entier — CheckNode fournit les outils de précision dont vous avez besoin, tout à fait gratuitement."
   },
   "ToolSeoContent": {
     "ping": {
@@ -589,18 +599,32 @@
       "globalDesc": "In addition to location data, advanced lookups provide administrative contact information (WHOIS) for an IP block, which is necessary for reporting network abuse or spam."
     },
     "ssl": {
-      "title": "SSL/TLS Certificate Checker",
-      "understanding": "What Does an SSL Certificate Check Verify?",
-      "understandingDesc": "An SSL/TLS check analyzes the security certificate of a website, confirming it is valid, trusted by major browsers, and not expired. It reveals the certificate authority (CA), expiry date, and encryption strength.",
-      "latency": "Why Monitor Your SSL Certificate?",
-      "latencyDesc": "An expired or misconfigured SSL certificate causes browser security warnings, blocking visitors immediately. Proactive monitoring prevents unexpected outages.",
+      "title": "Vérification du certificat SSL/TLS",
+      "understanding": "Que vérifie le test SSL/TLS ?",
+      "understandingDesc": "La vérification SSL/TLS analyse le certificat de sécurité d'un site, confirmant sa validité, la confiance des navigateurs et sa date d'expiration.",
+      "latency": "Pourquoi surveiller le certificat SSL ?",
+      "latencyDesc": "Un certificat SSL expiré ou mal configuré déclenche des avertissements de sécurité et bloque instantanément les visiteurs.",
       "latencyList": {
-        "expiry": "Certificate Expiry: Certificates have a validity period. An expired cert immediately breaks HTTPS for all visitors.",
-        "chain": "Chain of Trust: A broken chain (missing intermediate certificate) causes untrusted warnings on some browsers.",
-        "cipher": "Cipher Suite: Weak encryption algorithms (like RC4 or MD5) expose users to man-in-the-middle attacks."
+        "expiry": "Expiration : Les certificats ont une durée de vie limitée. Un certificat expiré bloque le HTTPS.",
+        "chain": "Chaîne de confiance : Une chaîne brisée cause des avertissements dans certains navigateurs.",
+        "cipher": "Algorithmes : Des algorithmes faibles (RC4, MD5) ouvrent des failles de sécurité."
       },
-      "global": "Global Certificate Validation",
-      "globalDesc": "Different regions may resolve to different servers due to CDN or GeoDNS configurations. A global SSL check confirms that all edge servers present a valid certificate, not just your local resolver."
+      "global": "Vérification globale des certificats",
+      "globalDesc": "La vérification globale SSL confirme que tous les serveurs edge ont un certificat valide."
+    },
+    "smtp": {
+      "title": "Test de connexion au serveur mail SMTP",
+      "understanding": "Comment fonctionne la vérification SMTP",
+      "understandingDesc": "La vérification SMTP confirme si votre serveur mail accepte correctement les connexions depuis des réseaux externes.",
+      "latency": "Pourquoi vérifier la réponse du serveur mail ?",
+      "latencyDesc": "Les retards du serveur mail peuvent entraîner des erreurs de livraison ou des délais importants.",
+      "latencyList": {
+        "connection": "Temps de connexion : Mesure le temps pour établir la connexion TCP.",
+        "banner": "Bannière SMTP : Réponse initiale du serveur où il s'identifie.",
+        "auth": "Sécurité/Ports : Vérification via les ports standards comme 25, 587 ou 465."
+      },
+      "global": "Vérification de la disponibilité globale du mail",
+      "globalDesc": "Le test SMTP global garantit que votre serveur est accessible partout dans le monde."
     }
   },
   "Docs": {

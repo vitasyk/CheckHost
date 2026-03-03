@@ -125,6 +125,7 @@ export function UserActivityFeed() {
                         <option value="dns">DNS Records</option>
                         <option value="uptime">Uptime / Ping</option>
                         <option value="blacklist">IP Blacklist</option>
+                        <option value="smtp">SMTP / Port 25</option>
                     </select>
                     <Button type="submit" disabled={isAdding} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                         {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
@@ -175,8 +176,8 @@ export function UserActivityFeed() {
                         feed.map(item => (
                             <div key={item.id} className="flex gap-4 p-4 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/50 hover:bg-slate-50 dark:hover:bg-slate-900/80 transition-colors">
                                 <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${item.event_type === 'error' ? 'bg-red-500' :
-                                        item.event_type === 'warning' ? 'bg-orange-500' :
-                                            item.event_type === 'success' ? 'bg-emerald-500' : 'bg-blue-500'
+                                    item.event_type === 'warning' ? 'bg-orange-500' :
+                                        item.event_type === 'success' ? 'bg-emerald-500' : 'bg-blue-500'
                                     }`} />
                                 <div className="flex-1">
                                     <h4 className="font-semibold text-sm mb-1">{item.title}</h4>

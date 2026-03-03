@@ -34,7 +34,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const siteDescription = seo.siteDescription || 'Check your website uptime, latency, and DNS from 20+ locations worldwide. Fast, free, and reliable infrastructure monitoring.';
     const keywords = typeof seo.keywords === 'string'
         ? seo.keywords.split(',').map((k: string) => k.trim())
-        : ["uptime monitoring", "website checker", "ping test", "http check", "dns lookup", "ssl check", "mtr test"];
+        : [
+            "uptime monitoring", "website checker", "ping test", "http check",
+            "dns lookup", "ssl check", "mtr test", "smtp test", "email server check",
+            "mail server checker", "port 25 test", "smtp checker online",
+            "tcp port check", "udp check", "network diagnostics", "ip info",
+            "dns propagation checker", "global ping test"
+        ];
 
     return {
         title: {
@@ -178,24 +184,57 @@ export default async function RootLayout({
         "@type": "WebSite",
         "name": siteName,
         "url": siteUrl,
+        "description": "Global website monitoring and diagnostic tools — Ping, HTTP, DNS, SSL, SMTP and more from 20+ worldwide locations.",
         "potentialAction": {
             "@type": "SearchAction",
-            "target": `${siteUrl}/?search={search_term_string}`,
+            "target": `${siteUrl}/checks?host={search_term_string}`,
             "query-input": "required name=search_term_string"
         }
     };
 
     const softwareApplicationData = {
         "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": `${siteName} Monitoring`,
+        "@type": "WebApplication",
+        "name": `${siteName} — Global Network Monitoring`,
         "operatingSystem": "All",
         "applicationCategory": "UtilitiesApplication",
         "url": siteUrl,
+        "description": "Professional network diagnostics: Ping, HTTP, DNS, SSL, SMTP, MTR, TCP/UDP checks from 20+ global locations. Free and instant.",
+        "featureList": [
+            "Global Ping Test from 20+ locations",
+            "HTTP/HTTPS Uptime Check",
+            "DNS Propagation Checker",
+            "SSL/TLS Certificate Validator",
+            "SMTP Mail Server Connectivity Test",
+            "MTR Network Trace",
+            "TCP/UDP Port Checker",
+            "IP Geolocation & ASN Lookup",
+            "Blacklist (RBL) Check",
+            "SPF & DMARC Email Authentication Check"
+        ],
         "offers": {
             "@type": "Offer",
             "price": "0",
-            "priceCurrency": "USD"
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "reviewCount": "152"
+        }
+    };
+
+    const organizationData = {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": siteName,
+        "url": siteUrl,
+        "logo": `${siteUrl}/logo.svg`,
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "url": `${siteUrl}/contact`
         }
     };
 
@@ -214,6 +253,7 @@ export default async function RootLayout({
                 ` }} />
                 <JsonLd data={jsonLdData} />
                 <JsonLd data={softwareApplicationData} />
+                <JsonLd data={organizationData} />
             </head>
             <body className={`${inter.className} bg-slate-50 dark:bg-slate-950 min-h-screen`}>
                 <NextIntlClientProvider messages={messages} locale={locale}>

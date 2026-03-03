@@ -343,7 +343,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
     };
 
     const handleTabCheck = (type: CheckType) => {
-        const manualTypes = ['ping', 'http', 'tcp', 'udp', 'dns', 'mtr'];
+        const manualTypes = ['ping', 'http', 'tcp', 'udp', 'dns', 'mtr', 'smtp'];
         if (manualTypes.includes(type)) return;
         if (!host.trim()) return;
         setPendingCheck({ type, host });

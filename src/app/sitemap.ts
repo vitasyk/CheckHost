@@ -14,50 +14,50 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
 
     // Static pages across all locales
+    const toolPages = [
+        { path: '/ping', priority: 0.9 },
+        { path: '/http', priority: 0.9 },
+        { path: '/dns', priority: 0.9 },
+        { path: '/ip-info', priority: 0.9 },
+        { path: '/smtp', priority: 0.9 },
+        { path: '/ssl', priority: 0.9 },
+        { path: '/mtr', priority: 0.8 },
+        { path: '/tcp', priority: 0.8 },
+        { path: '/udp', priority: 0.8 },
+        { path: '/checks', priority: 0.85 },
+    ];
+
+    const infoPages = [
+        { path: '/blog', priority: 0.8 },
+        { path: '/docs', priority: 0.8 },
+        { path: '/faq', priority: 0.75 },
+        { path: '/about', priority: 0.6 },
+        { path: '/contact', priority: 0.5 },
+        { path: '/privacy', priority: 0.4 },
+        { path: '/terms', priority: 0.4 },
+    ];
+
     const staticPages = locales.flatMap((locale) => [
         {
-            url: getLocalizedUrl('', locale) || baseUrl, // handles root
+            url: getLocalizedUrl('', locale) || baseUrl,
             lastModified: new Date(),
             changeFrequency: 'daily' as const,
             priority: 1.0,
         },
-        {
-            url: getLocalizedUrl('/checks', locale),
-            lastModified: new Date(),
-            changeFrequency: 'always' as const,
-            priority: 0.9,
-        },
-        {
-            url: getLocalizedUrl('/blog', locale),
+        ...toolPages.map((p) => ({
+            url: getLocalizedUrl(p.path, locale),
             lastModified: new Date(),
             changeFrequency: 'daily' as const,
-            priority: 0.8,
-        },
-        {
-            url: getLocalizedUrl('/ping', locale),
+            priority: p.priority,
+        })),
+        ...infoPages.map((p) => ({
+            url: getLocalizedUrl(p.path, locale),
             lastModified: new Date(),
-            changeFrequency: 'daily' as const,
-            priority: 0.9,
-        },
-        {
-            url: getLocalizedUrl('/http', locale),
-            lastModified: new Date(),
-            changeFrequency: 'daily' as const,
-            priority: 0.9,
-        },
-        {
-            url: getLocalizedUrl('/dns', locale),
-            lastModified: new Date(),
-            changeFrequency: 'daily' as const,
-            priority: 0.9,
-        },
-        {
-            url: getLocalizedUrl('/ip-info', locale),
-            lastModified: new Date(),
-            changeFrequency: 'daily' as const,
-            priority: 0.9,
-        }
+            changeFrequency: 'weekly' as const,
+            priority: p.priority,
+        })),
     ]);
+
 
     // Dynamic blog posts across all locales
     let blogPosts: any[] = [];

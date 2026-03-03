@@ -28,7 +28,11 @@
     "ipinfoTitle": "IP-Info & Standorterfassung - Detaillierte Netzwerkinformationen",
     "ipinfoDesc": "Finden Sie detaillierte Geolokalisierungs-, ISP- und Netzwerkdaten für jede IP-Adresse oder Domäne. Vergleich mehrerer Anbieter.",
     "checksTitle": "Diagnosetools - Globale Überwachung der Website-Leistung",
-    "checksDesc": "Umfassende Diagnose-Tools für Websites, einschließlich Ping-, HTTP-, DNS-, SSL- und MTR-Prüfungen. Multimodale Analyse von über 20 Standorten."
+    "checksDesc": "Umfassende Website-Diagnosetools, einschließlich Ping-, HTTP-, DNS-, SSL- und MTR-Prüfungen. Multimodale Analyse von über 20 Standorten.",
+    "smtpTitle": "SMTP-Test - Prüfung der Mailserver-Verbindung und Sicherheit",
+    "smtpDesc": "Überprüfen Sie die Verbindung zum SMTP-Server und die Antwortzeit von über 20 Standorten. Testen Sie die Ports 25, 465, 587 und prüfen Sie die E-Mail-Verfügbarkeit weltweit.",
+    "sslTitle": "SSL-Zertifikat-Prüfung - TLS-Sicherheit & Ablaufdatum validieren",
+    "sslDesc": "Überprüfen Sie die Gültigkeit des SSL/TLS-Zertifikats, das Ablaufdatum, die Vertrauenskette und die Verschlüsselungsstärke von mehreren globalen Standorten. Kostenlos und sofort."
   },
   "Share": {
     "snapshot": "Snapshot",
@@ -482,9 +486,15 @@
       },
       "ipInfo": {
         "name": "IP-Info",
-        "measures": "Geolokalisierung, ISP, ASN, WHOIS",
-        "useCase": "IP-Besitz & Routing identifizieren",
+        "measures": "Geostandort, ISP, ASN, WHOIS",
+        "useCase": "IP-Eigentümer und Routen identifizieren",
         "checkSuffix": " Suche"
+      },
+      "smtp": {
+        "name": "SMTP",
+        "measures": "SMTP-Banner, Verbindung, EHLO-Antwort",
+        "useCase": "Erreichbarkeit des Mailservers prüfen",
+        "checkSuffix": " Prüfung"
       }
     },
     "faq": {
@@ -589,18 +599,32 @@
       "globalDesc": "In addition to location data, advanced lookups provide administrative contact information (WHOIS) for an IP block, which is necessary for reporting network abuse or spam."
     },
     "ssl": {
-      "title": "SSL/TLS Certificate Checker",
-      "understanding": "What Does an SSL Certificate Check Verify?",
-      "understandingDesc": "An SSL/TLS check analyzes the security certificate of a website, confirming it is valid, trusted by major browsers, and not expired. It reveals the certificate authority (CA), expiry date, and encryption strength.",
-      "latency": "Why Monitor Your SSL Certificate?",
-      "latencyDesc": "An expired or misconfigured SSL certificate causes browser security warnings, blocking visitors immediately. Proactive monitoring prevents unexpected outages.",
+      "title": "SSL/TLS-Zertifikatsprüfung",
+      "understanding": "Was prüft der SSL/TLS-Test?",
+      "understandingDesc": "Der SSL/TLS-Check analysiert das Sicherheitszertifikat einer Website und bestätigt dessen Gültigkeit, das Vertrauen der gängigen Browser und das Ablaufdatum. Er zeigt die Zertifizierungsstelle (CA), das Ablaufdatum und die Verschlüsselungsstärke an.",
+      "latency": "Warum sollte man das SSL-Zertifikat überwachen?",
+      "latencyDesc": "Ein abgelaufenes oder falsch konfiguriertes SSL-Zertifikat löst Sicherheitswarnungen im Browser aus und blockiert Besucher sofort. Eine proaktive Überwachung verhindert unerwartete Ausfälle.",
       "latencyList": {
-        "expiry": "Certificate Expiry: Certificates have a validity period. An expired cert immediately breaks HTTPS for all visitors.",
-        "chain": "Chain of Trust: A broken chain (missing intermediate certificate) causes untrusted warnings on some browsers.",
-        "cipher": "Cipher Suite: Weak encryption algorithms (like RC4 or MD5) expose users to man-in-the-middle attacks."
+        "expiry": "Ablaufdatum: Zertifikate haben eine begrenzte Laufzeit. Ein abgelaufenes Zertifikat bricht sofort HTTPS für alle Besucher.",
+        "chain": "Vertrauenskette: Eine unterbrochene Kette (fehlendes Zwischenzertifikat) verursacht Warnungen in einigen Browsern.",
+        "cipher": "Verschlüsselung: Schwache Algorithmen (RC4, MD5) öffnen Sicherheitslücken für Man-in-the-Middle-Angriffe."
       },
-      "global": "Global Certificate Validation",
-      "globalDesc": "Different regions may resolve to different servers due to CDN or GeoDNS configurations. A global SSL check confirms that all edge servers present a valid certificate, not just your local resolver."
+      "global": "Globale Zertifikatsprüfung",
+      "globalDesc": "Durch CDNs oder GeoDNS können verschiedene Regionen auf unterschiedliche Server zugreifen. Die globale SSL-Prüfung bestätigt, dass alle Edge-Server ein gültiges Zertifikat haben, nicht nur Ihr lokaler Resolver."
+    },
+    "smtp": {
+      "title": "SMTP-Mailserver-Verbindungstest",
+      "understanding": "Wie die SMTP-Prüfung funktioniert",
+      "understandingDesc": "Die SMTP-Prüfung bestätigt, ob Ihr Mailserver Verbindungen aus externen Netzwerken korrekt akzeptiert. Sie verwendet das Standard-SMTP-Protokoll (EHLO/HELO), um sicherzustellen, dass der Server ordnungsgemäß antwortet.",
+      "latency": "Warum die Mailserver-Antwort prüfen?",
+      "latencyDesc": "Verzögerungen beim Mailserver können zu Zustellfehlern oder erheblichen Verzögerungen bei der Nachrichtenverarbeitung führen. Die Überwachung der Antwortgeschwindigkeit ist entscheid von Bedeutung.",
+      "latencyList": {
+        "connection": "Verbindungszeit: Misst, wie lange der TCP-Handshake mit dem Mailserver dauert.",
+        "banner": "SMTP-Banner: Die erste Antwort des Servers, in der er sich identifiziert. Fehlende oder langsame Banner können auf Überlastung hinweisen.",
+        "auth": "Sicherheit/Ports: Prüfung der Erreichbarkeit über Standard-Ports wie 25 (SMTP), 587 (Submission) oder 465 (SMTPS)."
+      },
+      "global": "Prüfung der globalen E-Mail-Erreichbarkeit",
+      "globalDesc": "Falsche Firewall-Einstellungen oder Blockaden durch regionale Provider verhindern oft, dass Mailserver legitime E-Mails empfangen. Der globale SMTP-Test garantiert die weltweite Erreichbarkeit."
     }
   },
   "Docs": {

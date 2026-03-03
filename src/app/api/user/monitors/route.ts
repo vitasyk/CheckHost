@@ -37,7 +37,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Missing domain or type' }, { status: 400 });
         }
 
-        const validTypes = ['ssl', 'dns', 'blacklist', 'uptime'];
+        const validTypes = ['ssl', 'dns', 'blacklist', 'uptime', 'smtp'];
         if (!validTypes.includes(type)) {
             return NextResponse.json({ error: 'Invalid monitor type' }, { status: 400 });
         }

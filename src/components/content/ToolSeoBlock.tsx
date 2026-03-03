@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslations } from 'next-intl';
 import {
     Activity, Globe2, Search, Network, Server, ShieldCheck, Map as MapIcon,
-    Lightbulb, Gauge, Earth, CheckCircle2, Info
+    Lightbulb, Gauge, Earth, CheckCircle2, Info, Mail
 } from 'lucide-react';
 
 interface ToolSeoBlockProps {
@@ -17,7 +17,8 @@ const toolStyles: Record<string, { icon: React.ElementType, gradient: string, li
     'mtr': { icon: Network, gradient: 'from-orange-500 to-amber-500', lightBg: 'bg-orange-50/50 dark:bg-orange-900/5', text: 'text-orange-600 dark:text-orange-400', border: 'border-orange-100 dark:border-orange-900/30', badgeBg: 'bg-orange-100 dark:bg-orange-500/10' },
     'tcpUdp': { icon: Server, gradient: 'from-rose-500 to-pink-500', lightBg: 'bg-rose-50/50 dark:bg-rose-900/5', text: 'text-rose-600 dark:text-rose-400', border: 'border-rose-100 dark:border-rose-900/30', badgeBg: 'bg-rose-100 dark:bg-rose-500/10' },
     'ssl': { icon: ShieldCheck, gradient: 'from-indigo-500 to-blue-500', lightBg: 'bg-indigo-50/50 dark:bg-indigo-900/5', text: 'text-indigo-600 dark:text-indigo-400', border: 'border-indigo-100 dark:border-indigo-900/30', badgeBg: 'bg-indigo-100 dark:bg-indigo-500/10' },
-    'ipInfo': { icon: MapIcon, gradient: 'from-sky-500 to-blue-500', lightBg: 'bg-sky-50/50 dark:bg-sky-900/5', text: 'text-sky-600 dark:text-sky-400', border: 'border-sky-100 dark:border-sky-900/30', badgeBg: 'bg-sky-100 dark:bg-sky-500/10' }
+    'ipInfo': { icon: MapIcon, gradient: 'from-sky-500 to-blue-500', lightBg: 'bg-sky-50/50 dark:bg-sky-900/5', text: 'text-sky-600 dark:text-sky-400', border: 'border-sky-100 dark:border-sky-900/30', badgeBg: 'bg-sky-100 dark:bg-sky-500/10' },
+    'smtp': { icon: Mail, gradient: 'from-amber-400 to-orange-500', lightBg: 'bg-amber-50/50 dark:bg-amber-900/5', text: 'text-amber-600 dark:text-amber-400', border: 'border-amber-100 dark:border-amber-900/30', badgeBg: 'bg-amber-100 dark:bg-amber-500/10' }
 };
 
 export function ToolSeoBlock({ toolId }: ToolSeoBlockProps) {
@@ -33,11 +34,12 @@ export function ToolSeoBlock({ toolId }: ToolSeoBlockProps) {
         'dns-all': 'dns',
         'ssl': 'ssl',
         'info': 'ipInfo',
-        'ip-info': 'ipInfo'
+        'ip-info': 'ipInfo',
+        'smtp': 'smtp'
     };
 
     const mappedId = toolMapping[toolId] || toolId;
-    const knownTools = ['ping', 'http', 'dns', 'mtr', 'tcpUdp', 'ssl', 'ipInfo'];
+    const knownTools = ['ping', 'http', 'dns', 'mtr', 'tcpUdp', 'ssl', 'ipInfo', 'smtp'];
 
     if (!knownTools.includes(mappedId)) return null;
 

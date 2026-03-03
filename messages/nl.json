@@ -27,8 +27,12 @@
     "dnsDesc": "Verifieer wereldwijde DNS-propagatie. Controleer direct A-, AAAA-, MX-, CNAME- en TXT-records via meerdere nameservers.",
     "ipinfoTitle": "IP Info & Geolocatie - Gedetailleerde netwerkintelligentie",
     "ipinfoDesc": "Vind gedetailleerde geolocatie-, ISP- en netwerkgegevens voor elk IP-adres of domein. Vergelijking van meerdere providers.",
-    "checksTitle": "Diagnostische tools - Wereldwijde website prestatiemonitoring",
-    "checksDesc": "Uitgebreide diagnostische tools voor websites, waaronder Ping, HTTP, DNS, SSL en MTR-controles. Multimodale analyse van 20+ locaties."
+    "checksTitle": "Diagnosetools - Wereldwijde websiteprestatiebewaking",
+    "checksDesc": "Uitgebreide website-diagnosetools, inclusief Ping, HTTP, DNS, SSL en MTR controles. Multimodale analyse vanaf 20+ locaties.",
+    "smtpTitle": "SMTP-test - Controle van mailserververbinding en beveiliging",
+    "smtpDesc": "Controleer de verbinding met de SMTP-server en de reactietijd vanaf 20+ locaties. Test poorten 25, 465, 587.",
+    "sslTitle": "SSL-certificaatcontrole - Valideer TLS-beveiliging & verloopdatum",
+    "sslDesc": "Controleer de geldigheid van het SSL/TLS-certificaat, the verloopdatum, de vertrouwensketen en de versleutelingssterkte vanaf meerdere wereldwijde locaties. Gratis en direct."
   },
   "Share": {
     "snapshot": "Momentopname",
@@ -481,10 +485,16 @@
         "checkSuffix": " Controle"
       },
       "ipInfo": {
-        "name": "IP Info",
+        "name": "IP-info",
         "measures": "Geolocatie, ISP, ASN, WHOIS",
-        "useCase": "IP eigendom & routing identificeren",
-        "checkSuffix": " Lookup"
+        "useCase": "IP-eigenaar en routes identificeren",
+        "checkSuffix": " zoekopdracht"
+      },
+      "smtp": {
+        "name": "SMTP",
+        "measures": "SMTP-banner, verbinding, EHLO-antwoord",
+        "useCase": "Mailserver beschikbaarheid controleren",
+        "checkSuffix": " controle"
       }
     },
     "faq": {
@@ -589,18 +599,32 @@
       "globalDesc": "In addition to location data, advanced lookups provide administrative contact information (WHOIS) for an IP block, which is necessary for reporting network abuse or spam."
     },
     "ssl": {
-      "title": "SSL/TLS Certificate Checker",
-      "understanding": "What Does an SSL Certificate Check Verify?",
-      "understandingDesc": "An SSL/TLS check analyzes the security certificate of a website, confirming it is valid, trusted by major browsers, and not expired. It reveals the certificate authority (CA), expiry date, and encryption strength.",
-      "latency": "Why Monitor Your SSL Certificate?",
-      "latencyDesc": "An expired or misconfigured SSL certificate causes browser security warnings, blocking visitors immediately. Proactive monitoring prevents unexpected outages.",
+      "title": "SSL/TLS-certificaatcontrole",
+      "understanding": "Wat verifieert een SSL-certificaatcontrole?",
+      "understandingDesc": "Een SSL/TLS-controle analyseert het beveiligingscertificaat van een website en bevestigt dat dit geldig is, wordt vertrouwd door grote browsers en niet is verlopen. Het onthult de certificeringsinstantie (CA), de verloopdatum en de versleutelingssterkte.",
+      "latency": "Waarom uw SSL-certificaat monitoren?",
+      "latencyDesc": "Een verlopen of verkeerd geconfigureerd SSL-certificaat veroorzaakt beveiligingswaarschuwingen in de browser, waardoor bezoekers onmiddellijk worden geblokkeerd. Proactieve monitoring voorkomt onverwachte uitval.",
       "latencyList": {
-        "expiry": "Certificate Expiry: Certificates have a validity period. An expired cert immediately breaks HTTPS for all visitors.",
-        "chain": "Chain of Trust: A broken chain (missing intermediate certificate) causes untrusted warnings on some browsers.",
-        "cipher": "Cipher Suite: Weak encryption algorithms (like RC4 or MD5) expose users to man-in-the-middle attacks."
+        "expiry": "Verloopdatum: Certificaten hebben een geldigheidsperiode. Een verlopen certificaat verbreekt onmiddellijk de HTTPS-verbinding voor alle bezoekers.",
+        "chain": "Vertrouwensketen: Een onderbroken keten (ontbrekend tussenliggend certificaat) veroorzaakt waarschuwingen over onbetrouwbaarheid in sommige browsers.",
+        "cipher": "Cipher Suite: Zwakke versleutelingsalgoritmen (zoals RC4 of MD5) stellen gebruikers bloot aan man-in-the-middle-aanvallen."
       },
-      "global": "Global Certificate Validation",
-      "globalDesc": "Different regions may resolve to different servers due to CDN or GeoDNS configurations. A global SSL check confirms that all edge servers present a valid certificate, not just your local resolver."
+      "global": "Wereldwijde certificaatvalidatie",
+      "globalDesc": "Verschillende regio's kunnen naar verschillende servers verwijzen vanwege CDN- of GeoDNS-configuraties. Een wereldwijde SSL-controle bevestigt dat alle edge-servers een geldig certificaat presenteren, niet alleen uw lokale resolver."
+    },
+    "smtp": {
+      "title": "SMTP-mailserververbindingstest",
+      "understanding": "Hoe de SMTP-controle werkt",
+      "understandingDesc": "De SMTP-controle bevestigt of uw mailserver verbindingen van externe netwerken correct accepteert.",
+      "latency": "Waarom de reactie van de mailserver controleren?",
+      "latencyDesc": "Vertragingen bij de mailserver kunnen leiden tot afleverfouten.",
+      "latencyList": {
+        "connection": "Verbindingstijd: Meet hoe lang de TCP-handshake met de mailserver duurt.",
+        "banner": "SMTP-banner: Eerste reactie van de server waarin deze zich identificeert.",
+        "auth": "Beveiliging/Poorten: Controle via standaardpoorten zoals 25, 587 of 465."
+      },
+      "global": "Controle van wereldwijde mailbeschikbaarheid",
+      "globalDesc": "De wereldwijde SMTP-test garandeert dat uw server overal ter wereld bereikbaar is."
     }
   },
   "Docs": {

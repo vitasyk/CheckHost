@@ -132,7 +132,7 @@ async function initDockerDbSchema() {
         // 1. Types
         await pool.query(`
             DO $$ BEGIN
-                CREATE TYPE monitor_type AS ENUM ('ssl', 'dns', 'blacklist', 'uptime');
+                CREATE TYPE monitor_type AS ENUM ('ssl', 'dns', 'blacklist', 'uptime', 'smtp');
             EXCEPTION WHEN duplicate_object THEN null; END $$;
 
             DO $$ BEGIN

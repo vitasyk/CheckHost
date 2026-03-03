@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSiteSetting, saveSiteSetting } from '@/lib/site-settings';
+import { processMonitors } from '@/lib/monitor-processor';
 
 /**
  * GET /api/cron/tick?secret=XXX
@@ -88,6 +89,15 @@ export async function GET(request: Request) {
         } else {
             actions.push(`publish:skip:next=${new Date(nextRun).toISOString()}`);
         }
+    }
+
+    // ── Monitor Job ──────────────────────────────
+    console.log('[Cron/tick] Triggering monitor job...');
+    try {
+        const monitorRes = await processMonitors();
+        actions.push(`monitors:${monitorRes.processed}checked`);
+    } catch (e: any) {
+        actions.push(`monitors:error:${e.message}`);
     }
 
     return NextResponse.json({
