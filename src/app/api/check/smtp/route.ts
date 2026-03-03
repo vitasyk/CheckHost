@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import dns, { promises as dnsPromises } from 'dns';
 import net from 'net';
+import tls from 'tls';
 import axios from 'axios';
 import { apiLogger } from '@/lib/api-logger';
 import { headers } from 'next/headers';
+import { SocksClient } from 'socks';
 import { getRealIp } from '@/lib/utils';
 import { SmtpAggregatedResult, SmtpAuditResult } from '@/types/checkhost';
 
@@ -109,31 +111,77 @@ async function getIpInfo(ip: string) {
     return { asn: null };
 }
 
+// Proxy configuration from environment
+const PROXY_HOST = process.env.SMTP_PROXY_HOST;
+const PROXY_PORT = process.env.SMTP_PROXY_PORT ? parseInt(process.env.SMTP_PROXY_PORT) : undefined;
+const PROXY_USER = process.env.SMTP_PROXY_USER;
+const PROXY_PASS = process.env.SMTP_PROXY_PASS;
+
 async function performSmtpHandshake(originalHost: string, targetHost: string, port: number, connectIp?: string | null): Promise<{ log: string; banner: string | null; starttls: boolean }> {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
         let log = `CONNECTING ${originalHost} -> ${targetHost}:${port}\n`;
         if (originalHost === targetHost) {
             log = `CONNECTING ${targetHost}:${port}\n`;
         }
         let banner: string | null = null;
         let starttls = false;
+        const FINAL_TIMEOUT = 10000;
 
-        const socket = new net.Socket();
+        let socket: any;
 
-        socket.setTimeout(10000);
+        try {
+            if (PROXY_HOST && PROXY_PORT) {
+                log += `USING PROXY: ${PROXY_HOST}:${PROXY_PORT}\n`;
+                const info = await SocksClient.createConnection({
+                    proxy: {
+                        host: PROXY_HOST,
+                        port: PROXY_PORT,
+                        type: 5,
+                        userId: PROXY_USER,
+                        password: PROXY_PASS
+                    },
+                    command: 'connect',
+                    destination: {
+                        host: connectIp || targetHost,
+                        port: port
+                    },
+                    timeout: FINAL_TIMEOUT
+                });
+                socket = info.socket;
+            } else {
+                socket = new net.Socket();
+                socket.connect(port, connectIp || targetHost);
+            }
+
+            // Handle port 465 (Implicit TLS)
+            if (port === 465) {
+                log += `ESTABLISHING SSL CONNECTION (Port 465)\n`;
+                socket = tls.connect({
+                    socket: socket,
+                    host: targetHost,
+                    servername: targetHost,
+                    rejectUnauthorized: false
+                });
+            }
+        } catch (err: any) {
+            log += `ERROR: Connection failed: ${err.message}\n`;
+            return resolve({ log, banner, starttls });
+        }
+
+        socket.setTimeout(FINAL_TIMEOUT);
 
         socket.on('timeout', () => {
-            log += `ERROR: Connection timed out after 10s\n`;
+            log += `ERROR: Connection timed out after ${FINAL_TIMEOUT / 1000}s\n`;
             socket.destroy();
             resolve({ log, banner, starttls });
         });
 
-        socket.on('error', (err) => {
+        socket.on('error', (err: any) => {
             log += `ERROR: ${err.message}\n`;
             resolve({ log, banner, starttls });
         });
 
-        socket.on('data', (data) => {
+        socket.on('data', (data: Buffer) => {
             const response = data.toString();
             const lines = response.split('\n').map(l => l.trim()).filter(l => l);
 
@@ -149,12 +197,10 @@ async function performSmtpHandshake(originalHost: string, targetHost: string, po
 
             // Simple state machine
             if (response.startsWith('220 ')) {
-                // Sent EHLO
                 const ehlo = `EHLO checknode.io\r\n`;
                 log += `C: ${ehlo}`;
                 socket.write(ehlo);
             } else if (response.includes('250 ') && !log.includes('QUIT')) {
-                // Sent QUIT
                 const quit = `QUIT\r\n`;
                 log += `C: ${quit}`;
                 socket.write(quit);
@@ -164,32 +210,66 @@ async function performSmtpHandshake(originalHost: string, targetHost: string, po
         socket.on('close', () => {
             resolve({ log, banner, starttls });
         });
-
-        socket.connect(port, connectIp || targetHost);
     });
 }
 
 async function probePort(host: string, port: number, timeout = 3000): Promise<boolean> {
-    return new Promise((resolve) => {
-        const socket = new net.Socket();
-        socket.setTimeout(timeout);
+    return new Promise(async (resolve) => {
+        let baseSocket: net.Socket | null = null;
+        try {
+            if (PROXY_HOST && PROXY_PORT) {
+                const info = await SocksClient.createConnection({
+                    proxy: {
+                        host: PROXY_HOST,
+                        port: PROXY_PORT,
+                        type: 5,
+                        userId: PROXY_USER,
+                        password: PROXY_PASS
+                    },
+                    command: 'connect',
+                    destination: { host, port },
+                    timeout: timeout
+                });
+                baseSocket = info.socket;
+            } else {
+                baseSocket = new net.Socket();
+                baseSocket.connect(port, host);
+                baseSocket.setTimeout(timeout);
+                await new Promise((res, rej) => {
+                    baseSocket!.on('connect', res);
+                    baseSocket!.on('error', rej);
+                    baseSocket!.on('timeout', () => rej(new Error('timeout')));
+                });
+            }
 
-        socket.on('connect', () => {
-            socket.destroy();
-            resolve(true);
-        });
-
-        socket.on('timeout', () => {
-            socket.destroy();
+            if (port === 465) {
+                const tlsSocket = tls.connect({
+                    socket: baseSocket,
+                    host,
+                    servername: host,
+                    rejectUnauthorized: false
+                });
+                tlsSocket.setTimeout(timeout);
+                tlsSocket.on('secureConnect', () => {
+                    tlsSocket.destroy();
+                    resolve(true);
+                });
+                tlsSocket.on('error', () => {
+                    tlsSocket.destroy();
+                    resolve(false);
+                });
+                tlsSocket.on('timeout', () => {
+                    tlsSocket.destroy();
+                    resolve(false);
+                });
+            } else {
+                baseSocket.destroy();
+                resolve(true);
+            }
+        } catch {
+            if (baseSocket) baseSocket.destroy();
             resolve(false);
-        });
-
-        socket.on('error', () => {
-            socket.destroy();
-            resolve(false);
-        });
-
-        socket.connect(port, host);
+        }
     });
 }
 
@@ -260,10 +340,11 @@ export async function GET(request: Request) {
 
         mxRecords.forEach(mx => candidates.add(mx.exchange));
 
-        // Attempt parallel probing
+        // Attempt parallel probing with a longer timeout for SOCKS5
+        const probeTimeout = 10000;
         const results = await Promise.all(
             Array.from(candidates).map(async (candidate) => {
-                const isUp = await probePort(candidate, portParam, 3000);
+                const isUp = await probePort(candidate, portParam, probeTimeout);
                 return isUp ? candidate : null;
             })
         );
@@ -271,8 +352,13 @@ export async function GET(request: Request) {
         const winner = results.find(r => r !== null);
         if (winner) {
             targetHost = winner;
-        } else if (mxRecords.length > 0) {
-            targetHost = mxRecords[0].exchange;
+        } else {
+            // Fallback: if smtp.host exists, try it even if probe failed (maybe probe was too slow)
+            if (candidates.has(`smtp.${hostParam}`)) {
+                targetHost = `smtp.${hostParam}`;
+            } else if (mxRecords.length > 0) {
+                targetHost = mxRecords[0].exchange;
+            }
         }
     }
 
