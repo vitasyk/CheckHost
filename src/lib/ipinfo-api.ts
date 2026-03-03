@@ -1,6 +1,7 @@
 import { getIpInfoConfig } from './ipinfo-config';
 import { lookupLocalIpInfo, isLocalDbAvailable } from './ipinfo-local';
 import net from 'net';
+import { extractHost, isIPv6 } from './utils';
 
 const IPINFO_API_BASE = 'https://ipinfo.io';
 
@@ -203,16 +204,11 @@ export async function fetchIpInfo(ip: string): Promise<IpInfoLiteResponse | null
 }
 
 export async function resolveHostToIp(host: string): Promise<string | null> {
-    // Basic sanitization: remove http://, https://, and trailing paths
-    const cleanedHost = host
-        .replace(/^https?:\/\//i, '') // Remove protocol
-        .split('/')[0]                // Remove path/query
-        .split(':')[0]                // Remove port if present
-        .trim();
+    const cleanedHost = extractHost(host);
 
     // Try to detect if it's already an IP (IPv4 or IPv6)
-    const ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}$|^(?:[a-fA-F0-9]{1,4}:){2,7}[a-fA-F0-9]{1,4}$/;
-    if (ipRegex.test(cleanedHost)) {
+    const ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}$/;
+    if (ipRegex.test(cleanedHost) || isIPv6(cleanedHost)) {
         return cleanedHost;
     }
 
@@ -250,9 +246,9 @@ export async function resolveHostToIp(host: string): Promise<string | null> {
  */
 export async function resolveIpToHost(ip: string): Promise<string | null> {
     const isIpv4 = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(ip);
-    const isIpv6 = ip.includes(':');
+    const isIp6 = isIPv6(ip);
 
-    if (!isIpv4 && !isIpv6) return null;
+    if (!isIpv4 && !isIp6) return null;
 
     let arpaHost = '';
     if (isIpv4) {
@@ -292,12 +288,7 @@ export async function resolveIpToHost(ip: string): Promise<string | null> {
  * Clean a domain/host string for DNS lookups
  */
 function cleanDomainForDns(domain: string): string {
-    return domain
-        .replace(/^https?:\/\//i, '') // Remove protocol
-        .split('/')[0]                // Remove path/query
-        .split(':')[0]                // Remove port if present
-        .replace(/\.$/, '')          // Remove trailing dot
-        .trim();
+    return extractHost(domain);
 }
 
 /**

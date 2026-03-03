@@ -4,6 +4,7 @@ import * as dns from 'dns';
 import { promisify } from 'util';
 import crypto from 'crypto';
 import { logSeoPage } from '@/lib/seo-logger';
+import { extractHost, isIPv6 } from '@/lib/utils';
 
 const lookup = promisify(dns.lookup);
 
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Sanitize host (remove protocol/path) and ensure lowercase
-    host = host.replace(/^https?:\/\//, '').split('/')[0].split(':')[0].toLowerCase();
+    host = extractHost(host);
 
     try {
         const result = await checkSsl(host);
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
         } else if (error.code === 'ETIMEDOUT') {
             errorMessage = `Connection timed out: The server at "${host}" (port 443) took too long to respond.`;
             isTechnicalError = false;
-        } else if (error.code === 'EHOSTUNREACH') {
+        } else if (error.code === 'EHOSTUNREACH' || error.code === 'ENETUNREACH') {
             errorMessage = `Host unreachable: No path to the server at "${host}".`;
             isTechnicalError = false;
         }
@@ -85,7 +86,7 @@ async function checkSsl(host: string, port: number = 443): Promise<any> {
         const options = {
             host,
             port,
-            servername: host, // SNI is required for most sites
+            servername: isIPv6(host) || /^(?:\d{1,3}\.){3}\d{1,3}$/.test(host) ? undefined : host, // SNI is required for hostnames, not IPs
             rejectUnauthorized: false, // We want to see invalid certs too
         };
 

@@ -4,6 +4,7 @@ import dns from 'dns';
 import { getMockIpInfo } from '@/lib/mock-data';
 import { memoryCache } from '@/lib/cache';
 import { logSeoPage } from '@/lib/seo-logger';
+import { extractHost, isIPv6 } from '@/lib/utils';
 
 // Create multiple independent resolvers for parallel probing
 const googleResolver = new dns.promises.Resolver();
@@ -75,7 +76,7 @@ export async function GET(request: Request) {
     }
 
     // Clean domain
-    const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim().toLowerCase();
+    const cleanDomain = extractHost(domain);
 
     // Normalized cache key
     const cacheKey = `dns-lookup:${cleanDomain}`;
@@ -95,8 +96,8 @@ export async function GET(request: Request) {
     try {
         const responseData = await memoryCache.deduplicate(cacheKey, async () => {
             // Detect if input is already an IP address (IPv4 or IPv6)
-            const ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}$|^(?:[a-fA-F0-9]{1,4}:){2,7}[a-fA-F0-9]{1,4}$/;
-            const isIP = ipRegex.test(cleanDomain);
+            const ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}$/;
+            const isIP = ipRegex.test(cleanDomain) || isIPv6(cleanDomain);
 
             const records: DnsRecord[] = [];
 
