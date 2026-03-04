@@ -577,7 +577,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                                 </TabsContent>
 
                                 <TabsContent value="dns-all">
-                                    <CheckForm type="dns-all" host={host} maxNodes={maxNodes} onMaxNodesChange={setMaxNodes} onHostChange={setHost} onResults={handleDnsInfoResults} onCheckStart={(checkNodes) => handleCheckStart('dns-all', checkNodes, setDnsInfoNodes, setDnsInfoResults)} onCheckComplete={() => handleCheckComplete('dns-all')} errorMessage={errorMessage} isLoading={activeChecks.has('dns-all')} nodes={nodes} isReverseMtr={isReverseMtr} onReverseMtrToggle={handleReverseMtrToggle} selectedNodeIds={selectedNodeIds} autoStart={autoStart && activeTab === 'dns-all'} />
+                                    <CheckForm type="dns-all" host={host} maxNodes={maxNodes} onMaxNodesChange={setMaxNodes} onHostChange={setHost} onResults={handleDnsInfoResults} onCheckStart={(checkNodes) => handleCheckStart('dns-all', checkNodes, setDnsInfoNodes, setDnsInfoResults)} onCheckComplete={() => host.trim() && runCheck('dns-all', host)} errorMessage={errorMessage} isLoading={activeChecks.has('dns-all')} nodes={nodes} isReverseMtr={isReverseMtr} onReverseMtrToggle={handleReverseMtrToggle} selectedNodeIds={selectedNodeIds} autoStart={autoStart && activeTab === 'dns-all'} />
                                     <ResultsDisplay results={dnsInfoResults || {}} checkType="dns-all" nodes={nodes} activeNodes={dnsInfoNodes} targetHost={host} isLoading={activeChecks.has('dns-all')} dnsType={dnsType} onDnsTypeChange={setDnsType} onRefresh={() => runCheck('dns-all', host, true)} isRefreshing={activeChecks.has('dns-all')} />
                                 </TabsContent>
 
