@@ -345,6 +345,9 @@ export function SmtpDashboard({ data, isLoading, onRefresh, isRefreshing, host, 
                                 {status === 'ERROR' && (
                                     <Badge variant="outline" className="text-slate-400">Timeout</Badge>
                                 )}
+                                {(status as string) === 'BLOCKED' && (
+                                    <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20">DNS Blocked</Badge>
+                                )}
                             </div>
                         ))}
                         {Object.keys(audit.rbl).length === 0 && (

@@ -4,12 +4,12 @@ import { fetchAsnInfo, fetchRdapInfo } from '@/lib/ipinfo-api';
 import { parseRdapData } from '@/lib/rdap-parser';
 import { memoryCache } from '@/lib/cache';
 import { logSeoPage } from '@/lib/seo-logger';
-import { getRealIp } from '@/lib/utils';
+import { getRealIp, extractHost } from '@/lib/utils';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const hostRaw = searchParams.get('host');
-    let host = hostRaw ? hostRaw.trim().toLowerCase() : null;
+    let host = hostRaw ? extractHost(hostRaw) : null;
 
     // Detect client IP with priority order for proxies/CDN
     const clientIp = getRealIp(request.headers);

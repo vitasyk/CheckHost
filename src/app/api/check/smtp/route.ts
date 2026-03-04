@@ -66,29 +66,39 @@ const RBL_SERVERS = [
     'bl.spamcop.net'
 ];
 
-async function checkRbl(ip: string): Promise<Record<string, 'CLEAR' | 'LISTED' | 'ERROR'>> {
-    const results: Record<string, 'CLEAR' | 'LISTED' | 'ERROR'> = {};
+const DQS_KEY = process.env.SPAMHAUS_DQS_KEY;
+
+async function checkRbl(ip: string): Promise<Record<string, 'CLEAR' | 'LISTED' | 'ERROR' | 'BLOCKED'>> {
+    const results: Record<string, 'CLEAR' | 'LISTED' | 'ERROR' | 'BLOCKED'> = {};
     const reversedIp = ip.split('.').reverse().join('.');
 
     await Promise.all(
         RBL_SERVERS.map(async (rbl) => {
             try {
-                // If it resolves to any A record, we must check if it's an error code.
-                // Spamhaus returns 127.255.255.x when blocking public DNS (like 8.8.8.8).
-                const addresses = await dnsPromises.resolve4(`${reversedIp}.${rbl}`);
+                let queryHost = `${reversedIp}.${rbl}`;
+
+                // Use DQS for Spamhaus if key is present
+                if (DQS_KEY && rbl.endsWith('spamhaus.org')) {
+                    const shortRbl = rbl.split('.')[0]; // sbl, xbl, zen
+                    queryHost = `${reversedIp}.${DQS_KEY}.${shortRbl}.dq.spamhaus.net`;
+                }
+
+                const addresses = await dnsPromises.resolve4(queryHost);
 
                 if (addresses.some(ip => ip.startsWith('127.255.'))) {
-                    // This is an error code indicating the DNS resolver is blocked by the RBL
-                    results[rbl] = 'ERROR';
+                    results[rbl] = 'BLOCKED';
                 } else {
-                    // Normal list responses are typically 127.0.0.x
                     results[rbl] = 'LISTED';
                 }
             } catch (err: any) {
                 if (err.code === 'ENOTFOUND') {
                     results[rbl] = 'CLEAR';
-                } else {
+                } else if (err.code === 'ETIMEOUT' || err.code === 'ECONNREFUSED') {
                     results[rbl] = 'ERROR';
+                } else {
+                    // Treat other DNS errors as CLEAR or ERROR? 
+                    // ENODATA etc usually means not listed.
+                    results[rbl] = 'CLEAR';
                 }
             }
         })

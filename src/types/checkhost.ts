@@ -97,7 +97,7 @@ export interface SmtpAuditResult {
     dmarc: { record: string | null; status: 'pass' | 'fail' | 'none' };
     ptr: { record: string | null; status: 'pass' | 'fail' | 'none' };
     mx: { priority: number; exchange: string }[];
-    rbl: Record<string, 'CLEAR' | 'LISTED' | 'ERROR'>;
+    rbl: Record<string, 'CLEAR' | 'LISTED' | 'ERROR' | 'BLOCKED'>;
 }
 
 export interface SmtpAggregatedResult {
