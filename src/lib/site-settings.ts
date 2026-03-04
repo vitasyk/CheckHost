@@ -86,6 +86,8 @@ export async function saveSiteSetting(key: string, value: any) {
     const pgEnabled = systemConfig.db_postgres_enabled !== false;
     const sbEnabled = systemConfig.db_supabase_enabled !== false;
 
+    let savedToDb = false;
+
     // Always save to local file FIRST if it's a connectivity setting
     // to ensure we don't lock ourselves out
     if (key === 'system_config') {
@@ -109,8 +111,11 @@ export async function saveSiteSetting(key: string, value: any) {
                     onConflict: 'key'
                 });
 
-            if (!error) return { success: true };
-            console.error(`[Settings] Supabase save error for ${key}:`, error);
+            if (!error) {
+                savedToDb = true;
+            } else {
+                console.error(`[Settings] Supabase save error for ${key}:`, error);
+            }
         } catch (error) {
             console.error(`[Settings] Supabase save exception for ${key}:`, error);
         }
@@ -124,10 +129,14 @@ export async function saveSiteSetting(key: string, value: any) {
                  ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
                 [key, value]
             );
-            return { success: true };
+            savedToDb = true;
         } catch (error) {
             console.error(`[Settings] PostgreSQL save error for ${key}:`, error);
         }
+    }
+
+    if (savedToDb) {
+        return { success: true };
     }
 
     // Fallback to local file

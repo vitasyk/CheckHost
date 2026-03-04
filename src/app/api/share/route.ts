@@ -22,19 +22,12 @@ export async function POST(req: NextRequest) {
         // 1. Fetch TTL setting from site_settings (share_results key)
         let ttlDays = 30; // Default
         try {
-            if (isPostgresConfigured) {
-                const settingsRes = await pool.query('SELECT value FROM site_settings WHERE key = $1', ['share_results']);
-                if (settingsRes.rows.length > 0) {
-                    ttlDays = settingsRes.rows[0].value.ttlDays ?? 30;
-                }
-            } else if (isSupabaseConfigured) {
-                const { data: settingsData } = await supabase
-                    .from('site_settings')
-                    .select('value')
-                    .eq('key', 'share_results')
-                    .single();
-                if (settingsData) {
-                    ttlDays = settingsData.value.ttlDays ?? 30;
+            const { getSiteSetting } = await import('@/lib/site-settings');
+            const shareConfig = await getSiteSetting('share_results');
+            if (shareConfig && shareConfig.ttlDays !== undefined) {
+                const parsed = Number(shareConfig.ttlDays);
+                if (!isNaN(parsed)) {
+                    ttlDays = parsed;
                 }
             }
         } catch (err) {
