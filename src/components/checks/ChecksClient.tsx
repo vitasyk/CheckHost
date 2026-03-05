@@ -5,18 +5,34 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import type { ResultsResponse, CheckType, Node } from '@/types/checkhost';
 import { checkHostAPI } from '@/lib/checkhost-api';
 import { CheckForm } from '@/components/checks/CheckForm';
-import { ResultsDisplay } from '@/components/checks/ResultsDisplay';
-import { SslDashboard } from '@/components/checks/SslDashboard';
 import { Activity, Wifi, Database, Network, Loader2, CheckCircle2, Info, Map as Globe, Zap, FileText, Shield, Mail } from 'lucide-react';
 import { IpInfoResponse } from '@/types/ip-info';
-import IpInfoResult from '@/components/ip-info/IpInfoResult';
 import { SmtpAggregatedResult } from '@/types/checkhost';
-import { SmtpDashboard } from '@/components/checks/SmtpDashboard';
 import { AdSlot } from '@/components/AdSlot';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import dynamic from 'next/dynamic';
+
+const ResultsDisplay = dynamic(() => import('@/components/checks/ResultsDisplay').then(mod => mod.ResultsDisplay), {
+    ssr: false,
+    loading: () => <div className="p-8 flex items-center justify-center text-slate-400"><Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading Results...</div>
+});
+
+const SslDashboard = dynamic(() => import('@/components/checks/SslDashboard').then(mod => mod.SslDashboard), {
+    ssr: false,
+    loading: () => <div className="p-8 flex items-center justify-center text-slate-400"><Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading SSL Dashboard...</div>
+});
+
+const IpInfoResult = dynamic(() => import('@/components/ip-info/IpInfoResult'), {
+    ssr: false,
+    loading: () => <div className="p-8 flex items-center justify-center text-slate-400"><Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading IP Info...</div>
+});
+
+const SmtpDashboard = dynamic(() => import('@/components/checks/SmtpDashboard').then(mod => mod.SmtpDashboard), {
+    ssr: false,
+    loading: () => <div className="p-8 flex items-center justify-center text-slate-400"><Loader2 className="h-6 w-6 animate-spin mr-2" /> Loading SMTP Dashboard...</div>
+});
 
 const NodalMap = dynamic(() => import('@/components/checks/NodalMap'), {
     ssr: false,
