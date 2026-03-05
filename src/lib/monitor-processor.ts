@@ -1,6 +1,8 @@
 import { query } from './postgres';
 import net from 'net';
+import tls from 'tls';
 import { promises as dnsPromises } from 'dns';
+import { sendMonitorAlert, sendMonitorRecovery } from './email';
 
 /**
  * Background processor for user monitors.
@@ -26,9 +28,24 @@ export async function processMonitors() {
         try {
             const result = await checkMonitor(m.type, m.domain, m.meta);
 
-            // Check if status changed to generate feed item
-            if (m.status !== result.status && m.status !== 'pending') {
+            // Check if status changed to generate feed item + send email
+            const statusChanged = m.status !== result.status && m.status !== 'pending';
+            if (statusChanged) {
                 await createFeedItem(m.user_id, m.id, result.status, m.domain, m.type);
+
+                // Send email notification if configured
+                if (m.notify_email) {
+                    if (result.status === 'error') {
+                        await sendMonitorAlert(
+                            m.notify_email,
+                            m.domain,
+                            m.type,
+                            result.meta
+                        );
+                    } else if (result.status === 'ok') {
+                        await sendMonitorRecovery(m.notify_email, m.domain, m.type, result.meta);
+                    }
+                }
             }
 
             // Update monitor record
@@ -89,18 +106,99 @@ async function checkPort(host: string, port: number): Promise<{ status: 'ok' | '
     });
 }
 
-async function checkSsl(domain: string) {
-    // Simplified SSL check for background processing
-    // In a real app, you'd use tls.connect and verify expiration
-    return { status: 'ok', meta: { checked: true } };
+async function checkSsl(domain: string): Promise<{ status: 'ok' | 'error', meta: any }> {
+    return new Promise((resolve) => {
+        const socket = tls.connect(
+            { host: domain, port: 443, servername: domain, rejectUnauthorized: false },
+            () => {
+                const cert = socket.getPeerCertificate();
+                socket.destroy();
+
+                if (!cert || !cert.valid_to) {
+                    return resolve({ status: 'error', meta: { last_error: 'Could not retrieve SSL certificate' } });
+                }
+
+                const expiryDate = new Date(cert.valid_to);
+                const daysLeft = Math.floor((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                const issuer = cert.issuer?.O || cert.issuer?.CN || 'Unknown';
+                const subject = cert.subject?.CN || domain;
+
+                if (daysLeft < 0) {
+                    return resolve({
+                        status: 'error',
+                        meta: {
+                            last_error: `Certificate expired ${Math.abs(daysLeft)} days ago`,
+                            ssl_expiry: expiryDate.toISOString(),
+                            ssl_days_left: daysLeft,
+                            ssl_issuer: issuer,
+                            ssl_subject: subject,
+                        }
+                    });
+                }
+
+                // Warn if expiring soon (less than 14 days)
+                if (daysLeft < 14) {
+                    return resolve({
+                        status: 'error',
+                        meta: {
+                            last_error: `Certificate expires in ${daysLeft} days`,
+                            ssl_expiry: expiryDate.toISOString(),
+                            ssl_days_left: daysLeft,
+                            ssl_issuer: issuer,
+                            ssl_subject: subject,
+                        }
+                    });
+                }
+
+                return resolve({
+                    status: 'ok',
+                    meta: {
+                        ssl_expiry: expiryDate.toISOString(),
+                        ssl_days_left: daysLeft,
+                        ssl_issuer: issuer,
+                        ssl_subject: subject,
+                    }
+                });
+            }
+        );
+
+        socket.setTimeout(8000);
+        socket.on('timeout', () => {
+            socket.destroy();
+            resolve({ status: 'error', meta: { last_error: 'SSL connection timeout' } });
+        });
+        socket.on('error', (err) => {
+            socket.destroy();
+            resolve({ status: 'error', meta: { last_error: err.message } });
+        });
+    });
 }
 
 async function checkDns(domain: string) {
     try {
-        await dnsPromises.resolve4(domain);
-        return { status: 'ok', meta: { resolved: true } };
-    } catch {
-        return { status: 'error', meta: { error: 'DNS resolution failed' } };
+        const [ipv4, mx] = await Promise.allSettled([
+            dnsPromises.resolve4(domain),
+            dnsPromises.resolveMx(domain),
+        ]);
+
+        const ips = ipv4.status === 'fulfilled' ? ipv4.value : [];
+        const mxRecords = mx.status === 'fulfilled'
+            ? mx.value.sort((a, b) => a.priority - b.priority).slice(0, 3).map(r => r.exchange)
+            : [];
+
+        if (ips.length === 0 && mxRecords.length === 0) {
+            return { status: 'error' as const, meta: { last_error: 'DNS resolution failed — no A or MX records found' } };
+        }
+
+        return {
+            status: 'ok' as const,
+            meta: {
+                dns_ips: ips,
+                dns_mx: mxRecords,
+            }
+        };
+    } catch (e: any) {
+        return { status: 'error' as const, meta: { last_error: `DNS resolution failed: ${e.message}` } };
     }
 }
 

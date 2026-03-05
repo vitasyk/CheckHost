@@ -26,7 +26,8 @@ export function isIPv6(ip: string): boolean {
   if (!ip) return false;
   const clean = ip.trim();
   const colons = (clean.match(/:/g) || []).length;
-  return colons >= 2 && /^[a-fA-F0-9:.]+$/.test(clean);
+  // Valid IPv6 has between 2 and 7 colons
+  return colons >= 2 && colons <= 7 && /^[a-fA-F0-9:.]+$/.test(clean);
 }
 
 /**
@@ -51,8 +52,20 @@ export function extractHost(input: string): string {
   }
 
   // If no brackets, check if it's potentially a raw IPv6 by counting colons.
-  const colons = (cleaned.match(/:/g) || []).length;
+  let colons = (cleaned.match(/:/g) || []).length;
   if (colons >= 2) {
+    // If there are 8 or more colons, it's likely an unbracketed IPv6 with a port at the end.
+    // E.g., full IPv6 + port: 2a01:4f8:1c1c:1000::1:25 (not full, but has port), wait, 
+    // actually we should strip the last colon if colons > 7
+    while (colons >= 8) {
+      const lastColonIndex = cleaned.lastIndexOf(':');
+      if (lastColonIndex !== -1) {
+        cleaned = cleaned.substring(0, lastColonIndex);
+        colons--;
+      } else {
+        break;
+      }
+    }
     return cleaned.toLowerCase();
   }
 

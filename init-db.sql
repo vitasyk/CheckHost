@@ -185,8 +185,13 @@ CREATE TABLE IF NOT EXISTS user_monitors (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT true,
+    notify_email TEXT,
+    notify_telegram TEXT,
     UNIQUE(user_id, domain, type)
 );
+
+COMMENT ON COLUMN user_monitors.notify_email IS 'Email address that receives alert/recovery notifications for this monitor';
+COMMENT ON COLUMN user_monitors.notify_telegram IS 'Telegram chat_id (or username) for Telegram notifications — future use';
 
 CREATE INDEX IF NOT EXISTS idx_user_monitors_next_check ON user_monitors(next_check_at) WHERE is_active = true;
 CREATE INDEX IF NOT EXISTS idx_user_monitors_user_id ON user_monitors(user_id);

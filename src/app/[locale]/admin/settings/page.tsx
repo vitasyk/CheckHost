@@ -85,7 +85,7 @@ export default function AdminSettings() {
         type: 'info'
     });
     const [shareConfig, setShareConfig] = useState<ShareResultsConfig>({
-        ttlDays: 30
+        ttlDays: 90
     });
     const [seoConfig, setSeoConfig] = useState<SeoConfig>({
         siteTitle: '',

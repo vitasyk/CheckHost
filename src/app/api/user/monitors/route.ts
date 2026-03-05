@@ -125,3 +125,42 @@ export async function DELETE(req: Request) {
         return NextResponse.json({ error: 'Failed to disable monitor' }, { status: 500 });
     }
 }
+
+export async function PATCH(req: Request) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const body = await req.json();
+        const { id, notify_email, notify_telegram } = body;
+
+        if (!id) {
+            return NextResponse.json({ error: 'Monitor ID required' }, { status: 400 });
+        }
+
+        // Validate email format if provided
+        if (notify_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(notify_email)) {
+            return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
+        }
+
+        const res = await query(
+            `UPDATE user_monitors 
+             SET notify_email = $1, notify_telegram = $2, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $3 AND user_id = $4
+             RETURNING id, notify_email, notify_telegram`,
+            [notify_email || null, notify_telegram || null, id, session.user.id]
+        );
+
+        if (res.rows.length === 0) {
+            return NextResponse.json({ error: 'Monitor not found or unauthorized' }, { status: 404 });
+        }
+
+        return NextResponse.json({ success: true, data: res.rows[0] });
+
+    } catch (e: any) {
+        console.error('[User Monitors PATCH] Error:', e);
+        return NextResponse.json({ error: 'Failed to update monitor' }, { status: 500 });
+    }
+}
