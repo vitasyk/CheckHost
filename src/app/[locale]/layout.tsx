@@ -162,8 +162,16 @@ export default async function RootLayout({
         notFound();
     }
 
-    // Providing all messages to the client
-    const messages = await getMessages();
+    // Providing only necessary messages to the client to reduce bundle size
+    const allMessages = await getMessages();
+    const messages = {
+        Navigation: allMessages.Navigation,
+        Footer: allMessages.Footer,
+        CookieConsent: allMessages.CookieConsent,
+        Metadata: allMessages.Metadata,
+        Share: allMessages.Share,
+        Common: (allMessages as any).Common,
+    };
 
     const session = await getServerSession(authOptions);
     const systemConfig = await getSiteSetting('system_config');
