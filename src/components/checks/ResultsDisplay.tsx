@@ -818,7 +818,7 @@ export function ResultsDisplay({
                                                             </TableCell>
                                                             <TableCell>
                                                                 <div className="flex items-center gap-3">
-                                                                    <span className="text-lg leading-none">{location.flag}</span>
+                                                                    <span className="text-lg leading-none" role="img" aria-label={`${location.country}, ${location.city} flag`}>{location.flag}</span>
                                                                     <div className="flex flex-col">
                                                                         <span className="font-medium text-sm">{location.country}, {location.city}</span>
                                                                     </div>
@@ -876,7 +876,7 @@ export function ResultsDisplay({
                                                             </TableCell>
                                                             <TableCell>
                                                                 <div className="flex items-center gap-3">
-                                                                    <span className="text-lg leading-none">{location.flag}</span>
+                                                                    <span className="text-lg leading-none" role="img" aria-label={`${location.country}, ${location.city} flag`}>{location.flag}</span>
                                                                     <div className="flex flex-col">
                                                                         <span className="font-medium text-sm">{location.country}, {location.city}</span>
                                                                     </div>

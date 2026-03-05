@@ -337,8 +337,9 @@
   },
   "CookieConsent": {
     "title": "Wij gebruiken cookies",
-    "description": "Wij gebruiken essentiële en analytische cookies voor de correcte werking van het platform en om gebruikspatronen te analyseren.",
+    "description": "Wij gebruiken essentiële en analytische cookies om ervoor te zorgen dat het platform correct werkt en om ons te helpen gebruikspatronen te begrijpen.",
     "learnMore": "Meer informatie",
+    "privacyPolicy": "Privacybeleid",
     "acceptAll": "Alles accepteren",
     "essential": "Alleen essentieel"
   },

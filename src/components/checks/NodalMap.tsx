@@ -34,7 +34,7 @@ const createNodeIcon = (node: any, isSelected: boolean, isActive: boolean) => {
         html: `
             <div class="${classes}">
                 <div class="marker-main">
-                    <img src="${iconUrl}" class="marker-img" />
+                    <img src="${iconUrl}" class="marker-img" alt="Map marker for ${node.city}, ${node.country}" />
                 </div>
                 
                 <div class="apple-glass-card">

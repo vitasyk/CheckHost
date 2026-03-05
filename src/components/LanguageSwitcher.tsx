@@ -59,7 +59,13 @@ export function LanguageSwitcher() {
         <Popover>
             <PopoverTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-10 px-2 sm:px-3 gap-2" disabled={isPending}>
-                    <ReactCountryFlag countryCode={current.country} svg style={{ width: '1.2em', height: '1.2em' }} />
+                    <ReactCountryFlag
+                        countryCode={current.country}
+                        svg
+                        style={{ width: '1.2em', height: '1.2em' }}
+                        title={current.label}
+                        aria-label={current.label}
+                    />
                     <span className="hidden sm:inline-block text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400">
                         {current.code}
                     </span>
@@ -76,7 +82,13 @@ export function LanguageSwitcher() {
                                 : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
                                 }`}
                         >
-                            <ReactCountryFlag countryCode={locale.country} svg style={{ width: '1.2em', height: '1.2em' }} />
+                            <ReactCountryFlag
+                                countryCode={locale.country}
+                                svg
+                                style={{ width: '1.2em', height: '1.2em' }}
+                                title={locale.label}
+                                aria-label={locale.label}
+                            />
                             <span>{locale.label}</span>
                         </button>
                     ))}

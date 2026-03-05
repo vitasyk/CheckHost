@@ -72,6 +72,8 @@ export function VisitorIpInfo() {
                         countryCode={countryCode}
                         svg
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        title={countryName}
+                        aria-label={countryName}
                     />
                 ) : (
                     <MapPin className="h-3 w-3 text-slate-400" />

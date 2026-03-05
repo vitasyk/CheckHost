@@ -64,7 +64,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         return (
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 p-4 rounded-xl shadow-xl flex flex-col gap-2 min-w-[200px]">
                 <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xl leading-none">{getFlagEmoji(label)}</span>
+                    <span className="text-xl leading-none" role="img" aria-label={`${label} flag`}>{getFlagEmoji(label)}</span>
                     <p className="font-bold text-slate-800 dark:text-slate-200">{label}</p>
                 </div>
 
@@ -196,7 +196,7 @@ export default function AdminCharts({ toolData, countryData, loading, timeRange,
                                     tickLine={false}
                                     tick={({ x, y, payload }) => (
                                         <g transform={`translate(${x},${y})`}>
-                                            <text x={0} y={15} dy={0} textAnchor="middle" fill="#64748b" fontSize={16}>
+                                            <text x={0} y={15} dy={0} textAnchor="middle" fill="#64748b" fontSize={16} aria-label={`${payload.value} flag`} role="img">
                                                 {getFlagEmoji(payload.value)}
                                             </text>
                                         </g>

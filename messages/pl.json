@@ -337,8 +337,9 @@
   },
   "CookieConsent": {
     "title": "Używamy plików cookie",
-    "description": "Używamy niezbędnych i analitycznych plików cookie, aby zapewnić prawidłowe funkcjonowanie platformy i analizować wzorce użytkowania.",
+    "description": "Używamy niezbędnych i analitycznych plików cookie, aby zapewnić prawidłowe działanie platformy i pomóc nam zrozumieć wzorce użytkowania.",
     "learnMore": "Dowiedz się więcej",
+    "privacyPolicy": "Polityka prywatności",
     "acceptAll": "Zaakceptuj wszystkie",
     "essential": "Tylko niezbędne"
   },

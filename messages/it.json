@@ -336,10 +336,11 @@
     "ssl": "SSL"
   },
   "CookieConsent": {
-    "title": "Utilizziamo i cookie",
-    "description": "Utilizziamo cookie essenziali e analitici per garantire il corretto funzionamento della piattaforma e analizzare le modalità di utilizzo.",
-    "learnMore": "Scopri di più",
-    "acceptAll": "Accetta tutto",
+    "title": "Usiamo i cookie",
+    "description": "Utilizziamo cookie essenziali e analitici per garantire che la piattaforma funzioni correttamente e per aiutarci a comprendere i modelli di utilizzo.",
+    "learnMore": "Saperne di più",
+    "privacyPolicy": "Informativa sulla privacy",
+    "acceptAll": "Accetta tutti",
     "essential": "Solo essenziali"
   },
   "Legal": {
