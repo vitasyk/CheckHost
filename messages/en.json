@@ -10,7 +10,9 @@
     "dashboard": "Dashboard",
     "blog": "Blog",
     "about": "About",
-    "docs": "Docs"
+    "docs": "Docs",
+    "openMenu": "Open Menu",
+    "closeMenu": "Close Menu"
   },
   "Tools": {
     "ping": "Ping Check",

@@ -10,7 +10,9 @@
     "dashboard": "Dashboard",
     "blog": "Blog",
     "about": "Over ons",
-    "docs": "Docs"
+    "docs": "Documentatie",
+    "openMenu": "Menu openen",
+    "closeMenu": "Menu sluiten"
   },
   "Tools": {
     "ping": "Ping Controle",

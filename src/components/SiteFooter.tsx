@@ -21,7 +21,7 @@ export function SiteFooter() {
                     {/* Column 1 - Brand - Takes 4 cols */}
                     <div className="md:col-span-4 space-y-5">
                         <Link href="/" className="flex items-center gap-2.5 group">
-                            <img src="/logo.svg" alt={siteName} className="h-8 w-8 group-hover:rotate-[10deg] transition-transform duration-500" />
+                            <img src="/logo.svg" alt="" aria-hidden="true" className="h-8 w-8 group-hover:rotate-[10deg] transition-transform duration-500" />
                             <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white uppercase italic">
                                 {siteName}
                             </span>

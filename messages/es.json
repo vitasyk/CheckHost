@@ -10,7 +10,9 @@
     "dashboard": "Panel de control",
     "blog": "Blog",
     "about": "Acerca de",
-    "docs": "Docs"
+    "docs": "Docs",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú"
   },
   "Tools": {
     "ping": "Prueba de Ping",

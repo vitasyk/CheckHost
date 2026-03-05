@@ -10,7 +10,9 @@
     "dashboard": "Dashboard",
     "blog": "Blog",
     "about": "Chi siamo",
-    "docs": "Docs"
+    "docs": "Documentazione",
+    "openMenu": "Apri menu",
+    "closeMenu": "Chiudi menu"
   },
   "Tools": {
     "ping": "Test Ping",

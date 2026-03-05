@@ -64,7 +64,7 @@ function MobileUnifiedNav() {
         <div className="lg:hidden">
             <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
                 <DialogPrimitive.Trigger asChild>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-all active:scale-95">
+                    <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-all active:scale-95" aria-label={t('openMenu')}>
                         <Menu className="h-6 w-6" />
                     </Button>
                 </DialogPrimitive.Trigger>
@@ -99,6 +99,7 @@ function MobileUnifiedNav() {
                                             className={`h-9 w-9 rounded-lg transition-all duration-300 ${isXRayActive
                                                 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 border-none'
                                                 : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-white/5 dark:border-white/10 dark:text-white/50'}`}
+                                            aria-label="Toggle X-Ray Mode"
                                         >
                                             <ScanEye className={`h-4 w-4 ${isXRayActive ? 'animate-pulse' : ''}`} />
                                         </Button>
@@ -219,7 +220,7 @@ function MobileUnifiedNav() {
                                     className="h-10 w-full max-w-[180px] gap-2 rounded-xl bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-white/10 dark:hover:border-white/20 transition-all font-bold shadow-sm active:scale-95"
                                 >
                                     <X className="h-4 w-4" />
-                                    Close Menu
+                                    {t('closeMenu')}
                                 </Button>
                             </DialogPrimitive.Close>
                         </div>
@@ -319,6 +320,7 @@ export function Header() {
                                     className={`gap-2 h-10 transition-all ${isXRayActive ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:text-indigo-600 border-slate-200 dark:border-white/10 dark:text-slate-400'}`}
                                     onClick={toggleXRay}
                                     title="Live Layout Preview (X-Ray Mode)"
+                                    aria-label="Toggle X-Ray Mode"
                                 >
                                     <ScanEye className={`h-4 w-4 ${isXRayActive ? 'animate-pulse' : ''}`} />
                                     <span className="text-[10px] font-bold uppercase tracking-widest">X-Ray</span>
