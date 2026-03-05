@@ -13,6 +13,7 @@ interface Monitor {
     status: string;
     notify_email?: string;
     notify_telegram?: string;
+    check_interval_hours?: number;
 }
 
 interface FeedEvent {
@@ -33,6 +34,7 @@ function MonitorCard({
     const [expanded, setExpanded] = useState(false);
     const [email, setEmail] = useState(monitor.notify_email || "");
     const [telegram, setTelegram] = useState(monitor.notify_telegram || "");
+    const [interval, setInterval] = useState(monitor.check_interval_hours || 24);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
@@ -51,6 +53,7 @@ function MonitorCard({
                     id: monitor.id,
                     notify_email: email.trim() || null,
                     notify_telegram: telegram.trim() || null,
+                    check_interval_hours: interval,
                 }),
             });
             const data = await res.json();
@@ -85,8 +88,8 @@ function MonitorCard({
                         onClick={() => setExpanded(v => !v)}
                         title="Configure notifications"
                         className={`p-1.5 rounded-lg transition-colors ${hasNotifications
-                                ? 'text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10'
-                                : 'text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10'
+                            ? 'text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10'
+                            : 'text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-500/10'
                             }`}
                     >
                         {hasNotifications ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
@@ -125,6 +128,21 @@ function MonitorCard({
                             onChange={e => setEmail(e.target.value)}
                             className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
+                    </div>
+
+                    {/* Interval */}
+                    <div>
+                        <label className="text-xs text-slate-500 mb-1 block">Check Interval</label>
+                        <select
+                            value={interval}
+                            onChange={e => setInterval(parseInt(e.target.value))}
+                            className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                            <option value={4}>Every 4 hours</option>
+                            <option value={8}>Every 8 hours</option>
+                            <option value={12}>Every 12 hours</option>
+                            <option value={24}>Every 24 hours (Default)</option>
+                        </select>
                     </div>
 
                     {/* Telegram */}
@@ -180,6 +198,7 @@ export function UserActivityFeed() {
     // Add Monitor Form
     const [newDomain, setNewDomain] = useState("");
     const [newType, setNewType] = useState("ssl");
+    const [newInterval, setNewInterval] = useState(24);
     const [isAdding, setIsAdding] = useState(false);
 
     const fetchData = useCallback(async () => {
@@ -212,7 +231,7 @@ export function UserActivityFeed() {
             const res = await fetch('/api/user/monitors', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ domain: newDomain, type: newType })
+                body: JSON.stringify({ domain: newDomain, type: newType, check_interval_hours: newInterval })
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Failed to add monitor');
@@ -271,6 +290,16 @@ export function UserActivityFeed() {
                         <option value="blacklist">IP Blacklist</option>
                         <option value="smtp">SMTP / Port 25</option>
                     </select>
+                    <select
+                        value={newInterval}
+                        onChange={e => setNewInterval(parseInt(e.target.value))}
+                        className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                        <option value={4}>4h</option>
+                        <option value={8}>8h</option>
+                        <option value={12}>12h</option>
+                        <option value={24}>24h</option>
+                    </select>
                     <Button type="submit" disabled={isAdding} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                         {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
                         Add Monitor
@@ -323,8 +352,8 @@ export function UserActivityFeed() {
                         feed.map(item => (
                             <div key={item.id} className="flex gap-4 p-4 rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/50 hover:bg-slate-50 dark:hover:bg-slate-900/80 transition-colors">
                                 <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${item.event_type === 'error' ? 'bg-red-500' :
-                                        item.event_type === 'warning' ? 'bg-orange-500' :
-                                            item.event_type === 'success' ? 'bg-emerald-500' : 'bg-blue-500'
+                                    item.event_type === 'warning' ? 'bg-orange-500' :
+                                        item.event_type === 'success' ? 'bg-emerald-500' : 'bg-blue-500'
                                     }`} />
                                 <div className="flex-1">
                                     <h4 className="font-semibold text-sm mb-1">{item.title}</h4>

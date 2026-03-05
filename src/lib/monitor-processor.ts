@@ -49,7 +49,8 @@ export async function processMonitors() {
             }
 
             // Update monitor record
-            const nextCheck = new Date(Date.now() + 15 * 60 * 1000); // Check every 15 mins
+            const intervalHours = m.check_interval_hours || 24;
+            const nextCheck = new Date(Date.now() + intervalHours * 60 * 60 * 1000); 
             await query(`
                 UPDATE user_monitors 
                 SET status = $1, last_check_at = CURRENT_TIMESTAMP, next_check_at = $2, meta = $3, updated_at = CURRENT_TIMESTAMP

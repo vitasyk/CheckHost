@@ -61,13 +61,14 @@ export async function POST(req: Request) {
         }
 
         // Insert new monitor
+        const checkInterval = body.check_interval_hours || 24;
         const res = await query(
-            `INSERT INTO user_monitors (user_id, domain, type, status, meta) 
-             VALUES ($1, $2, $3, 'pending', '{}'::jsonb) 
+            `INSERT INTO user_monitors (user_id, domain, type, status, meta, check_interval_hours) 
+             VALUES ($1, $2, $3, 'pending', '{}'::jsonb, $4) 
              ON CONFLICT (user_id, domain, type) 
-             DO UPDATE SET is_active = true, updated_at = CURRENT_TIMESTAMP
+             DO UPDATE SET is_active = true, updated_at = CURRENT_TIMESTAMP, check_interval_hours = $4
              RETURNING id, domain, type, status`,
-            [session.user.id, cleanDomain, type]
+            [session.user.id, cleanDomain, type, checkInterval]
         );
 
         // Instantly generate a feed item for the new monitor
@@ -134,7 +135,7 @@ export async function PATCH(req: Request) {
         }
 
         const body = await req.json();
-        const { id, notify_email, notify_telegram } = body;
+        const { id, notify_email, notify_telegram, check_interval_hours } = body;
 
         if (!id) {
             return NextResponse.json({ error: 'Monitor ID required' }, { status: 400 });
@@ -147,10 +148,10 @@ export async function PATCH(req: Request) {
 
         const res = await query(
             `UPDATE user_monitors 
-             SET notify_email = $1, notify_telegram = $2, updated_at = CURRENT_TIMESTAMP
+             SET notify_email = $1, notify_telegram = $2, check_interval_hours = COALESCE($5, check_interval_hours), updated_at = CURRENT_TIMESTAMP
              WHERE id = $3 AND user_id = $4
-             RETURNING id, notify_email, notify_telegram`,
-            [notify_email || null, notify_telegram || null, id, session.user.id]
+             RETURNING id, notify_email, notify_telegram, check_interval_hours`,
+            [notify_email || null, notify_telegram || null, id, session.user.id, check_interval_hours || null]
         );
 
         if (res.rows.length === 0) {
