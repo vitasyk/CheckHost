@@ -1,9 +1,15 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@checknode.io';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
 const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode';
+
+// Lazy Resend client — initialized only at runtime (not at build time)
+function getResend() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) throw new Error('[Email] RESEND_API_KEY is not configured');
+  return new Resend(apiKey);
+}
 
 // ─── Helper: meta detail blocks ────────────────────────────────────────────────
 
@@ -158,7 +164,7 @@ export async function sendMonitorAlert(
   meta: Record<string, any> = {}
 ) {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await getResend().emails.send({
       from: EMAIL_FROM,
       to,
       subject: `🔴 Alert: ${type.toUpperCase()} issue detected on ${domain}`,
@@ -185,7 +191,7 @@ export async function sendMonitorRecovery(
   meta: Record<string, any> = {}
 ) {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await getResend().emails.send({
       from: EMAIL_FROM,
       to,
       subject: `✅ Recovered: ${type.toUpperCase()} monitor for ${domain} is back online`,
