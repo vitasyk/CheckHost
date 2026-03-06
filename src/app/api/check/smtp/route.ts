@@ -42,6 +42,10 @@ async function resolveTxt(domain: string): Promise<string[]> {
 }
 
 async function resolveA(domain: string): Promise<string | null> {
+    // If already an IP address (IPv4 or IPv6), return it directly
+    if (net.isIP(domain)) {
+        return domain;
+    }
     try {
         const records = await dnsPromises.resolve4(domain);
         return records[0] || null;
@@ -426,7 +430,10 @@ export async function GET(request: Request) {
         dmarc,
         ptr: {
             record: ptr,
-            status: ptr ? (ptr.toLowerCase().includes(hostParam.toLowerCase()) ? 'pass' : 'fail') : 'none'
+            status: ptr ? (
+                net.isIP(hostParam) ? 'pass' : // If we searched by IP, seeing a PTR at all is usually "pass" for IP reputation
+                    (ptr.toLowerCase().includes(hostParam.toLowerCase()) ? 'pass' : 'fail')
+            ) : 'none'
         },
         mx: mxRecords,
         rbl
