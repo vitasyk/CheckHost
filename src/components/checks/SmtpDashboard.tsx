@@ -328,9 +328,9 @@ export function SmtpDashboard({ data, isLoading, onRefresh, isRefreshing, host, 
                         <h3 className="font-bold text-slate-900 dark:text-white">Reputation (RBLs)</h3>
                     </div>
 
-                    <div className="space-y-3 overflow-y-auto pr-2 max-h-[300px]">
+                    <div className="space-y-1 overflow-y-auto pr-2 max-h-[300px]">
                         {Object.entries(audit.rbl).map(([rbl, status]) => (
-                            <div key={rbl} className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                            <div key={rbl} className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate max-w-[200px]" title={rbl}>{rbl}</span>
                                 {status === 'CLEAR' && (
                                     <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase">
