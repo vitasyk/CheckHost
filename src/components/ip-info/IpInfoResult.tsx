@@ -237,7 +237,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
                 </div>
 
                 {/* Glass Tile: Regional Intelligence (Right Top) */}
-                <div className="absolute top-4 right-4 z-10 w-64 animate-in slide-in-from-right-4 duration-700">
+                <div className="absolute top-4 right-4 z-10 w-64 animate-in slide-in-from-right-4 duration-700 hidden sm:block">
                     <div className="backdrop-blur-md bg-white/70 dark:bg-slate-900/70 border border-white/40 dark:border-white/10 rounded-2xl p-4 shadow-2xl">
                         <div className="flex items-center justify-between mb-5">
                             <div className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Regional Profile</div>
