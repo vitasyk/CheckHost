@@ -63,13 +63,6 @@ async function resolvePtr(ip: string): Promise<string | null> {
     }
 }
 
-const RBL_SERVERS = [
-    'sbl.spamhaus.org',
-    'xbl.spamhaus.org',
-    'zen.spamhaus.org',
-    'bl.spamcop.net'
-];
-
 const DQS_KEY = process.env.SPAMHAUS_DQS_KEY;
 
 const SPAMHAUS_CODE_MAP: Record<string, string> = {
@@ -82,51 +75,59 @@ const SPAMHAUS_CODE_MAP: Record<string, string> = {
 };
 
 async function checkRbl(ip: string): Promise<Record<string, 'CLEAR' | 'LISTED' | 'ERROR' | 'BLOCKED' | string>> {
-    const results: Record<string, 'CLEAR' | 'LISTED' | 'ERROR' | 'BLOCKED' | string> = {};
+    const results: Record<string, string> = {
+        'Spamhaus SBL': 'CLEAR',
+        'Spamhaus CSS': 'CLEAR',
+        'Spamhaus XBL': 'CLEAR',
+        'Spamhaus PBL': 'CLEAR',
+        'Spamcop': 'CLEAR'
+    };
     const reversedIp = ip.split('.').reverse().join('.');
 
-    await Promise.all(
-        RBL_SERVERS.map(async (rbl) => {
-            try {
-                let queryHost = `${reversedIp}.${rbl}`;
+    // 1. Spamhaus ZEN check (covers SBL, CSS, XBL, PBL)
+    try {
+        let queryHost = `${reversedIp}.zen.spamhaus.org`;
+        if (DQS_KEY) {
+            queryHost = `${reversedIp}.${DQS_KEY}.zen.dq.spamhaus.net`;
+        }
 
-                // Use DQS for Spamhaus if key is present
-                if (DQS_KEY && rbl.endsWith('spamhaus.org')) {
-                    const shortRbl = rbl.split('.')[0]; // sbl, xbl, zen
-                    queryHost = `${reversedIp}.${DQS_KEY}.${shortRbl}.dq.spamhaus.net`;
+        const addresses = await dnsPromises.resolve4(queryHost);
+
+        if (addresses.some(addr => addr.startsWith('127.255.'))) {
+            results['Spamhaus ZEN'] = 'BLOCKED';
+            delete results['Spamhaus SBL'];
+            delete results['Spamhaus CSS'];
+            delete results['Spamhaus XBL'];
+            delete results['Spamhaus PBL'];
+        } else {
+            addresses.forEach(addr => {
+                const list = SPAMHAUS_CODE_MAP[addr];
+                if (list) {
+                    results[`Spamhaus ${list}`] = 'LISTED';
                 }
+            });
+        }
+    } catch (err: any) {
+        if (err.code !== 'ENOTFOUND') {
+            // Unexpected error (timeout etc)
+            results['Spamhaus ZEN'] = 'ERROR';
+            delete results['Spamhaus SBL'];
+            delete results['Spamhaus CSS'];
+            delete results['Spamhaus XBL'];
+            delete results['Spamhaus PBL'];
+        }
+    }
 
-                const addresses = await dnsPromises.resolve4(queryHost);
+    // 2. Spamcop check
+    try {
+        await dnsPromises.resolve4(`${reversedIp}.bl.spamcop.net`);
+        results['Spamcop'] = 'LISTED';
+    } catch (err: any) {
+        if (err.code !== 'ENOTFOUND') {
+            results['Spamcop'] = 'ERROR';
+        }
+    }
 
-                if (addresses.some(addr => addr.startsWith('127.255.'))) {
-                    results[rbl] = 'BLOCKED';
-                } else {
-                    // Map specific Spamhaus return codes to list names
-                    if (rbl.includes('spamhaus.org')) {
-                        const lists = addresses
-                            .map(addr => SPAMHAUS_CODE_MAP[addr])
-                            .filter(Boolean);
-
-                        if (lists.length > 0) {
-                            results[rbl] = Array.from(new Set(lists)).join(', ');
-                        } else {
-                            results[rbl] = 'LISTED';
-                        }
-                    } else {
-                        results[rbl] = 'LISTED';
-                    }
-                }
-            } catch (err: any) {
-                if (err.code === 'ENOTFOUND') {
-                    results[rbl] = 'CLEAR';
-                } else if (err.code === 'ETIMEOUT' || err.code === 'ECONNREFUSED') {
-                    results[rbl] = 'ERROR';
-                } else {
-                    results[rbl] = 'CLEAR';
-                }
-            }
-        })
-    );
     return results;
 }
 
