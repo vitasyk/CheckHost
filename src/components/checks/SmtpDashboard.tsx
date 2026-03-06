@@ -337,9 +337,9 @@ export function SmtpDashboard({ data, isLoading, onRefresh, isRefreshing, host, 
                                         <CheckCircle2 className="h-3.5 w-3.5" /> Clean
                                     </div>
                                 )}
-                                {status === 'LISTED' && (
+                                {status !== 'CLEAR' && status !== 'ERROR' && status !== 'BLOCKED' && (
                                     <div className="flex items-center gap-1.5 text-red-600 dark:text-red-400 text-xs font-bold uppercase">
-                                        <AlertTriangle className="h-3.5 w-3.5" /> Listed
+                                        <AlertTriangle className="h-3.5 w-3.5" /> {status === 'LISTED' ? 'Listed' : status}
                                     </div>
                                 )}
                                 {status === 'ERROR' && (

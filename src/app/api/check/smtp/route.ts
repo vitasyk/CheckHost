@@ -72,8 +72,16 @@ const RBL_SERVERS = [
 
 const DQS_KEY = process.env.SPAMHAUS_DQS_KEY;
 
-async function checkRbl(ip: string): Promise<Record<string, 'CLEAR' | 'LISTED' | 'ERROR' | 'BLOCKED'>> {
-    const results: Record<string, 'CLEAR' | 'LISTED' | 'ERROR' | 'BLOCKED'> = {};
+const SPAMHAUS_CODE_MAP: Record<string, string> = {
+    '127.0.0.2': 'SBL',
+    '127.0.0.3': 'CSS',
+    '127.0.0.4': 'XBL',
+    '127.0.0.10': 'PBL',
+    '127.0.0.11': 'PBL'
+};
+
+async function checkRbl(ip: string): Promise<Record<string, 'CLEAR' | 'LISTED' | 'ERROR' | 'BLOCKED' | string>> {
+    const results: Record<string, 'CLEAR' | 'LISTED' | 'ERROR' | 'BLOCKED' | string> = {};
     const reversedIp = ip.split('.').reverse().join('.');
 
     await Promise.all(
@@ -89,10 +97,23 @@ async function checkRbl(ip: string): Promise<Record<string, 'CLEAR' | 'LISTED' |
 
                 const addresses = await dnsPromises.resolve4(queryHost);
 
-                if (addresses.some(ip => ip.startsWith('127.255.'))) {
+                if (addresses.some(addr => addr.startsWith('127.255.'))) {
                     results[rbl] = 'BLOCKED';
                 } else {
-                    results[rbl] = 'LISTED';
+                    // Map specific Spamhaus return codes to list names
+                    if (rbl.includes('spamhaus.org')) {
+                        const lists = addresses
+                            .map(addr => SPAMHAUS_CODE_MAP[addr])
+                            .filter(Boolean);
+
+                        if (lists.length > 0) {
+                            results[rbl] = Array.from(new Set(lists)).join(', ');
+                        } else {
+                            results[rbl] = 'LISTED';
+                        }
+                    } else {
+                        results[rbl] = 'LISTED';
+                    }
                 }
             } catch (err: any) {
                 if (err.code === 'ENOTFOUND') {
@@ -100,8 +121,6 @@ async function checkRbl(ip: string): Promise<Record<string, 'CLEAR' | 'LISTED' |
                 } else if (err.code === 'ETIMEOUT' || err.code === 'ECONNREFUSED') {
                     results[rbl] = 'ERROR';
                 } else {
-                    // Treat other DNS errors as CLEAR or ERROR? 
-                    // ENODATA etc usually means not listed.
                     results[rbl] = 'CLEAR';
                 }
             }
