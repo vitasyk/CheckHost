@@ -76,6 +76,7 @@ const SPAMHAUS_CODE_MAP: Record<string, string> = {
     '127.0.0.2': 'SBL',
     '127.0.0.3': 'CSS',
     '127.0.0.4': 'XBL',
+    '127.0.0.9': 'SBL', // SBL DROP
     '127.0.0.10': 'PBL',
     '127.0.0.11': 'PBL'
 };
