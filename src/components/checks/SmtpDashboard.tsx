@@ -8,6 +8,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 interface SmtpDashboardProps {
     data: SmtpAggregatedResult | null;
@@ -17,10 +18,11 @@ interface SmtpDashboardProps {
     host?: string;
     port?: number;
     isSharedView?: boolean;
-    onViewTcpDetails?: (reqId: string) => void;
+    onViewTcpDetails?: () => void;
 }
 
 export function SmtpDashboard({ data, isLoading, onRefresh, isRefreshing, host, port, isSharedView = false, onViewTcpDetails }: SmtpDashboardProps) {
+    const t = useTranslations('SmtpDashboard');
     const [ipCopied, setIpCopied] = useState(false);
     const [isSharing, setIsSharing] = useState(false);
     const [shareCopied, setShareCopied] = useState(false);
@@ -92,20 +94,6 @@ export function SmtpDashboard({ data, isLoading, onRefresh, isRefreshing, host, 
 
     if (!data) return null;
 
-    if (data.error && !data.ok) {
-        return (
-            <div className="mt-8 p-6 rounded-2xl bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/50 flex items-start gap-4">
-                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-                <div>
-                    <h3 className="text-lg font-bold text-red-900 dark:text-red-200">З'єднання не вдалося</h3>
-                    <p className="text-red-700 dark:text-red-400 mt-1">{data.error}</p>
-                    <p className="text-red-600/80 dark:text-red-400/80 text-sm mt-2">
-                        Це може бути пов'язано з тим, що сервер вимкнено, порт {data.port} заблоковано фаєрволом, або ж хостинг обмежує вихідні з'єднання.
-                    </p>
-                </div>
-            </div>
-        );
-    }
 
     const { audit } = data;
 
@@ -184,31 +172,25 @@ export function SmtpDashboard({ data, isLoading, onRefresh, isRefreshing, host, 
                 </div>
 
                 <div className="flex-1 p-4 flex items-center gap-4">
-                    <div className={cn("p-3 rounded-xl", data.globalTcpId ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400" : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400")}>
+                    <div className={cn("p-3 rounded-xl", "bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400")}>
                         <Globe className="h-6 w-6" />
                     </div>
                     <div className="flex flex-col gap-0.5">
                         <p className="text-xs font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">Reachability</p>
-                        {data.globalTcpId ? (
-                            <>
-                                <span className="text-base font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
-                                    {data.globalTcpNodeCount ? `${data.globalTcpNodeCount} nodes` : 'Global'}
-                                    <span className="text-slate-400 dark:text-slate-500 font-normal"> · TCP</span>
-                                </span>
-                                <button
-                                    onClick={() => {
-                                        if (onViewTcpDetails && data.globalTcpId) {
-                                            onViewTcpDetails(data.globalTcpId);
-                                        }
-                                    }}
-                                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors mt-0.5 w-fit"
-                                >
-                                    TCP Details <ExternalLink className="h-2.5 w-2.5" />
-                                </button>
-                            </>
-                        ) : (
-                            <span className="text-base font-bold text-slate-900 dark:text-white">Local Only</span>
-                        )}
+                        <span className="text-base font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
+                            Global
+                            <span className="text-slate-400 dark:text-slate-500 font-normal"> · TCP</span>
+                        </span>
+                        <button
+                            onClick={() => {
+                                if (onViewTcpDetails) {
+                                    onViewTcpDetails();
+                                }
+                            }}
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors mt-0.5 w-fit"
+                        >
+                            TCP Details <ExternalLink className="h-2.5 w-2.5" />
+                        </button>
                     </div>
                 </div>
             </div>

@@ -700,5 +700,10 @@
     "title": "Foire Aux Questions",
     "subtitle": "Trouvez des réponses aux questions les plus fréquentes sur nos outils.",
     "noFaqs": "Aucune FAQ trouvée."
+  },
+  "SmtpDashboard": {
+    "connectionFailed": "Échec de la connexion",
+    "backendError_ConnectionFailed": "La connexion a échoué localement et globalement.",
+    "connectionFailedReason": "Cela peut être dû au fait que le serveur est éteint, que le port {port} est bloqué par un pare-feu ou que l'hébergeur limite les connexions sortantes."
   }
 }

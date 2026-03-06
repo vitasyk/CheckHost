@@ -86,7 +86,7 @@ export async function fetchFromIpiz(ip: string): Promise<any> {
     const url = `https://api.ipiz.net/${ip}`;
 
     const response = await fetch(url, {
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(1500)
     });
 
     if (!response.ok) {

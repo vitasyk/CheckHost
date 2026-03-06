@@ -376,7 +376,7 @@ export async function GET(request: Request) {
         mxRecords.forEach(mx => candidates.add(mx.exchange));
 
         // Attempt parallel probing with a longer timeout for SOCKS5
-        const probeTimeout = 10000;
+        const probeTimeout = 5000;
         const results = await Promise.all(
             Array.from(candidates).map(async (candidate) => {
                 const isUp = await probePort(candidate, portParam, probeTimeout);
@@ -401,37 +401,11 @@ export async function GET(request: Request) {
     const headerList = await headers();
     const userIp = getRealIp(headerList) || '127.0.0.1';
 
-    // Initiate Global TCP check via Check-Host API directly
+    // Initiate Global TCP check via Check-Host API directly has been removed
+    // We now rely on user triggering it manually from the UI
     let globalTcpId: string | undefined;
     let globalTcpNodeCount: number | undefined;
     const smtpCheckStart = Date.now();
-    try {
-        await apiLogger.info(`Initiating global tcp check for smtp host: ${targetHost}:${portParam}`);
-        const url = `https://check-host.net/check-tcp?host=${encodeURIComponent(targetHost + ':' + portParam)}`;
-
-        const response = await axios.get(url, {
-            headers: {
-                Accept: 'application/json',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36',
-            },
-            timeout: 15000
-        });
-
-        const data = response.data;
-        globalTcpId = data.request_id;
-        // Count how many probe nodes were assigned for this check
-        if (data.nodes && typeof data.nodes === 'object') {
-            globalTcpNodeCount = Object.keys(data.nodes).length;
-        }
-
-    } catch (e: any) {
-        if (e.code === 'ECONNABORTED' || e.message?.includes('timeout')) {
-            // It's just a timeout initiating the secondary check, not critical for SMTP results
-            // console.warn("Timeout initiating global checkhost TCP check (non-critical)");
-        } else {
-            console.error("Failed to initiate global checkhost check:", e.message || e);
-        }
-    }
 
     // Run deep audit checks and handshake concurrently
     const [ptr, rbl, info, handshake, rootTxt, dmarcTxt] = await Promise.all([
@@ -460,7 +434,7 @@ export async function GET(request: Request) {
         rbl
     };
 
-    const isOk = handshake.banner !== null || (globalTcpId !== undefined);
+    const isOk = handshake.banner !== null;
 
     const result: SmtpAggregatedResult = {
         ok: isOk,

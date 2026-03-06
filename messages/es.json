@@ -700,5 +700,10 @@
     "title": "Preguntas Frecuentes",
     "subtitle": "Encuentra respuestas a las preguntas más comunes sobre nuestras herramientas.",
     "noFaqs": "No se encontraron preguntas."
+  },
+  "SmtpDashboard": {
+    "connectionFailed": "Error de conexión",
+    "backendError_ConnectionFailed": "La conexión falló local y globalmente.",
+    "connectionFailedReason": "Esto puede deberse a que el servidor está apagado, el puerto {port} está bloqueado por un cortafuegos o el alojamiento restringe las conexiones salientes."
   }
 }

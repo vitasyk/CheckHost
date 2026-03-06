@@ -733,9 +733,9 @@ export function ResultsDisplay({
                                     <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
                                     <span>Fetching records...</span>
                                 </div>
-                            ) : (
+                            ) : targetHost && targetHost.trim().length > 0 ? (
                                 <span>Waiting for results...</span>
-                            )}
+                            ) : null}
                         </div>
                     )}
                 </div>

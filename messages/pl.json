@@ -700,5 +700,10 @@
     "title": "Często Zadawane Pytania",
     "subtitle": "Znajdź odpowiedzi na najczęstsze pytania dotyczące naszych narzędzi.",
     "noFaqs": "Nie znaleziono FAQ."
+  },
+  "SmtpDashboard": {
+    "connectionFailed": "Połączenie nie powiodło się",
+    "backendError_ConnectionFailed": "Połączenie nie powiodło się lokalnie i globalnie.",
+    "connectionFailedReason": "Może to być spowodowane tym, że serwer jest wyłączony, port {port} jest zablokowany przez zaporę ogniową lub hosting ogranicza połączenia wychodzące."
   }
 }

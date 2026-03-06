@@ -700,5 +700,10 @@
     "title": "Veelgestelde Vragen",
     "subtitle": "Vind antwoorden op de meest gestelde vragen over onze tools.",
     "noFaqs": "Geen FAQ gevonden."
+  },
+  "SmtpDashboard": {
+    "connectionFailed": "Verbinding mislukt",
+    "backendError_ConnectionFailed": "Verbinding lokaal en globaal mislukt.",
+    "connectionFailedReason": "Dit kan komen doordat de server is uitgeschakeld, poort {port} wordt geblokkeerd door een firewall of de hosting uitgaande verbindingen beperkt."
   }
 }

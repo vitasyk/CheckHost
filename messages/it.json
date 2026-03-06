@@ -700,5 +700,10 @@
     "title": "Domande Frequenti",
     "subtitle": "Trova le risposte alle domande più comuni sui nostri strumenti.",
     "noFaqs": "Nessuna FAQ trovata."
+  },
+  "SmtpDashboard": {
+    "connectionFailed": "Connessione fallita",
+    "backendError_ConnectionFailed": "Connessione fallita localmente e globalmente.",
+    "connectionFailedReason": "Ciò potrebbe essere dovuto al fatto che il server è spento, la porta {port} è bloccata da un firewall o l'hosting limita le connessioni in uscita."
   }
 }

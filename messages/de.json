@@ -700,5 +700,10 @@
     "title": "Häufig Gestellte Fragen",
     "subtitle": "Finden Sie Antworten auf die häufigsten Fragen zu unseren Tools.",
     "noFaqs": "Keine FAQs gefunden."
+  },
+  "SmtpDashboard": {
+    "connectionFailed": "Verbindung fehlgeschlagen",
+    "backendError_ConnectionFailed": "Verbindung lokal und global fehlgeschlagen.",
+    "connectionFailedReason": "Dies kann daran liegen, dass der Server ausgeschaltet ist, der Port {port} durch eine Firewall blockiert wird oder das Hosting ausgehende Verbindungen einschränkt."
   }
 }

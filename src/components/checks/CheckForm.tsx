@@ -22,15 +22,15 @@ import {
 } from 'lucide-react';
 
 const QUICK_LINKS: Record<CheckType, string[]> = {
-    'info': ['1.1.1.1', '8.8.8.8', 'google.com', 'AS13335'],
-    'ping': ['google.com', '1.1.1.1', 'cloudflare.com'],
-    'http': ['https://google.com', 'https://cloudflare.com'],
-    'tcp': ['google.com:443', '1.1.1.1:53'],
+    'info': ['1.1.1.1', '8.8.8.8', 'checknode.io', 'AS13335'],
+    'ping': ['checknode.io', '1.1.1.1', 'cloudflare.com'],
+    'http': ['https://checknode.io', 'https://cloudflare.com'],
+    'tcp': ['checknode.io:443', '1.1.1.1:53'],
     'udp': ['8.8.8.8:53', '1.1.1.1:53'],
-    'dns': ['google.com', 'cloudflare.com'],
-    'mtr': ['google.com', '1.1.1.1'],
-    'dns-all': ['google.com', 'github.com'],
-    'ssl': ['google.com', 'cloudflare.com'],
+    'dns': ['checknode.io', 'cloudflare.com'],
+    'mtr': ['checknode.io', '1.1.1.1'],
+    'dns-all': ['checknode.io', 'github.com'],
+    'ssl': ['checknode.io', 'cloudflare.com'],
     'smtp': ['gmail-smtp-in.l.google.com', 'outlook-com.olc.protection.outlook.com']
 };
 
@@ -220,6 +220,9 @@ export function CheckForm({
         }
     };
 
+    const hasExtraControls = type !== 'info' && type !== 'dns-all' && type !== 'ssl' && type !== 'smtp';
+    const isSmtp = type === 'smtp';
+
     return (
         <Card className="w-full bg-transparent border-none shadow-none overflow-visible">
             <CardContent className="p-0 sm:p-2">
@@ -268,14 +271,26 @@ export function CheckForm({
                                 value={host}
                                 onChange={(e) => onHostChange(e.target.value)}
                                 placeholder={getPlaceholder()}
-                                className={`text-xl font-medium placeholder:text-slate-400/80 h-16 pl-6 pr-[280px] sm:pr-[310px] rounded-2xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-indigo-500/80 hover:border-slate-300 dark:hover:border-white/20 transition-all duration-300 ${errorMessage && !errorMessage.includes('Using 1.1.1.1') ? 'border-destructive' : ''} ${isReverseMtr ? 'border-indigo-500/50' : ''}`}
+                                className={cn(
+                                    "text-xl font-medium placeholder:text-slate-400/80 h-16 pl-6 rounded-2xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-indigo-500/80 hover:border-slate-300 dark:hover:border-white/20 transition-all duration-300",
+                                    // Mobile padding (for the CHECK button)
+                                    "pr-32",
+                                    // Desktop padding depends on controls
+                                    hasExtraControls
+                                        ? "sm:pr-[310px]"
+                                        : isSmtp
+                                            ? "sm:pr-[220px]"
+                                            : "sm:pr-32",
+                                    errorMessage && !errorMessage.includes('Using 1.1.1.1') ? 'border-destructive' : '',
+                                    isReverseMtr ? 'border-indigo-500/50' : ''
+                                )}
                                 autoFocus
                                 required
                             />
 
                             <div className="absolute right-2 top-2 bottom-2 flex items-center gap-2">
-                                {type !== 'dns-all' && type !== 'info' && type !== 'ssl' && type !== 'smtp' && (
-                                    <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200/50 dark:border-white/5 backdrop-blur-sm">
+                                {hasExtraControls && (
+                                    <div className="hidden sm:flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200/50 dark:border-white/5 backdrop-blur-sm">
                                         {!isMapVisible ? (
                                             <>
                                                 {/* Nodes Picker Capsule */}
@@ -453,9 +468,68 @@ export function CheckForm({
                             </div>
                         )}
 
+                        {/* Mobile Nodes/Map Controls (Relocated from Input) */}
+                        {hasExtraControls && (
+                            <div className="flex sm:hidden items-center justify-center gap-2 pt-1 pb-1">
+                                <div className="flex items-center gap-1 bg-white/80 dark:bg-slate-900/80 p-1.5 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <button
+                                                type="button"
+                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-200"
+                                            >
+                                                <Users className="h-4 w-4 text-slate-400" />
+                                                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 tracking-tight">{maxNodes} Nodes</span>
+                                                <Settings2 className="h-3 w-3 text-slate-300 dark:text-slate-500" />
+                                            </button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-64 p-4 rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 shadow-2xl" align="center" sideOffset={8}>
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <h4 className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Node Population</h4>
+                                                    <span className="text-sm font-mono font-bold text-indigo-500">{maxNodes}</span>
+                                                </div>
+                                                <Slider
+                                                    value={[maxNodes]}
+                                                    onValueChange={(vals) => onMaxNodesChange(vals[0])}
+                                                    min={3}
+                                                    max={60}
+                                                    step={1}
+                                                />
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+
+                                    <div className="w-px h-4 bg-slate-200 dark:bg-white/10 mx-1" />
+
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (isMapVisible) onClearSelection?.();
+                                            onToggleMap?.();
+                                        }}
+                                        className={cn(
+                                            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200",
+                                            selectedNodeCount > 0
+                                                ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                                                : "text-slate-600 dark:text-slate-300"
+                                        )}
+                                    >
+                                        <MapPin className={cn(
+                                            "h-4 w-4",
+                                            selectedNodeCount > 0 ? "text-indigo-500" : "text-slate-400"
+                                        )} />
+                                        <span className="text-[11px] font-bold tracking-tight">
+                                            {selectedNodeCount > 0 ? `${selectedNodeCount} Reg.` : 'Map'}
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Mobile view SMTP Port Selector (below input) */}
                         {type === 'smtp' && (
-                            <div className="flex sm:hidden items-center justify-center gap-2 pt-2 pb-1">
+                            <div className="flex sm:hidden items-center justify-center gap-2 pt-1 pb-1">
                                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mr-1">Port:</span>
                                 <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/60 dark:border-white/10 shadow-inner">
                                     {[25, 465, 587].map((port) => (

@@ -611,9 +611,10 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                                         isRefreshing={activeChecks.has('smtp')}
                                         host={host || undefined}
                                         port={smtpPort}
-                                        onViewTcpDetails={(reqId) => {
+                                        onViewTcpDetails={() => {
                                             const tcpHost = host.includes(':') ? host : `${host}:${smtpPort}`;
-                                            window.location.href = `/?requestId=${reqId}&type=tcp&host=${encodeURIComponent(tcpHost)}&tab=tcp`;
+                                            setHost(tcpHost);
+                                            setActiveTab('tcp');
                                         }}
                                     />
                                 </TabsContent>

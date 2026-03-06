@@ -700,5 +700,10 @@
     "title": "Frequently Asked Questions",
     "subtitle": "Find answers to the most common questions about our tools.",
     "noFaqs": "No FAQs found."
+  },
+  "SmtpDashboard": {
+    "connectionFailed": "Connection failed",
+    "backendError_ConnectionFailed": "Connection failed locally and globally.",
+    "connectionFailedReason": "This may be due to the server being offline, port {port} blocked by a firewall, or the hosting provider restricting outbound connections."
   }
 }
