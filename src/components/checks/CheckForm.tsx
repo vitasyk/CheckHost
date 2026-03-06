@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 const QUICK_LINKS: Record<CheckType, string[]> = {
-    'info': ['1.1.1.1', '8.8.8.8', 'checknode.io', 'AS13335'],
+    'info': ['8.8.8.8', 'checknode.io', 'AS13335'],
     'ping': ['checknode.io', '1.1.1.1', 'cloudflare.com'],
     'http': ['https://checknode.io', 'https://cloudflare.com'],
     'tcp': ['checknode.io:443', '1.1.1.1:53'],
