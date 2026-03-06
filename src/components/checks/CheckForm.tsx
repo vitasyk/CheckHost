@@ -23,12 +23,12 @@ import {
 
 const QUICK_LINKS: Record<CheckType, string[]> = {
     'info': ['8.8.8.8', 'checknode.io', 'AS13335'],
-    'ping': ['checknode.io', '1.1.1.1', 'cloudflare.com'],
+    'ping': ['checknode.io', '8.8.8.8', 'cloudflare.com'],
     'http': ['https://checknode.io', 'https://cloudflare.com'],
-    'tcp': ['checknode.io:443', '1.1.1.1:53'],
-    'udp': ['8.8.8.8:53', '1.1.1.1:53'],
+    'tcp': ['checknode.io:443', '8.8.8.8:53'],
+    'udp': ['8.8.8.8:53', '8.8.8.8:53'],
     'dns': ['checknode.io', 'cloudflare.com'],
-    'mtr': ['checknode.io', '1.1.1.1'],
+    'mtr': ['checknode.io', '8.8.8.8'],
     'dns-all': ['checknode.io', 'github.com'],
     'ssl': ['checknode.io', 'cloudflare.com'],
     'smtp': ['gmail-smtp-in.l.google.com', 'outlook-com.olc.protection.outlook.com']
@@ -202,19 +202,19 @@ export function CheckForm({
     const getPlaceholder = () => {
         switch (type) {
             case 'info':
-                return 'example.com, 1.1.1.1, or AS13335';
+                return 'checknode.io, 8.8.8.8, or AS13335';
             case 'ping':
-                return 'example.com or 1.1.1.1';
+                return 'checknode.io or 8.8.8.8';
             case 'http':
-                return 'https://example.com';
+                return 'https://checknode.io';
             case 'tcp':
-                return 'example.com:443 or 1.1.1.1:80';
+                return 'checknode.io:443 or 8.8.8.8:80';
             case 'udp':
-                return '8.8.8.8:53 or example.com:53';
+                return '8.8.8.8:53 or checknode.io:53';
             case 'dns':
             case 'dns-all':
             case 'ssl':
-                return 'example.com';
+                return 'checknode.io';
             default:
                 return 'Enter URL or IP Address';
         }
@@ -281,7 +281,7 @@ export function CheckForm({
                                         : isSmtp
                                             ? "sm:pr-[220px]"
                                             : "sm:pr-32",
-                                    errorMessage && !errorMessage.includes('Using 1.1.1.1') ? 'border-destructive' : '',
+                                    errorMessage && !errorMessage.includes('Using 8.8.8.8') ? 'border-destructive' : '',
                                     isReverseMtr ? 'border-indigo-500/50' : ''
                                 )}
                                 autoFocus
@@ -457,7 +457,7 @@ export function CheckForm({
                         )}
 
                         {errorMessage && (
-                            <p className={`text-[10px] font-bold uppercase tracking-wider pl-4 pt-1.5 ${errorMessage.includes('Using 1.1.1.1') ? 'text-indigo-500/70 animate-pulse' : 'text-destructive animate-bounce'}`}>
+                            <p className={`text-[10px] font-bold uppercase tracking-wider pl-4 pt-1.5 ${errorMessage.includes('Using 8.8.8.8') ? 'text-indigo-500/70 animate-pulse' : 'text-destructive animate-bounce'}`}>
                                 {errorMessage}
                             </p>
                         )}
