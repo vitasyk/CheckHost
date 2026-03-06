@@ -158,7 +158,7 @@ export function GlobalActivityFeed() {
                             <SelectItem value="ping">Ping</SelectItem>
                             <SelectItem value="http">HTTP</SelectItem>
                             <SelectItem value="dns">DNS</SelectItem>
-                            <SelectItem value="dns-all">DNS Info</SelectItem>
+                            <SelectItem value="dns-all">DNS Records</SelectItem>
                             <SelectItem value="tcp">TCP</SelectItem>
                             <SelectItem value="udp">UDP</SelectItem>
                             <SelectItem value="mtr">MTR</SelectItem>

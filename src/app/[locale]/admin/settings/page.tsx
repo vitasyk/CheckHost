@@ -71,6 +71,11 @@ interface AiConfig {
     masterPrompt: string;
 }
 
+interface IpInfoDisplayConfig {
+    showFeaturedMap: boolean;
+    mapPosition: 'target' | 'domain';
+}
+
 export default function AdminSettings() {
     const { data: _session } = useSession();
     const [systemConfig, setSystemConfig] = useState<SystemConfig>({
@@ -86,6 +91,10 @@ export default function AdminSettings() {
     });
     const [shareConfig, setShareConfig] = useState<ShareResultsConfig>({
         ttlDays: 90
+    });
+    const [ipInfoConfig, setIpInfoConfig] = useState<IpInfoDisplayConfig>({
+        showFeaturedMap: false,
+        mapPosition: 'target'
     });
     const [seoConfig, setSeoConfig] = useState<SeoConfig>({
         siteTitle: '',
@@ -152,6 +161,13 @@ export default function AdminSettings() {
                     if (data) setShareConfig(data);
                 }
 
+                // Fetch IP Info Display Config
+                const ipInfoRes = await fetch('/api/admin/settings?key=ip_info_display');
+                if (ipInfoRes.ok) {
+                    const data = await ipInfoRes.json();
+                    if (data) setIpInfoConfig(data);
+                }
+
                 // Fetch SEO Config
                 const seoRes = await fetch('/api/admin/settings?key=seo_config');
                 if (seoRes.ok) {
@@ -206,6 +222,11 @@ export default function AdminSettings() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(shareConfig),
+                }),
+                fetch('/api/admin/settings?key=ip_info_display', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ipInfoConfig),
                 }),
                 fetch('/api/admin/settings?key=seo_config', {
                     method: 'POST',
@@ -592,6 +613,40 @@ export default function AdminSettings() {
                                 />
                             </div>
                         </div>
+                    </Card>
+
+                    {/* IP Info Appearance */}
+                    <Card className="p-6 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                                <h3 className="text-lg font-semibold flex items-center gap-2">
+                                    <Globe className="h-5 w-5 text-indigo-500" />
+                                    IP Info Map
+                                </h3>
+                                <p className="text-sm text-slate-500">Configure the visibility and position of the map in the IP Info tab.</p>
+                            </div>
+                            <Switch
+                                checked={ipInfoConfig.showFeaturedMap}
+                                onCheckedChange={(val) => setIpInfoConfig(prev => ({ ...prev, showFeaturedMap: val }))}
+                            />
+                        </div>
+
+                        {ipInfoConfig.showFeaturedMap && (
+                            <div className="grid gap-4 sm:grid-cols-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                                <div className="sm:col-span-2">
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Map Position</label>
+                                    <select
+                                        className="mt-1 w-full h-10 px-3 rounded-md bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 text-sm"
+                                        value={ipInfoConfig.mapPosition}
+                                        onChange={(e) => setIpInfoConfig(prev => ({ ...prev, mapPosition: e.target.value as 'target' | 'domain' }))}
+                                    >
+                                        <option value="target">Under Target IP</option>
+                                        <option value="domain">Under Domain Registration Details</option>
+                                    </select>
+                                    <p className="text-[10px] text-slate-400 mt-1">Choose where the map should be rendered.</p>
+                                </div>
+                            </div>
+                        )}
                     </Card>
 
                     {/* AI Config */}

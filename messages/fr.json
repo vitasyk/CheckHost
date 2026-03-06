@@ -325,7 +325,7 @@
     "udp": "UDP",
     "dns": "DNS",
     "mtr": "MTR",
-    "dnsinfo": "Infos DNS",
+    "dnsinfo": "Enregistrements DNS",
     "ssl": "SSL",
     "ipinfo": "Infos IP",
     "legal": "Mentions légales",

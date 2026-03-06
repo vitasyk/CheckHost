@@ -334,7 +334,7 @@
     "tcp": "TCP",
     "udp": "UDP",
     "mtr": "MTR",
-    "dnsinfo": "DNS Info",
+    "dnsinfo": "Record DNS",
     "ssl": "SSL"
   },
   "CookieConsent": {

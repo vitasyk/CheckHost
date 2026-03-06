@@ -27,6 +27,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
     const [expandedRaw, setExpandedRaw] = useState(false);
     const [displaySettings, setDisplaySettings] = useState({
         showFeaturedMap: false,
+        mapPosition: 'target',
         showRdapData: false,
         showProviderCards: false
     });
@@ -53,6 +54,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
                         // Fallback to defaults if no settings in DB
                         setDisplaySettings({
                             showFeaturedMap: false,
+                            mapPosition: 'target',
                             showRdapData: true,
                             showProviderCards: true
                         });
@@ -64,6 +66,7 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
                 // Fallback on error
                 setDisplaySettings({
                     showFeaturedMap: false,
+                    mapPosition: 'target',
                     showRdapData: true,
                     showProviderCards: true
                 });
@@ -118,6 +121,199 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
     // Check if the queried host is an IP Address (IPv4 or IPv6-like fallback)
     const isIP = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^[0-9a-fA-F:]+$/.test(data.host || data.ip || '');
     const isUnresolved = data.status === 'failed';
+
+    const renderFeaturedMap = () => {
+        if (!displaySettings.showFeaturedMap || data.isASN) return null;
+
+        let featuredLat = 0;
+        let featuredLng = 0;
+        let sourceName = '';
+
+        // Priority 1: IPInfo.io real coordinates (as requested)
+        if (providers.ipinfo?.loc) {
+            const parts = providers.ipinfo.loc.split(',');
+            const lat = parseFloat(parts[0]);
+            const lng = parseFloat(parts[1]);
+            if (!isNaN(lat) && !isNaN(lng) && (lat !== 0 || lng !== 0)) {
+                featuredLat = lat;
+                featuredLng = lng;
+                sourceName = 'IPInfo.io';
+            }
+        }
+
+        // Priority 2: Fallback to any other provider coordinates if IPInfo is missing
+        if (featuredLat === 0) {
+            const fallbackSource = providerConfigs.find(p => {
+                const d = p.data as any;
+                return d.latitude || d.lat || d.loc;
+            });
+
+            if (fallbackSource) {
+                const d = fallbackSource.data as any;
+                if (d.loc) {
+                    [featuredLat, featuredLng] = d.loc.split(',').map(parseFloat);
+                } else {
+                    featuredLat = Number(d.latitude || d.lat || 0);
+                    featuredLng = Number(d.longitude || d.lon || 0);
+                }
+                sourceName = fallbackSource.name;
+            }
+        }
+
+        if (featuredLat === 0) return null;
+
+        const hourOffset = providers.ipgeolocation?.time_zone?.offset || 0;
+        // Basic night detection (6 PM to 6 AM)
+        const currentHour = (new Date().getUTCHours() + hourOffset + 24) % 24;
+        const isNight = currentHour < 6 || currentHour >= 18;
+
+        return (
+            <div className="relative overflow-hidden border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm bg-white dark:bg-slate-950 mx-1 mt-2 group/map h-[480px]">
+                {/* Map as Background */}
+                <div className="absolute inset-0 z-0 scale-110 group-hover/map:scale-100 transition-transform duration-[3s] ease-out">
+                    <MapWrapper
+                        lat={featuredLat}
+                        lng={featuredLng}
+                        city={providers.ipinfo?.city || providers.ipapi?.city || "Unknown Location"}
+                        country={providers.ipinfo?.country_name || providers.ipapi?.country || ""}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-slate-900/40 via-transparent to-slate-900/20 pointer-events-none" />
+                </div>
+
+                {/* Glass Tile: Geolocation Hub (Left Top) */}
+                <div className="absolute top-4 left-4 z-10 w-72 animate-in slide-in-from-left-4 duration-700">
+                    <div className="backdrop-blur-md bg-white/70 dark:bg-slate-900/70 border border-white/40 dark:border-white/10 rounded-2xl p-4 shadow-2xl">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-600/30">
+                                <Navigation className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Network Hub</div>
+                                <div className="text-sm font-black text-slate-900 dark:text-white leading-none">Geolocation Center</div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-end border-b border-slate-200/50 dark:border-white/5 pb-2">
+                                <div>
+                                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mb-0.5">Primary Coordinates</div>
+                                    <div className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400">{Number(featuredLat || 0).toFixed(5)}, {Number(featuredLng || 0).toFixed(5)}</div>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(`${featuredLat}, ${featuredLng}`);
+                                    }}
+                                    className="p-1.5 hover:bg-white/50 dark:hover:bg-white/10 rounded-lg transition-all text-slate-400 hover:text-indigo-500"
+                                    title="Copy Coordinates"
+                                >
+                                    <Copy className="h-3.5 w-3.5" />
+                                </button>
+                            </div>
+
+                            {providers.maxmind?.accuracyRadius && (
+                                <div className="flex items-center gap-2 px-1">
+                                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight group/acc relative cursor-help">
+                                        ± {providers.maxmind.accuracyRadius}km accuracy radius
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* External Links Hub */}
+                    <div className="mt-3">
+                        <a
+                            href={`https://www.google.com/maps?q=${featuredLat},${featuredLng}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full backdrop-blur-md bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-white/10 rounded-xl py-2.5 flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] transition-all shadow-sm active:scale-[0.98]"
+                        >
+                            <Globe className="h-3.5 w-3.5 text-indigo-500 opacity-80" />
+                            Open Google Maps
+                            <ArrowUpRight className="h-3.5 w-3.5 opacity-60" />
+                        </a>
+                    </div>
+                </div>
+
+                {/* Glass Tile: Regional Intelligence (Right Top) */}
+                <div className="absolute top-4 right-4 z-10 w-64 animate-in slide-in-from-right-4 duration-700">
+                    <div className="backdrop-blur-md bg-white/70 dark:bg-slate-900/70 border border-white/40 dark:border-white/10 rounded-2xl p-4 shadow-2xl">
+                        <div className="flex items-center justify-between mb-5">
+                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Regional Profile</div>
+                            <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-slate-100/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/10">
+                                {isNight ? <Moon className="h-3 w-3 text-blue-400" /> : <Sun className="h-3 w-3 text-amber-500" />}
+                                <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase leading-none">{isNight ? 'Night' : 'Day'}</span>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-y-5 gap-x-4">
+                            <div>
+                                <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                    <Clock className="h-2.5 w-2.5" /> Offset
+                                </div>
+                                <div className="text-xs font-black text-slate-800 dark:text-slate-100">
+                                    {hourOffset !== undefined ? `UTC ${hourOffset >= 0 ? '+' : ''}${hourOffset}:00` : 'N/A'}
+                                </div>
+                            </div>
+                            <div>
+                                <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                    <Database className="h-2.5 w-2.5" /> Currency
+                                </div>
+                                <div className="text-xs font-black text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                                    {providers.ipgeolocation?.currency?.code || providers.ipapi?.currency || 'N/A'}
+                                    {providers.ipgeolocation?.currency?.symbol && <span className="opacity-50 text-[10px]">{providers.ipgeolocation.currency.symbol}</span>}
+                                </div>
+                            </div>
+                            <div>
+                                <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                    <Phone className="h-2.5 w-2.5" /> Calling
+                                </div>
+                                <div className="text-xs font-black text-slate-800 dark:text-slate-100">
+                                    {providers.ipgeolocation?.calling_code ? `+${providers.ipgeolocation.calling_code}` : 'N/A'}
+                                </div>
+                            </div>
+                            <div>
+                                <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                    <MapPin className="h-2.5 w-2.5" /> Languages
+                                </div>
+                                <div className="text-xs font-black text-slate-800 dark:text-slate-100 truncate pr-1">
+                                    {providers.ipgeolocation?.languages?.split(',')[0] || 'N/A'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Technical Integrity Badge */}
+                    <div className="mt-3 backdrop-blur-md bg-emerald-500/10 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 flex items-center justify-between shadow-xl">
+                        <div className="flex items-center gap-2">
+                            <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                            <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Technical Precision</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{sourceName}</span>
+                    </div>
+                </div>
+
+                {/* Bottom Floating Info: City/Country Branding */}
+                <div className="absolute bottom-4 left-4 right-4 z-10 flex items-end justify-between pointer-events-none">
+                    <div className="animate-in slide-in-from-bottom-4 duration-700 delay-200">
+                        <div className="text-[10px] text-white/60 font-black uppercase tracking-[0.3em] mb-1 drop-shadow-md">Verified Geopoint</div>
+                        <div className="text-3xl font-black text-white drop-shadow-lg tracking-tighter flex items-center gap-3">
+                            {providers.ipinfo?.city || providers.ipapi?.city || "Unknown City"}
+                            <span className="text-white/40 font-light translate-y-1">/</span>
+                            <span className="text-xl text-white/80">{providers.ipinfo?.country_name || providers.ipapi?.country || ""}</span>
+                        </div>
+                    </div>
+
+                    {/* Status Indicator */}
+                    <div className="p-3 backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl flex items-center gap-3 shadow-2xl pointer-events-auto hover:bg-white/20 transition-all cursor-default">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
+                        <span className="text-[10px] text-white font-black uppercase tracking-widest">Network Online</span>
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
     // Simplified check for "unresolved" state but NO early return here
     // The Execution will continue to define providerConfigs and render the dashboard.
@@ -748,198 +944,8 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
                             </div>
                         )}
 
-                        {/* Featured Map Section - High Visibility */}
-                        {displaySettings.showFeaturedMap && !data.isASN && (() => {
-                            let featuredLat = 0;
-                            let featuredLng = 0;
-                            let sourceName = '';
-
-                            // Priority 1: IPInfo.io real coordinates (as requested)
-                            if (providers.ipinfo?.loc) {
-                                const parts = providers.ipinfo.loc.split(',');
-                                const lat = parseFloat(parts[0]);
-                                const lng = parseFloat(parts[1]);
-                                if (!isNaN(lat) && !isNaN(lng) && (lat !== 0 || lng !== 0)) {
-                                    featuredLat = lat;
-                                    featuredLng = lng;
-                                    sourceName = 'IPInfo.io';
-                                }
-                            }
-
-                            // Priority 2: Fallback to any other provider coordinates if IPInfo is missing
-                            if (featuredLat === 0) {
-                                const fallbackSource = providerConfigs.find(p => {
-                                    const d = p.data as any;
-                                    return d.latitude || d.lat || d.loc;
-                                });
-
-                                if (fallbackSource) {
-                                    const d = fallbackSource.data as any;
-                                    if (d.loc) {
-                                        [featuredLat, featuredLng] = d.loc.split(',').map(parseFloat);
-                                    } else {
-                                        featuredLat = Number(d.latitude || d.lat || 0);
-                                        featuredLng = Number(d.longitude || d.lon || 0);
-                                    }
-                                    sourceName = fallbackSource.name;
-                                }
-                            }
-
-                            if (featuredLat === 0) return null;
-
-                            const hourOffset = providers.ipgeolocation?.time_zone?.offset || 0;
-                            // Basic night detection (6 PM to 6 AM)
-                            const currentHour = (new Date().getUTCHours() + hourOffset + 24) % 24;
-                            const isNight = currentHour < 6 || currentHour >= 18;
-
-                            return (
-                                <div className="relative overflow-hidden border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm bg-white dark:bg-slate-950 mx-1 mt-2 group/map h-[480px]">
-                                    {/* Map as Background */}
-                                    <div className="absolute inset-0 z-0 scale-110 group-hover/map:scale-100 transition-transform duration-[3s] ease-out">
-                                        <MapWrapper
-                                            lat={featuredLat}
-                                            lng={featuredLng}
-                                            city={providers.ipinfo?.city || providers.ipapi?.city || "Unknown Location"}
-                                            country={providers.ipinfo?.country_name || providers.ipapi?.country || ""}
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-tr from-slate-900/40 via-transparent to-slate-900/20 pointer-events-none" />
-                                    </div>
-
-                                    {/* Glass Tile: Geolocation Hub (Left Top) */}
-                                    <div className="absolute top-4 left-4 z-10 w-72 animate-in slide-in-from-left-4 duration-700">
-                                        <div className="backdrop-blur-md bg-white/70 dark:bg-slate-900/70 border border-white/40 dark:border-white/10 rounded-2xl p-4 shadow-2xl">
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-600/30">
-                                                    <Navigation className="h-4 w-4 text-white" />
-                                                </div>
-                                                <div>
-                                                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Network Hub</div>
-                                                    <div className="text-sm font-black text-slate-900 dark:text-white leading-none">Geolocation Center</div>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-3">
-                                                <div className="flex justify-between items-end border-b border-slate-200/50 dark:border-white/5 pb-2">
-                                                    <div>
-                                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mb-0.5">Primary Coordinates</div>
-                                                        <div className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400">{Number(featuredLat || 0).toFixed(5)}, {Number(featuredLng || 0).toFixed(5)}</div>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => {
-                                                            navigator.clipboard.writeText(`${featuredLat}, ${featuredLng}`);
-                                                            // Could add a small local toast here if needed
-                                                        }}
-                                                        className="p-1.5 hover:bg-white/50 dark:hover:bg-white/10 rounded-lg transition-all text-slate-400 hover:text-indigo-500"
-                                                        title="Copy Coordinates"
-                                                    >
-                                                        <Copy className="h-3.5 w-3.5" />
-                                                    </button>
-                                                </div>
-
-                                                {providers.maxmind?.accuracyRadius && (
-                                                    <div className="flex items-center gap-2 px-1">
-                                                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                                                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight group/acc relative cursor-help">
-                                                            ± {providers.maxmind.accuracyRadius}km accuracy radius
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* External Links Hub */}
-                                        <div className="mt-3">
-                                            <a
-                                                href={`https://www.google.com/maps?q=${featuredLat},${featuredLng}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="w-full backdrop-blur-md bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-white/10 rounded-xl py-2.5 flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] transition-all shadow-sm active:scale-[0.98]"
-                                            >
-                                                <Globe className="h-3.5 w-3.5 text-indigo-500 opacity-80" />
-                                                Open Google Maps
-                                                <ArrowUpRight className="h-3.5 w-3.5 opacity-60" />
-                                            </a>
-                                        </div>
-                                    </div>
-
-                                    {/* Glass Tile: Regional Intelligence (Right Top) */}
-                                    <div className="absolute top-4 right-4 z-10 w-64 animate-in slide-in-from-right-4 duration-700">
-                                        <div className="backdrop-blur-md bg-white/70 dark:bg-slate-900/70 border border-white/40 dark:border-white/10 rounded-2xl p-4 shadow-2xl">
-                                            <div className="flex items-center justify-between mb-5">
-                                                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Regional Profile</div>
-                                                <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-slate-100/50 dark:bg-white/5 border border-slate-200/50 dark:border-white/10">
-                                                    {isNight ? <Moon className="h-3 w-3 text-blue-400" /> : <Sun className="h-3 w-3 text-amber-500" />}
-                                                    <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase leading-none">{isNight ? 'Night' : 'Day'}</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-y-5 gap-x-4">
-                                                <div>
-                                                    <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                                                        <Clock className="h-2.5 w-2.5" /> Offset
-                                                    </div>
-                                                    <div className="text-xs font-black text-slate-800 dark:text-slate-100">
-                                                        {hourOffset !== undefined ? `UTC ${hourOffset >= 0 ? '+' : ''}${hourOffset}:00` : 'N/A'}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                                                        <Database className="h-2.5 w-2.5" /> Currency
-                                                    </div>
-                                                    <div className="text-xs font-black text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
-                                                        {providers.ipgeolocation?.currency?.code || providers.ipapi?.currency || 'N/A'}
-                                                        {providers.ipgeolocation?.currency?.symbol && <span className="opacity-50 text-[10px]">{providers.ipgeolocation.currency.symbol}</span>}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                                                        <Phone className="h-2.5 w-2.5" /> Calling
-                                                    </div>
-                                                    <div className="text-xs font-black text-slate-800 dark:text-slate-100">
-                                                        {providers.ipgeolocation?.calling_code ? `+${providers.ipgeolocation.calling_code}` : 'N/A'}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                                                        <MapPin className="h-2.5 w-2.5" /> Languages
-                                                    </div>
-                                                    <div className="text-xs font-black text-slate-800 dark:text-slate-100 truncate pr-1">
-                                                        {providers.ipgeolocation?.languages?.split(',')[0] || 'N/A'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Technical Integrity Badge */}
-                                        <div className="mt-3 backdrop-blur-md bg-emerald-500/10 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 flex items-center justify-between shadow-xl">
-                                            <div className="flex items-center gap-2">
-                                                <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                                                <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Technical Precision</span>
-                                            </div>
-                                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{sourceName}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Bottom Floating Info: City/Country Branding */}
-                                    <div className="absolute bottom-4 left-4 right-4 z-10 flex items-end justify-between pointer-events-none">
-                                        <div className="animate-in slide-in-from-bottom-4 duration-700 delay-200">
-                                            <div className="text-[10px] text-white/60 font-black uppercase tracking-[0.3em] mb-1 drop-shadow-md">Verified Geopoint</div>
-                                            <div className="text-3xl font-black text-white drop-shadow-lg tracking-tighter flex items-center gap-3">
-                                                {providers.ipinfo?.city || providers.ipapi?.city || "Unknown City"}
-                                                <span className="text-white/40 font-light translate-y-1">/</span>
-                                                <span className="text-xl text-white/80">{providers.ipinfo?.country_name || providers.ipapi?.country || ""}</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Status Indicator */}
-                                        <div className="p-3 backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl flex items-center gap-3 shadow-2xl pointer-events-auto hover:bg-white/20 transition-all cursor-default">
-                                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
-                                            <span className="text-[10px] text-white font-black uppercase tracking-widest">Network Online</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })()}
+                        {/* Featured Map Section - Dynamic Position (Target IP) */}
+                        {displaySettings.mapPosition === 'target' && renderFeaturedMap()}
                     </div>
                 )}
 
@@ -1131,6 +1137,9 @@ export default function IpInfoResult({ data, onRefresh, isRefreshing, isSharedVi
                         </Card>
                     );
                 })()}
+
+                {/* Featured Map Section - Dynamic Position (Domain) */}
+                {displaySettings.mapPosition === 'domain' && renderFeaturedMap()}
             </div>
 
             {/* Provider List (outside of capture area) */}

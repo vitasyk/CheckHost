@@ -463,13 +463,13 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                             <div className="flex flex-col items-center justify-center gap-3 mb-4">
                                 <div className="w-full lg:hidden mx-auto mb-4 px-4">
                                     {/* Mobile Integrated Grid (< md) */}
-                                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 md:hidden text-center justify-center">
+                                    <div className="grid grid-cols-5 gap-1 sm:gap-2 md:hidden text-center justify-center">
                                         {['info', 'ping', 'http', 'tcp', 'udp', 'dns', 'mtr', 'dns-all', 'ssl', 'smtp'].map(t => (
                                             <button
                                                 key={t}
                                                 onClick={() => { setActiveTab(t); handleTabCheck(t as any); }}
                                                 className={cn(
-                                                    "flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all border",
+                                                    "flex flex-col items-center justify-center gap-1 sm:gap-1.5 p-1.5 sm:p-3 rounded-xl sm:rounded-2xl transition-all border",
                                                     activeTab === t
                                                         ? "bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-500/30"
                                                         : "bg-white dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-slate-800"
@@ -488,8 +488,8 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                                                         </div>
                                                     )}
                                                 </div>
-                                                <span className="text-[10px] font-bold uppercase tracking-tighter truncate w-full">
-                                                    {t === 'dns-all' ? 'DNS' : t}
+                                                <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-tighter truncate w-full">
+                                                    {t === 'dns-all' ? 'DNS Records' : t}
                                                 </span>
                                             </button>
                                         ))}
@@ -507,7 +507,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                                                         ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-md ring-1 ring-indigo-500/10"
                                                         : "text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/5"
                                                 )}
-                                                title={t === 'dns-all' ? 'DNS Info' : t.toUpperCase()}
+                                                title={t === 'dns-all' ? 'DNS Records' : t.toUpperCase()}
                                             >
                                                 <div className={cn("transition-all duration-300", activeTab === t ? "scale-110" : "group-hover:scale-110 opacity-70 group-hover:opacity-100")}>
                                                     {getTabIcon(t)}
@@ -519,7 +519,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                                                     <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
                                                 )}
                                                 <span className="absolute -bottom-5 opacity-0 group-hover:opacity-100 transition-opacity text-[8px] font-bold uppercase tracking-widest text-indigo-500 dark:text-indigo-400 whitespace-nowrap">
-                                                    {t === 'dns-all' ? 'DNS' : t}
+                                                    {t === 'dns-all' ? 'DNS Records' : t}
                                                 </span>
                                             </button>
                                         ))}
@@ -532,7 +532,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
                                             <div className={cn("transition-all duration-300", activeTab === t ? "scale-110 text-indigo-600 dark:text-indigo-400" : "opacity-40 group-hover:opacity-100 group-hover:text-slate-700 dark:group-hover:text-slate-300 text-slate-500 dark:text-slate-400")}>
                                                 {getTabIcon(t)}
                                             </div>
-                                            <span className="font-bold text-xs tracking-wider uppercase">{t === 'dns-all' ? 'DNS Info' : t}</span>
+                                            <span className="font-bold text-xs tracking-wider uppercase">{t === 'dns-all' ? 'DNS Records' : t}</span>
                                             {activeChecks.has(t as any) && <Loader2 className="h-3.5 w-3.5 animate-spin absolute -top-1.5 -right-1 text-indigo-500 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-indigo-100 dark:border-indigo-900/50" />}
                                             {completedChecks.has(t as any) && <CheckCircle2 className="h-3.5 w-3.5 absolute -top-1.5 -right-1 text-emerald-500 bg-white dark:bg-slate-800 rounded-full shadow-sm border border-emerald-100 dark:border-emerald-900/50" />}
                                             {activeTab === t && (
