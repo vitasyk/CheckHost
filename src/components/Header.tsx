@@ -8,7 +8,12 @@ import {
     BarChart3, Database, ShieldCheck, History, Megaphone, LogIn,
     Newspaper
 } from 'lucide-react';
-import { VisitorIpInfo } from '@/components/VisitorIpInfo';
+import dynamic from 'next/dynamic';
+
+const VisitorIpInfo = dynamic(() => import('@/components/VisitorIpInfo').then(mod => mod.VisitorIpInfo), {
+    ssr: false,
+    loading: () => <div className="h-10 w-32 bg-slate-100/50 dark:bg-slate-800/20 rounded-2xl animate-pulse" />
+});
 import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { useXRay } from '@/components/admin/XRayProvider';

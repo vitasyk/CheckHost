@@ -11,7 +11,6 @@ import { authOptions } from "@/lib/auth";
 import { Suspense } from "react";
 import { Header } from "@/components/Header";
 import { MainLayoutWrapper } from "@/components/MainLayoutWrapper";
-import { GlobalAdEditorModal } from "@/components/admin/GlobalAdEditorModal";
 import { JsonLd } from "@/components/SEO/JsonLd";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
@@ -20,8 +19,8 @@ import { routing } from '@/i18n/routing';
 import { PwaRegister } from "@/components/PwaRegister";
 import { headers } from 'next/headers';
 import { SiteFooter } from "@/components/SiteFooter";
-import { CookieConsent } from "@/components/CookieConsent";
 import { generateAlternates } from "@/lib/seo-utils";
+import { ClientWrapper } from "@/components/providers/ClientWrapper";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -289,12 +288,8 @@ export default async function RootLayout({
                                             <AdSlot slotType="homepage_bottom" className="w-full site-global-ad" />
                                         </Suspense>
 
-                                        <Suspense fallback={null}>
-                                            <GlobalAdEditorModal />
-                                        </Suspense>
-
+                                        <ClientWrapper />
                                         <SiteFooter />
-                                        <CookieConsent />
                                     </div>
                                 </>
                             )}
