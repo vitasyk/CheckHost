@@ -73,9 +73,9 @@ export function ToolSeoBlock({ toolId }: ToolSeoBlockProps) {
                                 <Lightbulb className="w-6 h-6" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
                                     {t(`${mappedId}.understanding`)}
-                                </h3>
+                                </h2>
                                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                                     {t(`${mappedId}.understandingDesc`)}
                                 </p>
@@ -90,9 +90,9 @@ export function ToolSeoBlock({ toolId }: ToolSeoBlockProps) {
                                 <Earth className="w-6 h-6" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
                                     {t(`${mappedId}.global`)}
-                                </h3>
+                                </h2>
                                 <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-sm">
                                     {t(`${mappedId}.globalDesc`)}
                                 </p>
@@ -106,9 +106,9 @@ export function ToolSeoBlock({ toolId }: ToolSeoBlockProps) {
                     <div className={`h-full p-6 sm:p-8 rounded-3xl ${style.lightBg} border ${style.border}`}>
                         <div className="flex items-center gap-3 mb-6">
                             <Gauge className={`w-6 h-6 ${style.text}`} />
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                                 {t(`${mappedId}.latency`)}
-                            </h3>
+                            </h2>
                         </div>
 
                         <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm mb-6">

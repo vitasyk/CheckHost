@@ -172,10 +172,10 @@ function DefaultSeoContent() {
 
         {/* ── Tools grid ── */}
         <div className="mb-12">
-          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
             <span className="w-1 h-5 rounded-full bg-gradient-to-b from-indigo-500 to-violet-500" />
             {t('tools.title')}
-          </h3>
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {TOOLS.map((tool) => (
               <div
@@ -212,7 +212,7 @@ function DefaultSeoContent() {
             },
           ].map(({ q, a }) => (
             <div key={q} className="p-5 rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-900/50 border border-slate-100 dark:border-white/[0.06]">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-2">{q}</h3>
+              <h2 className="font-bold text-slate-900 dark:text-white text-sm mb-2">{q}</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{a}</p>
             </div>
           ))}
