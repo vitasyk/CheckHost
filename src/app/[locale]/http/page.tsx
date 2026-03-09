@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { generateAlternates } from '@/lib/seo-utils';
 import HttpClient from '@/components/checks/HttpClient';
 import { HttpContent } from '@/components/content/HttpContent';
 import { setRequestLocale } from 'next-intl/server';
@@ -6,13 +7,12 @@ import { setRequestLocale } from 'next-intl/server';
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
     const t = await getTranslations({ locale, namespace: 'Metadata' });
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
 
     return {
         title: t('httpTitle'),
         description: t('httpDesc'),
-        alternates: {
-            canonical: '/http',
-        },
+        alternates: generateAlternates('http', siteUrl),
     };
 }
 

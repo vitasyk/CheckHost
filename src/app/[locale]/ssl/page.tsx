@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { generateAlternates } from '@/lib/seo-utils';
 import { setRequestLocale } from 'next-intl/server';
 import { ChecksClient } from '@/components/checks/ChecksClient';
 import { JsonLd } from '@/components/SEO/JsonLd';
@@ -17,9 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
             'ssl test online', 'check ssl certificate', 'ssl monitoring',
             'tls version check', 'certificate authority check', 'wildcard ssl check'
         ],
-        alternates: {
-            canonical: `${siteUrl}/ssl`,
-        },
+        alternates: generateAlternates('ssl', siteUrl),
         openGraph: {
             title: t('sslTitle'),
             description: t('sslDesc'),

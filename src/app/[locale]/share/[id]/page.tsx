@@ -74,7 +74,7 @@ export default function SharePage() {
                             <Clock className="h-12 w-12 text-amber-500" />
                         ) : (
                             <div className="h-16 w-16 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-lg">
-                                <img src="/logo.png" alt="CheckHost" className="h-full w-full object-cover" />
+                                <img src="/logo.png" alt="CheckHost Logo" width={64} height={64} className="h-full w-full object-cover" />
                             </div>
                         )}
                         <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-white dark:bg-slate-900 border-2 border-amber-50 dark:border-amber-500/20 flex items-center justify-center">

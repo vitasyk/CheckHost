@@ -1,14 +1,16 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { generateAlternates } from '@/lib/seo-utils';
 import { Mail, MessageSquare, Clock, Globe } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
     const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
     return {
-        title: `Contact Us | ${siteName}`,
-        description: `Get in touch with the ${siteName} team. We're happy to help.`,
-        alternates: { canonical: '/contact' },
+        title: `Contact ${siteName} Support - Get Help With Network Diagnostics`,
+        description: `Need help with network diagnostics? Contact the ${siteName} support team for API assistance, bug reports, and general inquiries. We're here to help.`,
+        alternates: generateAlternates('contact', siteUrl),
     };
 }
 

@@ -1,5 +1,5 @@
-import { getTranslations } from 'next-intl/server';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { generateAlternates } from '@/lib/seo-utils';
 import { ChecksClient } from '@/components/checks/ChecksClient';
 import { JsonLd } from '@/components/SEO/JsonLd';
 
@@ -18,9 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
             'smtp banner check', 'ehlo test', 'spf check', 'dmarc check',
             'rbl blacklist check', 'email deliverability check'
         ],
-        alternates: {
-            canonical: `${siteUrl}/smtp`,
-        },
+        alternates: generateAlternates('smtp', siteUrl),
         openGraph: {
             title: t('smtpTitle'),
             description: t('smtpDesc'),

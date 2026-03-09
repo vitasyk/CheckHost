@@ -140,13 +140,13 @@ function DefaultSeoContent() {
             {t('header.badge')}
             <span className="w-4 h-px bg-indigo-400 rounded" />
           </span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
             {t('header.titleLine1')}
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-violet-500">
               {t('header.titleLine2')}
             </span>
-          </h2>
+          </h1>
           <p className="mt-4 text-base text-slate-500 dark:text-slate-400 leading-relaxed">
             {t('header.description')}
           </p>
@@ -252,6 +252,7 @@ export async function HomePageSeoBlock() {
             <article
               className="
                               prose prose-slate dark:prose-invert max-w-none
+                              prose-h1:text-3xl prose-h1:font-bold prose-h1:mb-4 prose-h1:mt-8 prose-h1:text-slate-900 dark:prose-h1:text-white
                               prose-h2:text-2xl prose-h2:font-bold prose-h2:mb-3 prose-h2:mt-8 prose-h2:text-slate-900 dark:prose-h2:text-white
                               prose-h3:text-lg prose-h3:font-semibold prose-h3:mt-6 prose-h3:mb-2 prose-h3:text-slate-800 dark:prose-h3:text-slate-200
                               prose-p:text-slate-600 dark:prose-p:text-slate-400 prose-p:leading-relaxed prose-p:text-base

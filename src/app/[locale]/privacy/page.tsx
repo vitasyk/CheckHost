@@ -1,13 +1,23 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { generateAlternates } from '@/lib/seo-utils';
 import { Shield } from 'lucide-react';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
     const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
     return {
-        title: `Privacy Policy | ${siteName}`,
+        title: `Privacy Policy - Data Protection & Security | ${siteName}`,
         description: `Privacy Policy for ${siteName} - Learn how we collect and use your data.`,
-        alternates: { canonical: '/privacy' },
+        alternates: generateAlternates('privacy', siteUrl),
+        openGraph: {
+            title: `Privacy Policy - Data Protection & Security | ${siteName}`,
+            description: `Read the ${siteName} Privacy Policy to understand how we collect, use, and protect your personal data and network diagnostic information securely.`,
+            url: `${siteUrl}/privacy`,
+            siteName: siteName,
+            locale: locale,
+            type: 'website',
+        },
     };
 }
 

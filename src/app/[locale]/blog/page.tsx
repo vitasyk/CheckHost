@@ -79,7 +79,9 @@ export default async function BlogListPage({ params }: { params: Promise<{ local
                                         {post.cover_image ? (
                                             <img
                                                 src={post.cover_image}
-                                                alt={post.title}
+                                                alt={post.title || "Blog Post Cover"}
+                                                width={800}
+                                                height={500}
                                                 className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
                                             />
                                         ) : (

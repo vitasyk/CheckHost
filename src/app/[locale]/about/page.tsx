@@ -1,6 +1,6 @@
 import { Link } from '@/i18n/navigation';
-import { getTranslations } from 'next-intl/server';
-import { setRequestLocale } from 'next-intl/server';
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
+import { generateAlternates } from '@/lib/seo-utils';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Zap, Shield, Globe2, Server, CheckCircle2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9,13 +9,12 @@ import { AdSlot } from '@/components/AdSlot';
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
     const t = await getTranslations({ locale, namespace: 'Index' });
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checkhost.com';
 
     return {
-        title: `About | ${process.env.NEXT_PUBLIC_SITE_NAME || 'CheckHost'}`,
+        title: `About ${process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode'} - Global Network Diagnostic Tools`,
         description: t('subtitle'),
-        alternates: {
-            canonical: '/about',
-        },
+        alternates: generateAlternates('about', siteUrl),
     };
 }
 
@@ -34,7 +33,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 dark:bg-blue-600/10 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 mb-8">
-                    <img src="/logo.png" alt={siteName} className="h-5 w-5 rounded-md" />
+                    <img src="/logo.png" alt={`${siteName} Logo`} width={20} height={20} className="h-5 w-5 rounded-md" />
                     <span className="text-sm font-medium bg-gradient-to-r from-blue-700 to-indigo-700 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">{t('badge')}</span>
                 </div>
 

@@ -1,13 +1,15 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { generateAlternates } from '@/lib/seo-utils';
 import { FileText } from 'lucide-react';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
     const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
     return {
-        title: `Terms of Service | ${siteName}`,
-        description: `Terms and conditions for using ${siteName}.`,
-        alternates: { canonical: '/terms' },
+        title: `Terms of Service & Acceptable Use Policy | ${siteName}`,
+        description: `Review the Terms of Service and Acceptable Use Policy for ${siteName}. Learn about your rights, responsibilities, and our network diagnostic guidelines.`,
+        alternates: generateAlternates('terms', siteUrl),
     };
 }
 

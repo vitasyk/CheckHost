@@ -9,7 +9,7 @@ import { UserActivityFeed } from "@/components/dashboard/UserActivityFeed";
 import { getTranslations } from 'next-intl/server';
 
 export const metadata = {
-    title: 'Dashboard | CheckHost',
+    title: 'My Dashboard - Active Monitors & API Setup | CheckNode',
     description: 'User dashboard',
 };
 

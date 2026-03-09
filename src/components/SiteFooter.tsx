@@ -21,7 +21,7 @@ export function SiteFooter() {
                     {/* Column 1 - Brand - Takes 4 cols */}
                     <div className="md:col-span-4 space-y-5">
                         <Link href="/" className="flex items-center gap-2.5 group">
-                            <img src="/logo.svg" alt="" aria-hidden="true" className="h-8 w-8 group-hover:rotate-[10deg] transition-transform duration-500" />
+                            <img src="/logo.svg" alt="CheckNode Logo" width={32} height={32} aria-hidden="true" className="h-8 w-8 group-hover:rotate-[10deg] transition-transform duration-500" />
                             <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white uppercase italic">
                                 {siteName}
                             </span>
@@ -39,9 +39,9 @@ export function SiteFooter() {
                     <div className="md:col-span-8 grid grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-x-12">
                         {/* Tools */}
                         <div className="space-y-4">
-                            <h3 className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400/80 dark:text-white/20">
+                            <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400/80 dark:text-white/20">
                                 {t('tools')}
-                            </h3>
+                            </div>
                             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2.5">
                                 {[
                                     { href: "/?tab=info", icon: Info, label: t('ipinfo') },
@@ -64,9 +64,9 @@ export function SiteFooter() {
 
                         {/* Legal */}
                         <div className="space-y-4">
-                            <h3 className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400/80 dark:text-white/20">
+                            <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400/80 dark:text-white/20">
                                 {t('legal')}
-                            </h3>
+                            </div>
                             <ul className="space-y-2.5">
                                 {[
                                     { href: "/privacy", icon: Shield, label: t('privacy') },
@@ -87,9 +87,9 @@ export function SiteFooter() {
 
                         {/* Company */}
                         <div className="space-y-4">
-                            <h3 className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400/80 dark:text-white/20">
+                            <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400/80 dark:text-white/20">
                                 {t('company')}
-                            </h3>
+                            </div>
                             <ul className="space-y-2.5">
                                 {[
                                     { href: "/about", icon: Globe, label: t('about') },

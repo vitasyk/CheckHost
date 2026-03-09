@@ -85,9 +85,9 @@ function MobileUnifiedNav() {
                         <div className="px-6 pt-8 pb-3">
                             <div className="flex items-center justify-between mb-4">
                                 <div>
-                                    <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 dark:text-white/30 mb-2">
+                                    <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 dark:text-white/30 mb-2">
                                         {isAdminRoute ? 'System' : 'Menu'}
-                                    </h2>
+                                    </div>
                                     <div className="h-1 w-6 bg-indigo-500 rounded-full opacity-50" />
                                 </div>
                                 {isAdminRoute && session?.user?.role === 'admin' && (

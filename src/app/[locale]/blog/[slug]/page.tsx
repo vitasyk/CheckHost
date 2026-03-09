@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import BlogPostClient from './BlogPostClient';
 import { JsonLd } from '@/components/SEO/JsonLd';
+import { generateAlternates } from '@/lib/seo-utils';
 
 interface Post {
     id: string;
@@ -161,9 +162,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return {
         title: post.title,
         description: post.excerpt,
-        alternates: {
-            canonical: `/${locale}/blog/${slug}`,
-        },
+        alternates: generateAlternates(`blog/${post.slug}`, process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io'),
         openGraph: {
             title: post.title,
             description: post.excerpt,

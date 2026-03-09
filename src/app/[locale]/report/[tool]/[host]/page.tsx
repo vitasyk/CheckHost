@@ -1,38 +1,42 @@
 // import { getTranslations } from 'next-intl/server';
 import { setRequestLocale } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { generateAlternates } from '@/lib/seo-utils';
 import { ChecksClient } from '@/components/checks/ChecksClient';
+
+export const checkNames: Record<string, string> = {
+    'ping': 'Ping Check',
+    'http': 'HTTP Website Check',
+    'tcp': 'TCP Port Check',
+    'udp': 'UDP Port Check',
+    'dns': 'DNS Lookup',
+    'dns-all': 'Full DNS Report',
+    'info': 'IP & Geolocation Info',
+    'ssl': 'SSL Certificate Check',
+    'mtr': 'MTR / Traceroute',
+    'smtp': 'SMTP Check'
+};
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string, tool: string, host: string }> }) {
     const { tool, host } = await params;
     // const t = await getTranslations({ locale });
-
-    // Attempt to get the tool name natively, fallback to uppercase
-    const checkNames: Record<string, string> = {
-        'ping': 'Ping Check',
-        'http': 'HTTP Website Check',
-        'tcp': 'TCP Port Check',
-        'udp': 'UDP Port Check',
-        'dns': 'DNS Lookup',
-        'dns-all': 'Full DNS Report',
-        'info': 'IP & Geolocation Info',
-        'ssl': 'SSL Certificate Check',
-        'mtr': 'MTR / Traceroute'
-    };
 
     const toolName = checkNames[tool.toLowerCase()] || tool.toUpperCase();
 
     return {
         title: `${toolName} for ${host} | ${process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode'}`,
         description: `Perform ${toolName} diagnostic tests for ${host}. Analyze network latency, reachability, and DNS configuration globally.`,
-        alternates: {
-            canonical: `/report/${tool}/${host}`,
-        },
+        alternates: generateAlternates(`report/${tool}/${host}`, process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io'),
     };
 }
 
 export default async function ReportPage({ params }: { params: Promise<{ locale: string, tool: string, host: string }> }) {
     const { locale, tool, host } = await params;
     setRequestLocale(locale);
+
+    if (!checkNames[tool.toLowerCase()]) {
+        notFound();
+    }
 
     // Simple sanitization
     const sanitizeHost = decodeURIComponent(host).trim().toLowerCase();

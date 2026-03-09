@@ -1,5 +1,5 @@
-import { getTranslations } from 'next-intl/server';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { generateAlternates } from '@/lib/seo-utils';
 import { ChecksClient } from '@/components/checks/ChecksClient';
 import { HomePageSeoBlock } from '@/components/HomePageSeoBlock';
 import { ToolSeoBlock } from '@/components/content/ToolSeoBlock';
@@ -9,13 +9,12 @@ import { Suspense } from 'react';
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
     const t = await getTranslations({ locale, namespace: 'Metadata' });
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
 
     return {
         title: t('checksTitle') || `Diagnostic Tools | ${process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode'}`,
         description: t('checksDesc') || 'Comprehensive website diagnostic tools including Ping, HTTP, DNS, SSL, and MTR checks.',
-        alternates: {
-            canonical: '/',
-        },
+        alternates: generateAlternates('/', siteUrl),
     };
 }
 

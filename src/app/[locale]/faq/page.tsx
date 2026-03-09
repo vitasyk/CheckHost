@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { generateAlternates } from '@/lib/seo-utils';
 import { query } from '@/lib/postgres';
 import { FaqAccordion } from '@/components/common/FaqAccordion';
 import { HelpCircle } from 'lucide-react';
@@ -9,13 +10,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const t = await getTranslations({ locale, namespace: 'FAQ' });
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
     return {
-        title: `${t('title')} | CheckNode`,
+        title: `${t('title')} - Help & Support Center | CheckNode`,
         description: t('subtitle'),
-        alternates: {
-            canonical: `${siteUrl}/faq`,
-        },
+        alternates: generateAlternates('faq', siteUrl),
         openGraph: {
-            title: `${t('title')} | CheckNode`,
+            title: `${t('title')} - Help & Support Center | CheckNode`,
             description: t('subtitle'),
             url: `${siteUrl}/faq`,
         },

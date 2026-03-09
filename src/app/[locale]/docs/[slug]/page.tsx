@@ -192,7 +192,7 @@ export default async function DocArticlePage({ params }: { params: Promise<{ slu
 
                         {article.cover_image && (
                             <div className="mb-10 rounded-2xl overflow-hidden aspect-video border border-slate-200 dark:border-white/10 shadow-xl bg-slate-100 dark:bg-slate-800">
-                                <img src={article.cover_image} alt={article.title} className="w-full h-full object-cover" />
+                                <img src={article.cover_image} alt={article.title} width={800} height={450} className="w-full h-full object-cover" />
                             </div>
                         )}
 

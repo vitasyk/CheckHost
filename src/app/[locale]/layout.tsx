@@ -21,6 +21,7 @@ import { PwaRegister } from "@/components/PwaRegister";
 import { headers } from 'next/headers';
 import { SiteFooter } from "@/components/SiteFooter";
 import { CookieConsent } from "@/components/CookieConsent";
+import { generateAlternates } from "@/lib/seo-utils";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -52,20 +53,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         authors: [{ name: `${siteName} Team` }],
         creator: siteName,
         metadataBase: new URL(siteUrl),
-        alternates: {
-            canonical: '/',
-            languages: {
-                'en-US': '/',
-                'uk-UA': '/',
-                'de-DE': '/',
-                'es-ES': '/',
-                'fr-FR': '/',
-                'ru-RU': '/',
-                'nl-NL': '/',
-                'pl-PL': '/',
-                'it-IT': '/',
-            },
-        },
+        alternates: generateAlternates('/', siteUrl),
         manifest: '/manifest.json',
         appleWebApp: {
             capable: true,
@@ -111,6 +99,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         robots: {
             index: true,
             follow: true,
+        },
+        verification: {
+            google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
         },
     };
 }

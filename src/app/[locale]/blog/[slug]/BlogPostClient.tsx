@@ -88,7 +88,9 @@ export default function BlogPostClient({ post }: { post: Post }) {
                         <div className="absolute inset-0">
                             <img
                                 src={post.cover_image}
-                                alt={post.title}
+                                alt={post.title || "Cover Image"}
+                                width={1200}
+                                height={600}
                                 className="w-full h-full object-cover opacity-50 blur-[2px]"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
