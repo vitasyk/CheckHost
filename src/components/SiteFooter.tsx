@@ -26,10 +26,10 @@ export function SiteFooter() {
                                 {siteName}
                             </span>
                         </Link>
-                        <p className="text-[14px] leading-relaxed text-slate-500 dark:text-slate-400/80 max-w-[280px]">
+                        <p className="text-[14px] leading-relaxed text-slate-600 dark:text-slate-400 max-w-[280px]">
                             {t('slogan')}
                         </p>
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]">
+                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.15em]">
                             <Globe className="h-3 w-3 text-indigo-500/70" />
                             <span>{t('globalCoverage')}</span>
                         </div>
@@ -39,7 +39,7 @@ export function SiteFooter() {
                     <div className="md:col-span-8 grid grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-x-12">
                         {/* Tools */}
                         <div className="space-y-4">
-                            <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400/80 dark:text-white/20">
+                            <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-600 dark:text-slate-400">
                                 {t('tools')}
                             </div>
                             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2.5">
@@ -52,9 +52,9 @@ export function SiteFooter() {
                                     <li key={tool.label}>
                                         <Link
                                             href={tool.href}
-                                            className="group flex items-center gap-2 text-[13px] font-medium text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white transition-all duration-300"
+                                            className="group flex items-center gap-2 text-[13px] font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white transition-all duration-300"
                                         >
-                                            <tool.icon className="h-4 w-4 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 group-hover:scale-110 group-hover:-translate-y-0.5 transition-all duration-300" />
+                                            <tool.icon className="h-4 w-4 text-slate-400 dark:text-slate-600 group-hover:text-indigo-500 group-hover:scale-110 group-hover:-translate-y-0.5 transition-all duration-300" />
                                             <span className="group-hover:translate-x-0.5 transition-transform duration-300">{tool.label}</span>
                                         </Link>
                                     </li>
@@ -116,10 +116,10 @@ export function SiteFooter() {
                 {/* Bottom Bar */}
                 <div className="mt-10 pt-6 border-t border-slate-100 dark:border-white/[0.03] flex flex-col sm:flex-row items-center justify-between gap-6">
                     <div className="flex flex-col items-center sm:items-start gap-0.5">
-                        <p className="text-[10px] font-bold text-slate-300 dark:text-slate-600 uppercase tracking-[0.2em]">
+                        <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em]">
                             © {year} {siteName}
                         </p>
-                        <p className="text-[9px] text-slate-400/50 font-medium">
+                        <p className="text-[9px] text-slate-500/60 font-medium">
                             {t('allRightsReserved')}
                         </p>
                     </div>
@@ -133,11 +133,11 @@ export function SiteFooter() {
                             <React.Fragment key={link.label}>
                                 <Link
                                     href={link.href}
-                                    className="text-[10px] font-bold text-slate-400/80 hover:text-indigo-600 dark:hover:text-white uppercase tracking-widest transition-colors"
+                                    className="text-[10px] font-bold text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-white uppercase tracking-widest transition-colors"
                                 >
                                     {link.label}
                                 </Link>
-                                {idx < 2 && <span className="h-0.5 w-0.5 rounded-full bg-slate-200 dark:bg-white/5" />}
+                                {idx < 2 && <span className="h-0.5 w-0.5 rounded-full bg-slate-200 dark:bg-white/10" />}
                             </React.Fragment>
                         ))}
                     </div>

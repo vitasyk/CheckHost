@@ -112,7 +112,7 @@ export function VisitorIpInfo() {
             {/* Location */}
             <div className="flex items-center gap-1">
                 <MapPin className="h-3 w-3 text-indigo-400 dark:text-indigo-500 shrink-0 transition-transform group-hover:scale-110" />
-                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
                     {countryName}
                 </span>
             </div>

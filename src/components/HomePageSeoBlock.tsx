@@ -147,7 +147,7 @@ function DefaultSeoContent() {
               {t('header.titleLine2')}
             </span>
           </h1>
-          <p className="mt-4 text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+          <p className="mt-4 text-base text-slate-600 dark:text-slate-400 leading-relaxed">
             {t('header.description')}
           </p>
         </div>
@@ -164,7 +164,7 @@ function DefaultSeoContent() {
               </span>
               <div>
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{f.title}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{f.desc}</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">{f.desc}</p>
               </div>
             </div>
           ))}
@@ -187,8 +187,8 @@ function DefaultSeoContent() {
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-sm text-slate-800 dark:text-slate-200">{tool.name}{tool.checkSuffix}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{tool.measures}</p>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 italic">{tool.useCase}</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{tool.measures}</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 italic">{tool.useCase}</p>
                 </div>
               </div>
             ))}
@@ -213,14 +213,14 @@ function DefaultSeoContent() {
           ].map(({ q, a }) => (
             <div key={q} className="p-5 rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-900/50 border border-slate-100 dark:border-white/[0.06]">
               <h2 className="font-bold text-slate-900 dark:text-white text-sm mb-2">{q}</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{a}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{a}</p>
             </div>
           ))}
         </div>
 
         {/* ── Bottom tagline ── */}
         <div className="text-center py-8 border-t border-slate-100 dark:border-white/[0.05]">
-          <p className="text-sm text-slate-400 dark:text-slate-500 max-w-xl mx-auto leading-relaxed">
+          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xl mx-auto leading-relaxed">
             {t('footerText')}
           </p>
         </div>

@@ -40,11 +40,11 @@ export function CookieConsent() {
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="font-semibold text-slate-900 dark:text-slate-100 mb-1">{t('title')}</p>
-                        <div className="flex-1 text-sm text-slate-400 leading-relaxed">
+                        <div className="flex-1 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                             {t('description')}{' '}
                             <Link
                                 href="/privacy"
-                                className="text-indigo-400 hover:text-indigo-300 transition-colors font-medium border-b border-indigo-400/30 hover:border-indigo-300"
+                                className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors font-medium border-b border-indigo-400/30 hover:border-indigo-300"
                             >
                                 {t('privacyPolicy')}
                             </Link>
