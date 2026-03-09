@@ -3,7 +3,6 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 Disallow: /auth/
-Crawl-delay: 10
 
 # Блокування ШІ-ботів
 User-agent: GPTBot
