@@ -212,7 +212,8 @@ function DefaultSeoContent() {
             },
           ].map(({ q, a }) => (
             <div key={q} className="p-5 rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-900/50 border border-slate-100 dark:border-white/[0.06]">
-              <h2 className="font-bold text-slate-900 dark:text-white text-sm mb-2">{q}</h2>
+              {/* Змінюємо h2 на h3 для кращої ієрархії заголовків */}
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-2">{q}</h3>
               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{a}</p>
             </div>
           ))}

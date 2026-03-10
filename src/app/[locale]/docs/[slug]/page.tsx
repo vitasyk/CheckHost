@@ -202,7 +202,8 @@ export default async function DocArticlePage({ params }: { params: Promise<{ slu
                             </div>
                         )}
 
-                        <h2 className="sr-only">Article Content</h2>
+                        {/* Робимо заголовок видимим для SEO */}
+                        <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Article Content</h2>
                         <div
                             className="prose prose-slate dark:prose-invert max-w-none prose-headings:scroll-mt-24 prose-pre:bg-slate-900 prose-pre:p-0 prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400"
                             dangerouslySetInnerHTML={{ __html: htmlContent }}

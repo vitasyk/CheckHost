@@ -458,6 +458,18 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
 
             <div className="relative z-10 flex flex-col">
                 <div className="w-full pt-8 pb-2">
+                    {/* Головний заголовок H1 для SEO та користувачів */}
+                    <div className="max-w-4xl mx-auto text-center mb-8 px-4">
+                        <h1 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-slate-100 tracking-tight capitalize">
+                            {activeTab === 'dns-all' ? 'DNS Records Lookup' : `${activeTab} Check`}
+                        </h1>
+                        <p className="mt-3 text-slate-500 dark:text-slate-400 font-medium">
+                            {initialTab === 'mtr' ? 'Trace network paths and measure latency from 20+ global nodes.' :
+                                initialTab === 'ssl' ? 'Verify SSL/TLS certificate validity and chain of trust instantly.' :
+                                    'Professional network diagnostic tools for global infrastructure monitoring.'}
+                        </p>
+                    </div>
+
                     <div className="w-full">
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full relative">
                             <div className="flex flex-col items-center justify-center gap-3 mb-4">

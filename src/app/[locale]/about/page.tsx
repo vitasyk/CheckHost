@@ -146,9 +146,10 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
             {/* Core Principles */}
             <section className="max-w-[1440px] mx-auto px-4 sm:px-8 py-24 bg-slate-50 dark:bg-slate-900/30 border-y border-slate-200 dark:border-white/5">
                 <div className="w-full max-w-6xl mx-auto">
-                    <h2 className="text-3xl md:text-5xl font-bold text-center mb-16 text-slate-900 dark:text-white">
+                    {/* Змінюємо h2 на h3 для другорядних розділів */}
+                    <h3 className="text-3xl md:text-5xl font-bold text-center mb-16 text-slate-900 dark:text-white">
                         {t('principlesTitle')}
-                    </h2>
+                    </h3>
 
                     <div className="grid md:grid-cols-3 gap-8">
                         <Card className="relative overflow-hidden border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 shadow-lg group hover:-translate-y-1 transition-transform duration-300">

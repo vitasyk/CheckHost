@@ -108,9 +108,10 @@ export default async function BlogListPage({ params }: { params: Promise<{ local
                                                 {post.author}
                                             </div>
                                         </div>
-                                        <h2 className="text-xl font-bold mb-3 text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2">
+                                        {/* Змінюємо h2 на h3 для заголовків у списку */}
+                                        <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2">
                                             {post.title}
-                                        </h2>
+                                        </h3>
                                         <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 mb-6 flex-1">
                                             {post.excerpt}
                                         </p>
