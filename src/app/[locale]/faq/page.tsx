@@ -91,10 +91,6 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
             </section>
 
             <div className="container mx-auto px-4 py-8">
-                {/* Головний заголовок секції FAQ */}
-                <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-10 text-center">
-                    {t.has('commonQuestions') ? t('commonQuestions') : 'Frequently Asked Questions'}
-                </h2>
                 {accordionItems.length > 0 ? (
                     <FaqAccordion items={accordionItems} />
                 ) : (
