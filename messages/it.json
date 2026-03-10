@@ -372,18 +372,18 @@
     "cookieEssentialDesc": "Necessari per l'autenticazione e le funzioni principali della piattaforma. Non possono essere disabilitati.",
     "cookieAnalytics": "Analitici",
     "cookieAnalyticsDesc": "Ci aiutano a capire come gli utenti interagiscono con la piattaforma per migliorarne le prestazioni e l'usabilità.",
-    "cookieAdvertising": "Preferenze",
-    "cookieAdvertisingDesc": "Memorizzano le preferenze dell'interfaccia come la selezione del tema e la lingua.",
-    "cookiesGoogleNote": "Non utilizziamo cookie pubblicitari o di tracciamento da reti pubblicitarie di terze parti.",
+    "cookieAdvertising": "Pubblicità",
+    "cookieAdvertisingDesc": "Utilizzati da Google AdSense per visualizzare annunci pertinenti. Questi cookie possono tracciare l'attività di navigazione su vari siti web per mostrare annunci personalizzati.",
+    "cookiesGoogleNote": "Utilizziamo Google AdSense per pubblicare annunci. Google può utilizzare cookie e tecnologie simili per mostrare annunci personalizzati in base alle tue visite a questo e ad altri siti web. Puoi disattivarli su g.co/adsettings.",
     "howWeUseTitle": "Come utilizziamo i tuoi dati",
     "howWeUse1": "Per fornire, gestire e mantenere i nostri servizi di diagnostica",
     "howWeUse2": "Per analizzare le modalità di utilizzo e migliorare continuamente i nostri strumenti",
     "howWeUse3": "Per garantire la sicurezza della piattaforma e rilevare abusi",
     "howWeUse4": "Per rispondere alle richieste di supporto tecnico",
     "thirdPartyTitle": "Servizi di terze parti",
-    "thirdPartyAdsense": "Cloudflare — utilizzato per protezione DDoS, CDN e ottimizzazione delle prestazioni.",
-    "thirdPartyCloudflare": "Cloudflare — utilizzato per protezione DDoS e ottimizzazione delle prestazioni.",
-    "thirdPartyAnalytics": "Provider di analisi — utilizzato per raccogliere statistiche di utilizzo anonimizzate e aggregate.",
+    "thirdPartyAdsense": "Google AdSense — utilizzato per visualizzare annunci pertinenti. Google può utilizzare cookie e tecnologie simili per la personalizzazione e la misurazione degli annunci. Consulta l'Informativa sulla privacy di Google su policies.google.com/privacy.",
+    "thirdPartyCloudflare": "Cloudflare — utilizzato per protezione DDoS, CDN e ottimizzazione delle prestazioni.",
+    "thirdPartyAnalytics": "Fornitore di analisi — utilizzato per raccogliere statistiche di utilizzo anonimizzate e aggregate.",
     "dataRetentionTitle": "Conservazione dei dati",
     "dataRetentionDesc": "Conserviamo i registri dei controlli per un massimo di 90 giorni. I dati dell'account vengono conservati fino all'eliminazione.",
     "yourRightsTitle": "I tuoi diritti",
@@ -654,7 +654,10 @@
       "Network": "Rete e Nodi",
       "FAQ": "FAQ",
       "faq": "FAQ"
-    }
+    },
+    "relatedTools": "Strumenti di diagnostica correlati",
+    "reliabilityTitle": "Affidabilità e precisione della piattaforma",
+    "reliabilityDesc": "CheckNode gestisce una rete distribuita di nodi di monitoraggio in datacenter premium in tutto il mondo. Ogni controllo viene eseguito in tempo reale utilizzando percorsi di rete non filtrati per fornire la rappresentazione più accurata della connettività globale. Il nostro impegno per la trasparenza significa che riceverai dati grezzi e imparziali per ogni richiesta di diagnostica."
   },
   "About": {
     "badge": "Democratizzare l'osservabilità della rete",
@@ -706,7 +709,12 @@
   "FAQ": {
     "title": "Domande Frequenti",
     "subtitle": "Trova le risposte alle domande più comuni sui nostri strumenti.",
-    "noFaqs": "Nessuna FAQ trovata."
+    "noFaqs": "Nessuna FAQ trovata.",
+    "extendedTitle": "Informazioni sulla nostra base di conoscenze",
+    "extendedP1": "CheckNode è una piattaforma specializzata nella diagnostica di rete progettata per la precisione e la velocità. I nostri strumenti di monitoraggio dell'infrastruttura, inclusi Ping, controlli dello stato HTTP e ricerche di propagazione DNS, sono nati per aiutarti a identificare e risolvere istantaneamente problemi complessi di connettività da oltre 20 località globali.",
+    "extendedP2": "Manteniamo una flotta globale di nodi di test in data center Tier-1 di alto livello in Nord America, Europa, Asia e Sud America. Ciò ci consente di fornire una prospettiva di terze parti imparziale sulle prestazioni e sulla raggiungibilità del tuo sito Web, aiutandoti ad aggirare la memorizzazione nella cache degli ISP locali e le anomalie di instradamento regionale.",
+    "extendedP3": "Tutti i dati diagnostici forniti dai nostri strumenti sono diretti e non filtrati. Sia che tu stia eseguendo il debug di una migrazione del server, verificando la visibilità globale di un nuovo certificato SSL o analizzando un problema di instradamento BGP, CheckNode fornisce l'intelligenza tecnica necessaria per la gestione dell'infrastruttura moderna.",
+    "stillHaveQuestions": "Hai ancora domande? Il nostro team tecnico è pronto ad aiutarti a comprendere i tuoi risultati."
   },
   "SmtpDashboard": {
     "connectionFailed": "Connessione fallita",

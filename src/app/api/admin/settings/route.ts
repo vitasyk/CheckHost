@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     const key = searchParams.get('key') || 'adsense';
 
     // Publicly accessible keys (non-sensitive UI configs)
-    const publicKeys = ['ip_info_display', 'adsense', 'feature_flags', 'share_results', 'system_config'];
+    const publicKeys = ['ip_info_display', 'adsense', 'feature_flags', 'share_results', 'system_config', 'consent_config'];
     const isPublic = publicKeys.includes(key);
 
     if (!isPublic) {

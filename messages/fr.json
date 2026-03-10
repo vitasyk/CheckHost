@@ -372,18 +372,18 @@
     "cookieEssentialDesc": "Nécessaires pour l'authentification et les fonctions essentielles de la plateforme. Ne peuvent pas être désactivés.",
     "cookieAnalytics": "Analytiques",
     "cookieAnalyticsDesc": "Nous aident à comprendre comment les utilisateurs interagissent avec la plateforme afin d'en améliorer les performances et l'ergonomie.",
-    "cookieAdvertising": "Préférences",
-    "cookieAdvertisingDesc": "Enregistrent les préférences d'interface telles que la sélection du thème et la langue.",
-    "cookiesGoogleNote": "Nous n'utilisons pas de cookies publicitaires ou de suivi provenant de réseaux publicitaires tiers.",
+    "cookieAdvertising": "Publicité",
+    "cookieAdvertisingDesc": "Utilisés par Google AdSense pour afficher des annonces pertinentes. Ces cookies peuvent suivre votre activité de navigation sur divers sites web afin d'afficher des annonces personnalisées.",
+    "cookiesGoogleNote": "Nous utilisons Google AdSense pour diffuser des annonces. Google peut utiliser des cookies et des technologies similaires pour afficher des annonces personnalisées en fonction de vos visites sur ce site et d'autres sites web. Vous pouvez vous désinscrire sur g.co/adsettings.",
     "howWeUseTitle": "Comment nous utilisons vos données",
     "howWeUse1": "Pour fournir, exploiter et maintenir nos services de diagnostic",
     "howWeUse2": "Pour analyser les modes d'utilisation et améliorer continuellement nos outils",
     "howWeUse3": "Pour assurer la sécurité de la plateforme et détecter les abus",
     "howWeUse4": "Pour répondre aux demandes d'assistance technique",
     "thirdPartyTitle": "Services tiers",
-    "thirdPartyAdsense": "Cloudflare — utilisé pour la protection DDoS, CDN et l'optimisation des performances.",
-    "thirdPartyCloudflare": "Cloudflare — utilisé pour la protection DDoS et l'optimisation des performances.",
-    "thirdPartyAnalytics": "Fournisseur d'analyse — utilisé pour collecter des statistiques d'utilisation anonymes et agrégées.",
+    "thirdPartyAdsense": "Google AdSense — utilisé pour afficher des annonces pertinentes. Google peut utiliser des cookies et des technologies similaires pour la personnalisation et la mesure des annonces. Consultez la politique de confidentialité de Google sur policies.google.com/privacy.",
+    "thirdPartyCloudflare": "Cloudflare — utilisé pour la protection DDoS, CDN et l'optimisation des performances.",
+    "thirdPartyAnalytics": "Fournisseur d'analyse — utilisé pour collecter des statistiques d'utilisation anonymisées et agrégées.",
     "dataRetentionTitle": "Conservation des données",
     "dataRetentionDesc": "Nous conservons les journaux de vérification 90 jours maximum. Les données de compte sont conservées jusqu'à la suppression.",
     "yourRightsTitle": "Vos droits",
@@ -654,7 +654,10 @@
       "Network": "Réseau et Noeuds",
       "FAQ": "FAQ",
       "faq": "FAQ"
-    }
+    },
+    "relatedTools": "Outils de diagnostic associés",
+    "reliabilityTitle": "Fiabilité et précision de la plateforme",
+    "reliabilityDesc": "CheckNode exploite un réseau distribué de nœuds de surveillance dans des centres de données haut de gamme à travers le monde. Chaque vérification est effectuée en temps réel via des chemins réseau non filtrés afin de fournir la représentation la plus précise de la connectivité globale. Notre engagement envers la transparence signifie que vous recevez des données brutes et impartiales pour chaque demande de diagnostic."
   },
   "About": {
     "badge": "Démocratiser l'observabilité du réseau",
@@ -706,7 +709,12 @@
   "FAQ": {
     "title": "Foire Aux Questions",
     "subtitle": "Trouvez des réponses aux questions les plus fréquentes sur nos outils.",
-    "noFaqs": "Aucune FAQ trouvée."
+    "noFaqs": "Aucune FAQ trouvée.",
+    "extendedTitle": "À propos de notre base de connaissances",
+    "extendedP1": "CheckNode est une plateforme spécialisée dans le diagnostic réseau, conçue pour la précision et la vitesse. Nos outils de surveillance d'infrastructure, notamment le Ping, les vérifications d'état HTTP et les recherches de propagation DNS, sont créés pour vous aider à identifier et à résoudre instantanément les problèmes de connectivité complexes depuis plus de 20 emplacements mondiaux.",
+    "extendedP2": "Nous entretenons une flotte mondiale de nœuds de test dans des centres de données Tier-1 de premier plan en Amérique du Nord, en Europe, en Asie et en Amérique du Sud. Cela nous permet de fournir une perspective tierce et impartiale sur les performances et l'accessibilité de votre site Web, vous aidant ainsi à contourner la mise en cache des FAI locaux et les anomalies de routage régional.",
+    "extendedP3": "Toutes les données de diagnostic fournies par nos outils sont directes et non filtrées. Que vous déboguiez une migration de serveur, vérifiiez la visibilité globale d'un nouveau certificat SSL ou analysiez un problème de routage BGP, CheckNode fournit l'intelligence technique nécessaire à la gestion de l'infrastructure moderne.",
+    "stillHaveQuestions": "Vous avez encore des questions ? Notre équipe technique est prête à vous aider à comprendre vos résultats."
   },
   "SmtpDashboard": {
     "connectionFailed": "Échec de la connexion",

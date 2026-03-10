@@ -3,6 +3,7 @@ import { generateAlternates } from '@/lib/seo-utils';
 import { query } from '@/lib/postgres';
 import { FaqAccordion } from '@/components/common/FaqAccordion';
 import { HelpCircle } from 'lucide-react';
+import { Link } from '@/i18n/navigation';
 import { JsonLd } from '@/components/SEO/JsonLd';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -99,6 +100,35 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
                     </div>
                 )}
             </div>
+
+            {/* Extended SEO Content Section */}
+            <section className="container mx-auto px-4 pt-8 pb-16">
+                <div className="max-w-4xl mx-auto border-t border-slate-200 dark:border-white/5 pt-16">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                        <div className="md:col-span-2 space-y-6">
+                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+                                {t('extendedTitle')}
+                            </h2>
+                            <div className="prose prose-slate dark:prose-invert max-w-none text-slate-600 dark:text-slate-400 leading-relaxed">
+                                <p>{t('extendedP1')}</p>
+                                <p>{t('extendedP2')}</p>
+                                <p>{t('extendedP3')}</p>
+                            </div>
+                        </div>
+                        <div className="bg-indigo-500/5 dark:bg-indigo-500/10 rounded-3xl p-8 border border-indigo-500/10 h-fit">
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+                                {t('stillHaveQuestions')}
+                            </h3>
+                            <Link
+                                href="/contact"
+                                className="inline-flex items-center justify-center w-full px-6 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-medium transition-all duration-300 shadow-lg shadow-indigo-500/25"
+                            >
+                                Contact Support
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
     );
 }

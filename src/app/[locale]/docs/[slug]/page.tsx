@@ -183,9 +183,9 @@ export default async function DocArticlePage({ params }: { params: Promise<{ slu
                     {/* Main Content */}
                     <main className="flex-1 max-w-4xl">
                         <div className="mb-8 flex items-center gap-4 text-sm text-slate-500">
-                            <h2 className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-white/5 font-medium text-slate-700 dark:text-slate-300 text-sm">
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-white/5 font-medium text-slate-700 dark:text-slate-300 text-sm">
                                 {t('title')}: {t(`sections.${article.section}`) || article.section}
-                            </h2>
+                            </div>
                             <span className="flex items-center gap-1.5">
                                 <Clock className="w-4 h-4" />
                                 {t('lastUpdated')}: {new Date(article.updated_at).toLocaleDateString(locale)}
@@ -207,6 +207,47 @@ export default async function DocArticlePage({ params }: { params: Promise<{ slu
                             className="prose prose-slate dark:prose-invert max-w-none prose-headings:scroll-mt-24 prose-pre:bg-slate-900 prose-pre:p-0 prose-code:text-blue-600 dark:prose-code:text-blue-400 prose-a:text-blue-600 dark:prose-a:text-blue-400"
                             dangerouslySetInnerHTML={{ __html: htmlContent }}
                         />
+
+                        {/* Reliability & Related Tools Section (SEO Boost) */}
+                        <div className="mt-16 space-y-12 border-t border-slate-200 dark:border-white/5 pt-12">
+                            <section className="space-y-4">
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <BookOpen className="w-5 h-5 text-blue-500" />
+                                    {t('reliabilityTitle')}
+                                </h2>
+                                <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">
+                                    {t('reliabilityDesc')}
+                                </p>
+                            </section>
+
+                            <section className="space-y-6">
+                                <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <List className="w-5 h-5 text-blue-500" />
+                                    {t('relatedTools')}
+                                </h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {[
+                                        { id: 'ping', icon: 'zap' },
+                                        { id: 'http', icon: 'globe' },
+                                        { id: 'dns', icon: 'search' },
+                                        { id: 'ssl', icon: 'shield' }
+                                    ].map(tool => (
+                                        <Link
+                                            key={tool.id}
+                                            href={`/${tool.id}`}
+                                            className="group p-4 rounded-xl border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02] hover:border-blue-500/30 hover:bg-blue-500/5 transition-all text-sm"
+                                        >
+                                            <span className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-500 transition-colors block mb-1 uppercase tracking-wider text-xs">
+                                                {tool.id}
+                                            </span>
+                                            <span className="text-slate-500 dark:text-slate-500">
+                                                Professional global {tool.id} diagnostics and monitoring.
+                                            </span>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </section>
+                        </div>
 
                         {/* Pagination Bottom */}
                         <div className="mt-16 pt-8 border-t border-slate-200 dark:border-white/5 flex flex-col sm:flex-row justify-between gap-4">

@@ -31,6 +31,12 @@ interface AdPlacement {
     height?: number;
 }
 
+interface ConsentConfig {
+    enabled: boolean;
+    publisherId: string;
+    scriptSnippet: string;
+}
+
 interface AdSenseConfig {
     client_id: string;
     enabled: boolean;
@@ -60,6 +66,11 @@ export default function AdminAdsPage() {
         enabled: false,
         slots: defaultSlots,
         placements: []
+    });
+    const [consentConfig, setConsentConfig] = useState<ConsentConfig>({
+        enabled: false,
+        publisherId: '',
+        scriptSnippet: ''
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -105,6 +116,13 @@ export default function AdminAdsPage() {
                         });
                     }
                 }
+
+                // Fetch Consent Config
+                const consentRes = await fetch('/api/admin/settings?key=consent_config');
+                if (consentRes.ok) {
+                    const data = await consentRes.json();
+                    if (data) setConsentConfig(prev => ({ ...prev, ...data }));
+                }
             } catch (error) {
                 console.error('Failed to fetch AdSense config:', error);
             } finally {
@@ -124,6 +142,13 @@ export default function AdminAdsPage() {
             });
 
             if (res.ok) {
+                // Save Consent Config too
+                await fetch('/api/admin/settings?key=consent_config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(consentConfig),
+                });
+
                 setSaved(true);
                 setTimeout(() => setSaved(false), 3000);
             }
@@ -239,6 +264,45 @@ export default function AdminAdsPage() {
                             <div className="text-xs text-indigo-800 dark:text-indigo-300">
                                 <p className="font-semibold">Professional Setup:</p>
                                 <p className="mt-1 opacity-90 leading-relaxed">Zones highlighted in blue on the layout preview are active. Click any zone to edit its parameters.</p>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Consent Management (CMP) */}
+                    <Card className="p-6 border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900 shadow-sm space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                                <h3 className="text-lg font-semibold flex items-center gap-2">
+                                    <Globe className="h-5 w-5 text-indigo-500" />
+                                    Consent Management (CMP)
+                                </h3>
+                                <p className="text-xs text-slate-500">Google Funding Choices / TCF 2.2 for AdSense compliance.</p>
+                            </div>
+                            <Switch
+                                checked={consentConfig.enabled}
+                                onCheckedChange={(val) => setConsentConfig(prev => ({ ...prev, enabled: val }))}
+                            />
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Publisher ID</label>
+                                <Input
+                                    placeholder="pub-XXXXXXXXXXXXXXXX"
+                                    className="bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-white/10"
+                                    value={consentConfig.publisherId}
+                                    onChange={(e) => setConsentConfig(prev => ({ ...prev, publisherId: e.target.value }))}
+                                />
+                                <p className="text-[10px] text-slate-400">Usually matches the ID in your Client ID.</p>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">CMP Script Snippet</label>
+                                <textarea
+                                    placeholder="<script async src=..."
+                                    className="w-full h-10 p-2 text-[10px] font-mono bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-md focus:ring-1 focus:ring-indigo-500 outline-none"
+                                    value={consentConfig.scriptSnippet}
+                                    onChange={(e) => setConsentConfig(prev => ({ ...prev, scriptSnippet: e.target.value }))}
+                                />
                             </div>
                         </div>
                     </Card>

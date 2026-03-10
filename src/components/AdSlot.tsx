@@ -14,6 +14,7 @@ interface AdSlotProps {
 export function AdSlot({ slotType, className = "", alignment: propsAlignment }: AdSlotProps) {
     const [config, setConfig] = useState<any>(null);
     const [mounted, setMounted] = useState(false);
+    const [hasConsent, setHasConsent] = useState(false);
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -38,6 +39,28 @@ export function AdSlot({ slotType, className = "", alignment: propsAlignment }: 
             }
         };
         fetchConfig();
+
+        // TCF 2.2 Consent Check
+        const checkConsent = () => {
+            if (typeof window !== 'undefined' && (window as any).__tcfapi) {
+                (window as any).__tcfapi('addEventListener', 2, (tcData: any, success: boolean) => {
+                    if (success && (tcData.eventStatus === 'tcloaded' || tcData.eventStatus === 'useractioncomplete')) {
+                        // Check if purpose 1 (Store and/or access information on a device) is granted
+                        const consentGranted = tcData.purpose?.consents?.[1] === true;
+                        setHasConsent(consentGranted);
+                    }
+                });
+            } else {
+                // If no CMP is detected after some time, assume consent managed elsewhere or not required
+                // (Or default to true if you are not in a strictly regulated region, but for AdSense compliance, 
+                // it's safer to wait if script is present).
+                // For now, if no TCF API found, we allow ads (fallback).
+                setHasConsent(true);
+            }
+        };
+
+        const consentTimer = setTimeout(checkConsent, 1000);
+        return () => clearTimeout(consentTimer);
     }, []);
 
     // Determine active config for this slot
@@ -69,7 +92,7 @@ export function AdSlot({ slotType, className = "", alignment: propsAlignment }: 
 
     useEffect(() => {
         if (!mounted || !config || !config.enabled) return;
-        if (!isSlotEnabled) return;
+        if (!isSlotEnabled || !hasConsent) return;
 
         const initAd = () => {
             if (!containerRef.current) return;

@@ -372,18 +372,18 @@
     "cookieEssentialDesc": "Für Authentifizierung und Kernfunktionen der Plattform erforderlich. Kann nicht deaktiviert werden.",
     "cookieAnalytics": "Analytisch",
     "cookieAnalyticsDesc": "Helfen uns zu verstehen, wie Nutzer mit der Plattform interagieren, um Leistung und Benutzerfreundlichkeit zu verbessern.",
-    "cookieAdvertising": "Einstellungen",
-    "cookieAdvertisingDesc": "Speichern Interface-Einstellungen wie Theme-Auswahl und Sprache.",
-    "cookiesGoogleNote": "Wir verwenden keine Werbe- oder Tracking-Cookies von Drittanbieter-Werbenetzwerken.",
+    "cookieAdvertising": "Werbung",
+    "cookieAdvertisingDesc": "Werden von Google AdSense verwendet, um relevante Werbeanzeigen zu schalten. Diese Cookies können Ihr Surfverhalten auf verschiedenen Websites verfolgen, um personalisierte Werbung anzuzeigen.",
+    "cookiesGoogleNote": "Wir verwenden Google AdSense, um Werbung zu schalten. Google kann Cookies und ähnliche Technologien verwenden, um personalisierte Anzeigen basierend auf Ihren Besuchen auf dieser und anderen Websites zu zeigen. Sie können sich unter g.co/adsettings abmelden.",
     "howWeUseTitle": "Wie wir Ihre Daten verwenden",
     "howWeUse1": "Zur Bereitstellung, dem Betrieb und der Wartung unserer Diagnosedienste",
     "howWeUse2": "Zur Analyse des Nutzungsverhaltens und kontinuierlichen Verbesserung unserer Tools",
     "howWeUse3": "Zur Sicherstellung der Plattformsicherheit und Erkennung von Missbrauch",
     "howWeUse4": "Zur Beantwortung von technischen Support-Anfragen",
-    "thirdPartyTitle": "Drittanbieterdienste",
-    "thirdPartyAdsense": "Cloudflare — wird für DDoS-Schutz, CDN und Leistungsoptimierung verwendet.",
-    "thirdPartyCloudflare": "Cloudflare — wird für DDoS-Schutz und Leistungsoptimierung verwendet.",
-    "thirdPartyAnalytics": "Analytik-Anbieter — wird zur Sammlung anonymisierter, aggregierter Nutzungsstatistiken verwendet.",
+    "thirdPartyTitle": "Drittanbieter-Dienste",
+    "thirdPartyAdsense": "Google AdSense — wird verwendet, um relevante Werbeanzeigen zu schalten. Google kann Cookies und ähnliche Technologien für die Anzeigenpersonalisierung und -messung verwenden. Weitere Informationen finden Sie in der Datenschutzrichtlinie von Google unter policies.google.com/privacy.",
+    "thirdPartyCloudflare": "Cloudflare — wird für DDoS-Schutz, CDN und Leistungsoptimierung verwendet.",
+    "thirdPartyAnalytics": "Analyse-Anbieter — wird zur Erfassung anonymisierter, aggregierter Nutzungsstatistiken verwendet.",
     "dataRetentionTitle": "Datenspeicherung",
     "dataRetentionDesc": "Prüfprotokolle werden maximal 90 Tage gespeichert. Kontodaten werden bis zur Kontolöschung gespeichert.",
     "yourRightsTitle": "Ihre Rechte",
@@ -654,7 +654,10 @@
       "Network": "Netzwerk & Knoten",
       "FAQ": "FAQ",
       "faq": "FAQ"
-    }
+    },
+    "relatedTools": "Zugehörige Diagnosetools",
+    "reliabilityTitle": "Plattformzuverlässigkeit & Genauigkeit",
+    "reliabilityDesc": "CheckNode betreibt ein verteiltes Netzwerk von Überwachungsknoten in Premium-Rechenzentren weltweit. Jede Überprüfung wird in Echtzeit über ungefilterte Netzwerkpfade durchgeführt, um eine möglichst genaue Darstellung der globalen Konnektivität zu gewährleisten. Unsere Verpflichtung zur Transparenz bedeutet, dass Sie für jede Diagnoseanfrage rohe, unvoreingenommene Daten erhalten."
   },
   "About": {
     "badge": "Demokratisierung der Netzwerkbeobachtbarkeit",
@@ -706,7 +709,12 @@
   "FAQ": {
     "title": "Häufig Gestellte Fragen",
     "subtitle": "Finden Sie Antworten auf die häufigsten Fragen zu unseren Tools.",
-    "noFaqs": "Keine FAQs gefunden."
+    "noFaqs": "Keine FAQs gefunden.",
+    "extendedTitle": "Über unsere Wissensdatenbank",
+    "extendedP1": "CheckNode ist eine spezialisierte Netzwerkdiagnoseplattform, die auf Präzision und Geschwindigkeit ausgelegt ist. Unsere Tools zur Infrastrukturüberwachung, einschließlich Ping, HTTP-Statusprüfungen und DNS-Propagierungsabfragen, wurden entwickelt, um Ihnen dabei zu helfen, komplexe Konnektivitätsprobleme von über 20 globalen Standorten aus sofort zu identifizieren und zu beheben.",
+    "extendedP2": "Wir unterhalten eine globale Flotte von Testknoten in erstklassigen Tier-1-Rechenzentren in Nordamerika, Europa, Asien und Südamerika. Dies ermöglicht uns eine unvoreingenommene Drittanbieter-Perspektive auf die Leistung und Erreichbarkeit Ihrer Website, sodass Sie lokales ISP-Caching und regionale Routing-Anomalien umgehen können.",
+    "extendedP3": "Alle von unseren Tools bereitgestellten Diagnosedaten sind roh und ungefiltert. Ganz gleich, ob Sie eine Servermigration debuggen, die globale Sichtbarkeit eines neuen SSL-Zertifikats prüfen oder ein BGP-Routing-Problem analysieren – CheckNode liefert die technische Intelligenz, die für ein modernes Infrastrukturmanagement erforderlich ist.",
+    "stillHaveQuestions": "Haben Sie noch Fragen? Unser technisches Team hilft Ihnen gerne, Ihre Ergebnisse zu verstehen."
   },
   "SmtpDashboard": {
     "connectionFailed": "Verbindung fehlgeschlagen",

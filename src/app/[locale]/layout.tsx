@@ -157,6 +157,7 @@ export default async function RootLayout({
     const session = await getServerSession(authOptions);
     const systemConfig = await getSiteSetting('system_config');
     const globalNotice = await getSiteSetting('global_notice');
+    const consentConfig = await getSiteSetting('consent_config');
 
     const isAdmin = !!session?.user;
     const isMaintenance = systemConfig?.maintenanceMode === true;
@@ -230,6 +231,12 @@ export default async function RootLayout({
     return (
         <html lang={locale} suppressHydrationWarning>
             <head>
+                {/* Google Funding Choices / CMP Script */}
+                {consentConfig?.enabled && consentConfig?.scriptSnippet && (
+                    <script
+                        dangerouslySetInnerHTML={{ __html: consentConfig.scriptSnippet.replace(/<script.*?>|<\/script>/g, '') }}
+                    />
+                )}
                 {/* Capture PWA install prompt BEFORE React boots to avoid race condition */}
                 <script dangerouslySetInnerHTML={{
                     __html: `

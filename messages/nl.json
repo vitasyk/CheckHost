@@ -372,18 +372,18 @@
     "cookieEssentialDesc": "Vereist voor authenticatie en kernfuncties van het platform. Kan niet worden uitgeschakeld.",
     "cookieAnalytics": "Analytisch",
     "cookieAnalyticsDesc": "Helpen ons te begrijpen hoe gebruikers met het platform omgaan om prestaties en bruikbaarheid te verbeteren.",
-    "cookieAdvertising": "Voorkeuren",
-    "cookieAdvertisingDesc": "Slaan interface-voorkeuren op zoals thema-selectie en taal.",
-    "cookiesGoogleNote": "Wij gebruiken geen advertentie- of trackingcookies van externe advertentienetwerken.",
+    "cookieAdvertising": "Advertenties",
+    "cookieAdvertisingDesc": "Gebruikt door Google AdSense om relevante advertenties te tonen. Deze cookies kunnen uw surfgedrag op verschillende websites bijhouden om gepersonaliseerde advertenties te tonen.",
+    "cookiesGoogleNote": "We gebruiken Google AdSense om advertenties te tonen. Google kan cookies en vergelijkbare technologieën gebruiken om gepersonaliseerde advertenties te tonen op basis van uw bezoeken aan deze en andere websites. U kunt zich afmelden via g.co/adsettings.",
     "howWeUseTitle": "Hoe we uw gegevens gebruiken",
     "howWeUse1": "Om onze diagnostische services aan te bieden, te beheren en te onderhouden",
     "howWeUse2": "Om gebruikspatronen te analyseren en onze tools voortdurend te verbeteren",
     "howWeUse3": "Om de platformbeveiliging te waarborgen en misbruik te detecteren",
     "howWeUse4": "Om technische supportverzoeken te beantwoorden",
     "thirdPartyTitle": "Diensten van derden",
-    "thirdPartyAdsense": "Cloudflare — gebruikt voor DDoS-bescherming, CDN en prestatieoptimalisatie.",
-    "thirdPartyCloudflare": "Cloudflare — gebruikt voor DDoS-bescherming en prestatieoptimalisatie.",
-    "thirdPartyAnalytics": "Analyseprovider — gebruikt voor het verzamelen van geanonimiseerde, geaggregeerde gebruiksstatistieken.",
+    "thirdPartyAdsense": "Google AdSense — gebruikt om relevante advertenties te tonen. Google kan cookies en vergelijkbare technologieën gebruiken voor advertentiepersonalisatie en -meting. Zie het privacybeleid van Google op policies.google.com/privacy.",
+    "thirdPartyCloudflare": "Cloudflare — gebruikt voor DDoS-bescherming, CDN en prestatieoptimalisatie.",
+    "thirdPartyAnalytics": "Analyseprovider — gebruikt om geanonimiseerde, geaggregeerde gebruiksstatistieken te verzamelen.",
     "dataRetentionTitle": "Gegevensretentie",
     "dataRetentionDesc": "We bewaren controlelogboeken maximaal 90 dagen. Accountgegevens worden bewaard totdat het account wordt verwijderd.",
     "yourRightsTitle": "Uw rechten",
@@ -654,7 +654,10 @@
       "Network": "Netwerk & Nodes",
       "FAQ": "FAQ",
       "faq": "FAQ"
-    }
+    },
+    "relatedTools": "Gerelateerde diagnosetools",
+    "reliabilityTitle": "Platformbetrouwbaarheid en nauwkeurigheid",
+    "reliabilityDesc": "CheckNode beheert een gedistribueerd netwerk van monitoringsnodes in premium datacenters over de hele wereld. Elke controle wordt in real-time uitgevoerd via ongefilterde netwerkpaden om de meest nauwkeurige weergave van wereldwijde connectiviteit te bieden. Onze toewijding aan transparantie betekent dat u voor elk diagnostisch verzoek onbewerkte en onpartijdige gegevens ontvangt."
   },
   "About": {
     "badge": "Democratisering van netwerkwaarneembaarheid",
@@ -706,7 +709,12 @@
   "FAQ": {
     "title": "Veelgestelde Vragen",
     "subtitle": "Vind antwoorden op de meest gestelde vragen over onze tools.",
-    "noFaqs": "Geen FAQ gevonden."
+    "noFaqs": "Geen FAQ gevonden.",
+    "extendedTitle": "Over onze kennisbank",
+    "extendedP1": "CheckNode is een gespecialiseerd netwerkdiagnoseplatform dat is ontworpen voor precisie en snelheid. Onze infrastructuurmonitoringtools, waaronder Ping, HTTP-statuscontroles en DNS-propagatie-lookups, zijn gebouwd om u te helpen complexe connectiviteitsproblemen vanaf meer dan 20 wereldwijde locaties onmiddellijk te identificeren en op te lossen.",
+    "extendedP2": "We onderhouden een wereldvloot van testnodes in Tier-1 datacenters van topniveau in Noord-Amerika, Europa, Azië en Zuid-Amerika. Hierdoor kunnen we een onbevooroordeeld perspectief van derden bieden op de prestaties en toegankelijkheid van uw website, waardoor u de caching van lokale ISP's en regionale routeringsanomalieën kunt omzeilen.",
+    "extendedP3": "Alle diagnostische gegevens die door onze tools worden verstrekt, zijn direct en ongefilterd. Of u nu een servermigratie debugt, de wereldwijde zichtbaarheid van een nieuw SSL-certificaat verifieert of een BGP-routeringsprobleem analyseert, CheckNode biedt de technische intelligentie die nodig is voor modern infrastructuurbeheer.",
+    "stillHaveQuestions": "Heeft u nog vragen? Ons technische team staat klaar om u te helpen uw resultaten te begrijpen."
   },
   "SmtpDashboard": {
     "connectionFailed": "Verbinding mislukt",

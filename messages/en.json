@@ -372,17 +372,17 @@
     "cookieEssentialDesc": "Required for authentication and core platform functionality. Cannot be disabled.",
     "cookieAnalytics": "Analytics",
     "cookieAnalyticsDesc": "Help us understand how users interact with the platform so we can improve performance and usability.",
-    "cookieAdvertising": "Preferences",
-    "cookieAdvertisingDesc": "Store interface preferences such as theme selection and language settings.",
-    "cookiesGoogleNote": "We do not use advertising or tracking cookies from third-party ad networks.",
+    "cookieAdvertising": "Advertising",
+    "cookieAdvertisingDesc": "Used by Google AdSense to display relevant advertisements. These cookies may track browsing activity across websites to provide personalized ads.",
+    "cookiesGoogleNote": "We use Google AdSense to serve advertisements. Google may use cookies and similar technologies to show personalized ads based on your visit to this and other websites. You can opt out at g.co/adsettings.",
     "howWeUseTitle": "How We Use Your Data",
     "howWeUse1": "To provide, operate, and maintain our diagnostic monitoring services",
     "howWeUse2": "To analyze usage patterns and continuously improve our tools",
     "howWeUse3": "To ensure platform security and detect abuse",
     "howWeUse4": "To respond to support requests and technical inquiries",
     "thirdPartyTitle": "Third-Party Services",
-    "thirdPartyAdsense": "Cloudflare — used for DDoS protection, CDN, and performance optimization.",
-    "thirdPartyCloudflare": "Cloudflare — used for DDoS protection and performance optimization.",
+    "thirdPartyAdsense": "Google AdSense — used to display relevant advertisements. Google may use cookies and similar technologies for ad personalization and measurement. See Google's Privacy Policy at policies.google.com/privacy.",
+    "thirdPartyCloudflare": "Cloudflare — used for DDoS protection, CDN, and performance optimization.",
     "thirdPartyAnalytics": "Analytics provider — used to collect anonymized, aggregated usage statistics.",
     "dataRetentionTitle": "Data Retention",
     "dataRetentionDesc": "Diagnostic check logs are retained for a maximum of 90 days. Account data is retained for as long as the account remains active, or until deletion is requested.",
@@ -654,7 +654,10 @@
       "Network": "Network & Nodes",
       "FAQ": "FAQ",
       "faq": "FAQ"
-    }
+    },
+    "relatedTools": "Related Diagnostic Tools",
+    "reliabilityTitle": "Platform Reliability & Accuracy",
+    "reliabilityDesc": "CheckNode operates a distributed network of monitoring nodes across premium datacenters worldwide. Each check is performed in real-time using unfiltered network paths to provide the most accurate representation of global connectivity. Our commitment to transparency means you get raw, unbiased data for every diagnostic request."
   },
   "About": {
     "badge": "Democratizing Network Observability",
@@ -706,7 +709,12 @@
   "FAQ": {
     "title": "Frequently Asked Questions",
     "subtitle": "Find answers to the most common questions about our tools.",
-    "noFaqs": "No FAQs found."
+    "noFaqs": "No FAQs found.",
+    "extendedTitle": "About our Knowledge Base",
+    "extendedP1": "CheckNode is a specialized network diagnostic platform designed for precision and speed. Our infrastructure monitoring tools, including Ping, HTTP status checks, and DNS propagation lookups, are built to help you identify and resolve complex connectivity issues from over 20 global locations instantly.",
+    "extendedP2": "We maintain a global fleet of testing nodes in premium tier-1 datacenters across North America, Europe, Asia, and South America. This allows us to provide an unbiased, third-party perspective on your website's performance and accessibility, helping you bypass local ISP caching and regional routing anomalies.",
+    "extendedP3": "All diagnostic data provided by our tools is raw and unfiltered. Whether you are debugging a server migration, checking a new SSL certificate's global visibility, or analyzing a BGP routing issue, CheckNode provides the technical intelligence required for modern infrastructure management.",
+    "stillHaveQuestions": "Still have questions? Our technical team is here to help you understand your results."
   },
   "SmtpDashboard": {
     "connectionFailed": "Connection failed",
