@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { generateAlternates } from '@/lib/seo-utils';
 import { ChecksClient } from '@/components/checks/ChecksClient';
 import { HomePageSeoBlock } from '@/components/HomePageSeoBlock';
 import { ToolSeoBlock } from '@/components/content/ToolSeoBlock';
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
             title: t('checksTitle'),
             description: t('checksDesc'),
         },
-        // alternates (canonical + hreflang) are provided by the layout for the home page
+        alternates: generateAlternates('/', siteUrl, locale),
     };
 }
 

@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { generateAlternates } from '@/lib/seo-utils';
 import { Link } from '@/i18n/navigation';
 import { query } from '@/lib/postgres';
 import { Card } from '@/components/ui/card';
@@ -13,10 +14,14 @@ interface DocArticle {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
     const t = await getTranslations('Docs');
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
+
     return {
         title: `${t('title')} | CheckNode`,
         description: t('subtitle'),
+        alternates: generateAlternates('docs', siteUrl, locale),
     };
 }
 

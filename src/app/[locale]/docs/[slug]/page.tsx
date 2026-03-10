@@ -3,6 +3,7 @@ import { Link, redirect } from '@/i18n/navigation';
 import { notFound } from 'next/navigation';
 import { query } from '@/lib/postgres';
 import { ChevronLeft, ChevronRight, Clock, BookOpen, List } from 'lucide-react';
+import { generateAlternates } from '@/lib/seo-utils';
 import { marked } from 'marked';
 
 interface Article {
@@ -18,7 +19,8 @@ interface Article {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string, locale: string }> }) {
-    const { slug } = await params;
+    const { slug, locale } = await params;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
 
     try {
         const result = await query('SELECT title FROM docs_articles WHERE slug = $1 AND published = true', [slug]);
@@ -26,9 +28,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
         return {
             title: `${result.rows[0].title} | Documentation | CheckNode`,
+            alternates: generateAlternates(`docs/${slug}`, siteUrl, locale),
         };
     } catch (e) {
-        return { title: 'Documentation | CheckNode' };
+        return {
+            title: 'Documentation | CheckNode',
+            alternates: generateAlternates(`docs/${slug}`, siteUrl, locale),
+        };
     }
 }
 

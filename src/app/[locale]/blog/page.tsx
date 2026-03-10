@@ -1,11 +1,18 @@
 import { Metadata } from 'next';
+import { generateAlternates } from '@/lib/seo-utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-export const metadata: Metadata = {
-    title: "Blog - Infrastructure & Monitoring Insights",
-    description: "Read the latest articles on website performance, global infrastructure, and monitoring tips from the CheckHost team.",
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+    const { locale } = await params;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
+
+    return {
+        title: "Blog - Infrastructure & Monitoring Insights | CheckNode",
+        description: "Read the latest articles on website performance, global infrastructure, and monitoring tips from the CheckNode team.",
+        alternates: generateAlternates('blog', siteUrl, locale),
+    };
+}
 
 export const dynamic = 'force-dynamic';
 import {
