@@ -8,7 +8,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
 
     return {
-        title: "Blog - Infrastructure & Monitoring Insights | CheckNode",
+        title: "Blog - Infrastructure & Monitoring Insights",
         description: "Read the latest articles on website performance, global infrastructure, and monitoring tips from the CheckNode team.",
         alternates: generateAlternates('blog', siteUrl, locale),
     };

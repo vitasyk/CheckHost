@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checkhost.com';
 
     return {
-        title: `About ${process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode'} - Global Network Diagnostic Tools`,
+        title: `About Global Network Diagnostic Tools`,
         description: t('subtitle'),
         alternates: generateAlternates('about', siteUrl, locale),
     };

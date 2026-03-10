@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
 
     return {
-        title: `${t('title')} | CheckNode`,
+        title: t('title'),
         description: t('subtitle'),
         alternates: generateAlternates('docs', siteUrl, locale),
     };

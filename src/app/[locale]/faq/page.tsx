@@ -10,11 +10,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const t = await getTranslations({ locale, namespace: 'FAQ' });
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
     return {
-        title: `${t('title')} - Help & Support Center | CheckNode`,
+        title: `${t('title')} - Help & Support Center`,
         description: t('subtitle'),
         alternates: generateAlternates('faq', siteUrl, locale),
         openGraph: {
-            title: `${t('title')} - Help & Support Center | CheckNode`,
+            title: `${t('title')} - Help & Support Center`,
             description: t('subtitle'),
             url: `${siteUrl}/faq`,
         },

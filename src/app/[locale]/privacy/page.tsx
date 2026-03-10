@@ -9,11 +9,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode';
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
     return {
-        title: `Privacy Policy - Data Protection & Security | ${siteName}`,
+        title: `Privacy Policy - Data Protection & Security`,
         description: `Privacy Policy for ${siteName} - Learn how we collect and use your data.`,
         alternates: generateAlternates('privacy', siteUrl, locale),
         openGraph: {
-            title: `Privacy Policy - Data Protection & Security | ${siteName}`,
+            title: `Privacy Policy - Data Protection & Security`,
             description: `Read the ${siteName} Privacy Policy to understand how we collect, use, and protect your personal data and network diagnostic information securely.`,
             url: `${siteUrl}/privacy`,
             siteName: siteName,
