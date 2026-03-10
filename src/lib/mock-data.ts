@@ -1,5 +1,5 @@
 import { IpInfoResponse } from '@/types/ip-info';
-import { fetchIpInfo, resolveHostToIp, fetchFromIpGeolocation, fetchFromMaxMind, fetchRdapInfo, fetchWhoisInfo, resolveIpToHost, resolveNameservers } from './ipinfo-api';
+import { fetchIpInfo, resolveHostToIp, fetchFromIpGeolocation, fetchFromMaxMind, fetchFromIpiz, fetchRdapInfo, fetchWhoisInfo, resolveIpToHost, resolveNameservers } from './ipinfo-api';
 import { fetchIpApiData } from './ipapi-api';
 import { lookupLocalIpInfo } from './ipinfo-local';
 
@@ -36,8 +36,19 @@ export async function getMockIpInfo(host: string): Promise<IpInfoResponse> {
         } as unknown as IpInfoResponse;
     }
 
-    // Fetch data from multiple sources in parallel
-    const [realIpInfo, ipApiData, ipGeoData, maxmindData, localMmdbData, ptrHost] = await Promise.all([
+    // Try local MMDB first — it covers most IPs without any network call
+    const localMmdbData = await lookupLocalIpInfo(ip).catch(err => {
+        console.warn('Local MMDB lookup skipped:', err.message);
+        return null;
+    });
+
+    // Only try IPIz (MaxMind fallback) if local MMDB had no data
+    const maxmindDataPromise = localMmdbData
+        ? Promise.resolve(null)
+        : fetchFromIpiz(ip).catch(() => null);
+
+    // Fetch remaining data sources in parallel
+    const [realIpInfo, ipApiData, ipGeoData, maxmindData, ptrHost] = await Promise.all([
         fetchIpInfo(ip).catch(err => {
             console.warn('IPInfo data skipped:', err.message);
             return null;
@@ -50,14 +61,7 @@ export async function getMockIpInfo(host: string): Promise<IpInfoResponse> {
             console.warn('IPGeolocation data skipped:', err.message);
             return null;
         }),
-        fetchFromMaxMind(ip).catch(err => {
-            console.warn('MaxMind data skipped:', err.message);
-            return null;
-        }),
-        lookupLocalIpInfo(ip).catch(err => {
-            console.warn('Local MMDB lookup skipped:', err.message);
-            return null;
-        }),
+        maxmindDataPromise,
         // Always try to resolve PTR for the IP address
         resolveIpToHost(ip).catch(() => null)
     ]);

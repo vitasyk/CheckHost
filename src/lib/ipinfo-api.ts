@@ -5,6 +5,37 @@ import { extractHost, isIPv6 } from './utils';
 
 const IPINFO_API_BASE = 'https://ipinfo.io';
 
+/**
+ * Helper to fetch with a specific timeout and optional retries
+ */
+async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 2, timeout = 8000): Promise<Response> {
+    let lastError: any;
+
+    for (let i = 0; i <= retries; i++) {
+        try {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+
+            clearTimeout(id);
+            return response;
+        } catch (err: any) {
+            lastError = err;
+            if (i < retries) {
+                const delay = Math.pow(2, i) * 1000;
+                console.log(`[Diagnostic] Retry ${i + 1}/${retries} for ${url} after ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+    }
+
+    throw lastError;
+}
+
 export interface IpInfoLiteResponse {
     ip: string;
     asn: string;
@@ -34,9 +65,7 @@ async function fetchFromApi(ip: string, token: string): Promise<IpInfoLiteRespon
     console.log(`[Diagnostic] IPInfo Fetch: ${url.replace(token, 'REDACTED')}`);
 
     try {
-        const response = await fetch(url, {
-            signal: AbortSignal.timeout(5000)
-        });
+        const response = await fetchWithRetry(url, {}, 1, 8000);
 
         if (!response.ok) {
             const errorBody = await response.text().catch(() => 'no body');
@@ -62,9 +91,7 @@ export async function fetchFromIpGeolocation(ip: string): Promise<any> {
     console.log(`[Diagnostic] IPGeolocation Fetch: ${url.replace(config.ipGeolocationApiKey, 'REDACTED')}`);
 
     try {
-        const response = await fetch(url, {
-            signal: AbortSignal.timeout(5000)
-        });
+        const response = await fetchWithRetry(url, {}, 1, 8000);
 
         if (!response.ok) {
             const errorBody = await response.text().catch(() => 'no body');
@@ -85,9 +112,7 @@ export async function fetchFromIpGeolocation(ip: string): Promise<any> {
 export async function fetchFromIpiz(ip: string): Promise<any> {
     const url = `https://api.ipiz.net/${ip}`;
 
-    const response = await fetch(url, {
-        signal: AbortSignal.timeout(1500)
-    });
+    const response = await fetchWithRetry(url, {}, 2, 8000);
 
     if (!response.ok) {
         throw new Error(`Provider service error: ${response.status} ${response.statusText}`);
@@ -123,15 +148,11 @@ export async function fetchFromIpiz(ip: string): Promise<any> {
 
 /**
  * Fetch IP information from MaxMind GeoIP Web Services (now using IPIz.net as source)
+ * NOTE: IPIz API (api.ipiz.net) is consistently unreachable. Returning null immediately
+ * to avoid blocking page loads. Local MMDB databases cover this data.
  */
-export async function fetchFromMaxMind(ip: string): Promise<any> {
-    try {
-        // As per user request, we use IPIz.net but keep it under the MaxMind label
-        return await fetchFromIpiz(ip);
-    } catch (_error) {
-        console.error('Failed to fetch from IPIz (MaxMind fallback):', _error);
-        return null;
-    }
+export async function fetchFromMaxMind(_ip: string): Promise<any> {
+    return null;
 }
 
 /**
@@ -262,9 +283,7 @@ export async function resolveIpToHost(ip: string): Promise<string | null> {
     }
 
     try {
-        const response = await fetch(`https://dns.google/resolve?name=${arpaHost}&type=PTR`, {
-            signal: AbortSignal.timeout(3000)
-        });
+        const response = await fetchWithRetry(`https://dns.google/resolve?name=${arpaHost}&type=PTR`, {}, 1, 5000);
 
         if (!response.ok) return null;
 
@@ -305,9 +324,7 @@ export async function resolveNameservers(domain: string): Promise<string[]> {
         const currentTarget = parts.slice(i).join('.');
 
         try {
-            const response = await fetch(`https://dns.google/resolve?name=${currentTarget}&type=NS`, {
-                signal: AbortSignal.timeout(4000)
-            });
+            const response = await fetchWithRetry(`https://dns.google/resolve?name=${currentTarget}&type=NS`, {}, 1, 5000);
 
             if (response.ok) {
                 const data = await response.json();

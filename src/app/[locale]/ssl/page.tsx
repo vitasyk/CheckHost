@@ -3,6 +3,7 @@ import { generateAlternates } from '@/lib/seo-utils';
 import { setRequestLocale } from 'next-intl/server';
 import { ChecksClient } from '@/components/checks/ChecksClient';
 import { JsonLd } from '@/components/SEO/JsonLd';
+import { SslContent } from '@/components/content/SslContent';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
             'ssl test online', 'check ssl certificate', 'ssl monitoring',
             'tls version check', 'certificate authority check', 'wildcard ssl check'
         ],
-        alternates: generateAlternates('ssl', siteUrl),
+        alternates: generateAlternates('ssl', siteUrl, locale),
         openGraph: {
             title: t('sslTitle'),
             description: t('sslDesc'),
@@ -68,6 +69,7 @@ export default async function SslPage({ params }: { params: Promise<{ locale: st
         <div className="flex flex-col min-h-full">
             <JsonLd data={sslToolSchema} />
             <ChecksClient initialTab="ssl" />
+            <SslContent />
         </div>
     );
 }

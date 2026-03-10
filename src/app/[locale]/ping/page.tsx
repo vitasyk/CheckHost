@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     return {
         title: t('pingTitle'),
         description: t('pingDesc'),
-        alternates: generateAlternates('ping', siteUrl),
+        alternates: generateAlternates('ping', siteUrl, locale),
         openGraph: {
             title: t('pingTitle'),
             description: t('pingDesc'),

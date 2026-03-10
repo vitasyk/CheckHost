@@ -37,18 +37,18 @@ export function FaqAccordion({ items, title }: FaqAccordionProps) {
                         <div
                             key={item.id}
                             className={`group border rounded-2xl transition-all duration-300 ${isOpen
-                                    ? 'border-indigo-500/30 bg-indigo-50/30 dark:bg-indigo-500/5 shadow-md shadow-indigo-500/5'
-                                    : 'border-slate-200 dark:border-white/5 bg-white dark:bg-white/[0.02] hover:border-slate-300 dark:hover:border-white/10'
+                                ? 'border-indigo-500/30 bg-indigo-50/30 dark:bg-indigo-500/5 shadow-md shadow-indigo-500/5'
+                                : 'border-slate-200 dark:border-white/5 bg-white dark:bg-white/[0.02] hover:border-slate-300 dark:hover:border-white/10'
                                 }`}
                         >
                             <button
                                 onClick={() => setOpenId(isOpen ? null : item.id)}
                                 className="w-full flex items-center justify-between p-5 text-left focus:outline-none"
                             >
-                                <span className={`font-semibold text-[15px] transition-colors duration-300 ${isOpen ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200'
+                                <h3 className={`font-semibold text-[15px] transition-colors duration-300 ${isOpen ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200'
                                     }`}>
                                     {item.question}
-                                </span>
+                                </h3>
                                 <div className={`p-1 rounded-full transition-all duration-300 ${isOpen ? 'bg-indigo-500 text-white rotate-180' : 'bg-slate-100 dark:bg-white/5 text-slate-400 group-hover:text-slate-500'
                                     }`}>
                                     <ChevronDown className="h-4 w-4" />

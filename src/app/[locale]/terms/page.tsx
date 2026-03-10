@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     return {
         title: `Terms of Service & Acceptable Use Policy | ${siteName}`,
         description: `Review the Terms of Service and Acceptable Use Policy for ${siteName}. Learn about your rights, responsibilities, and our network diagnostic guidelines.`,
-        alternates: generateAlternates('terms', siteUrl),
+        alternates: generateAlternates('terms', siteUrl, locale),
     };
 }
 

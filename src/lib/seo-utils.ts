@@ -8,12 +8,23 @@ import { routing } from '@/i18n/routing';
  * @param siteUrl Базовий URL сайту (наприклад, 'https://checknode.io')
  * @returns Об'єкт alternates для Metadata
  */
-export function generateAlternates(path: string, siteUrl: string) {
+export function generateAlternates(path: string, siteUrl: string, currentLocale?: string) {
     // Нормалізація шляху (видалення зайвих слешів)
-    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-    const cleanPath = normalizedPath === '/' ? '' : normalizedPath;
+    let normalizedPath = path.startsWith('/') ? path : `/${path}`;
+
+    // Якщо поточна мова передана і вона не є мовою за замовчуванням (яка без префіксу)
+    if (currentLocale && currentLocale !== routing.defaultLocale) {
+        normalizedPath = `/${currentLocale}${normalizedPath}`;
+    }
+
+    // Видаляємо кінцевий слеш, якщо це не '/'
+    const cleanPath = normalizedPath === '/' ? '' : (normalizedPath.endsWith('/') && normalizedPath.length > 1 ? normalizedPath.slice(0, -1) : normalizedPath);
 
     const languages: Record<string, string> = {};
+
+    // Отримуємо базовий шлях сторінки без локалі для hreflang
+    const basePath = path.startsWith('/') ? path : `/${path}`;
+    const cleanBasePath = basePath === '/' ? '' : (basePath.endsWith('/') && basePath.length > 1 ? basePath.slice(0, -1) : basePath);
 
     routing.locales.forEach((loc) => {
         // Форматування локалі для hreflang (наприклад, 'en' -> 'en-US', 'uk' -> 'uk-UA')
@@ -33,13 +44,13 @@ export function generateAlternates(path: string, siteUrl: string) {
         // Побудова URL для кожної локалі
         // Згідно з налаштуваннями routing: defaultLocale 'en' не має префікса
         const localePrefix = loc === routing.defaultLocale ? '' : `/${loc}`;
-        const url = `${siteUrl}${localePrefix}${cleanPath}` || `${siteUrl}/`;
+        const url = `${siteUrl}${localePrefix}${cleanBasePath}` || `${siteUrl}/`;
 
         languages[hreflangCode] = url;
     });
 
     // Важливо: додаємо x-default, який вказує на мову за замовчуванням (у нашому випадку англійську без префіксу)
-    languages['x-default'] = `${siteUrl}${cleanPath}` || `${siteUrl}/`;
+    languages['x-default'] = `${siteUrl}${cleanBasePath}` || `${siteUrl}/`;
 
     return {
         // Канонічний URL за замовчуванням завжди вказує на поточний шлях (який передається у generateMetadata або визначається відносно)

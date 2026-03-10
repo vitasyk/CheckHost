@@ -44,10 +44,10 @@ export function SiteFooter() {
                             </div>
                             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2.5">
                                 {[
-                                    { href: "/?tab=info", icon: Info, label: t('ipinfo') },
-                                    { href: "/?tab=mtr", icon: Route, label: t('mtr') },
-                                    { href: "/?tab=dns-all", icon: Search, label: t('dnsinfo') },
-                                    { href: "/?tab=ssl", icon: Lock, label: t('ssl') },
+                                    { href: "/ip-info", icon: Info, label: t('ipinfo') },
+                                    { href: "/mtr", icon: Route, label: t('mtr') },
+                                    { href: "/dns", icon: Search, label: t('dnsinfo') },
+                                    { href: "/ssl", icon: Lock, label: t('ssl') },
                                 ].map((tool) => (
                                     <li key={tool.label}>
                                         <Link

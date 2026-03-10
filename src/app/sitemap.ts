@@ -24,7 +24,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         { path: '/mtr', priority: 0.8 },
         { path: '/tcp', priority: 0.8 },
         { path: '/udp', priority: 0.8 },
-        { path: '/checks', priority: 0.85 },
     ];
 
     const infoPages = [

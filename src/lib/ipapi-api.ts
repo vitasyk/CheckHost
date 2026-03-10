@@ -41,25 +41,40 @@ export async function fetchIpApiData(ip: string): Promise<IpApiResponse | null> 
         return null;
     }
 
-    try {
-        const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,continent,continentCode,country,countryCode,region,regionName,city,zip,lat,lon,timezone,offset,currency,isp,org,as,asname,reverse,mobile,proxy,hosting,query`, {
-            signal: AbortSignal.timeout(3000)
-        });
+    const maxRetries = 2;
+    for (let i = 0; i <= maxRetries; i++) {
+        try {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), 8000);
 
-        if (!response.ok) {
-            throw new Error(`Location lookup error: ${response.status} ${response.statusText}`);
+            const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,continent,continentCode,country,countryCode,region,regionName,city,zip,lat,lon,timezone,offset,currency,isp,org,as,asname,reverse,mobile,proxy,hosting,query`, {
+                signal: controller.signal
+            });
+
+            clearTimeout(id);
+
+            if (!response.ok) {
+                throw new Error(`Location lookup error: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+
+            if (data.status === 'fail') {
+                console.warn('IP-API failed:', data.message);
+                return null;
+            }
+
+            return data;
+        } catch (error) {
+            if (i < maxRetries) {
+                const delay = Math.pow(2, i) * 1000;
+                console.log(`[Diagnostic] IP-API retry ${i + 1}/${maxRetries} after ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            } else {
+                console.error('Failed to fetch from ip-api.com after retries:', error);
+                return null;
+            }
         }
-
-        const data = await response.json();
-
-        if (data.status === 'fail') {
-            console.warn('IP-API failed:', data.message);
-            return null;
-        }
-
-        return data;
-    } catch (error) {
-        console.error('Failed to fetch from ip-api.com:', error);
-        return null;
     }
+    return null;
 }

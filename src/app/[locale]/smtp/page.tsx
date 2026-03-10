@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { generateAlternates } from '@/lib/seo-utils';
 import { ChecksClient } from '@/components/checks/ChecksClient';
 import { JsonLd } from '@/components/SEO/JsonLd';
+import { SmtpContent } from '@/components/content/SmtpContent';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
             'smtp banner check', 'ehlo test', 'spf check', 'dmarc check',
             'rbl blacklist check', 'email deliverability check'
         ],
-        alternates: generateAlternates('smtp', siteUrl),
+        alternates: generateAlternates('smtp', siteUrl, locale),
         openGraph: {
             title: t('smtpTitle'),
             description: t('smtpDesc'),
@@ -69,6 +70,7 @@ export default async function SmtpPage({ params }: { params: Promise<{ locale: s
         <div className="flex flex-col min-h-full">
             <JsonLd data={smtpToolSchema} />
             <ChecksClient initialTab="smtp" />
+            <SmtpContent />
         </div>
     );
 }

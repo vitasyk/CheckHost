@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     return {
         title: `Privacy Policy - Data Protection & Security | ${siteName}`,
         description: `Privacy Policy for ${siteName} - Learn how we collect and use your data.`,
-        alternates: generateAlternates('privacy', siteUrl),
+        alternates: generateAlternates('privacy', siteUrl, locale),
         openGraph: {
             title: `Privacy Policy - Data Protection & Security | ${siteName}`,
             description: `Read the ${siteName} Privacy Policy to understand how we collect, use, and protect your personal data and network diagnostic information securely.`,
