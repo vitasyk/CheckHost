@@ -35,14 +35,24 @@ export default async function middleware(req: NextRequest) {
             return NextResponse.redirect(dashboardUrl);
         }
 
-        // At this point, it's either an admin accessing /admin,
-        // or a user/admin accessing /dashboard. Both are allowed.
+        // На цьому етапі або адмін має доступ до /admin,
+        // або користувач/адмін має доступ до /dashboard. Обидва дозволені.
         const response = intlMiddleware(req);
+
+        // Видаляємо заголовок 'Link', який автоматично додається next-intl.
+        // Це запобігає дублюванню hreflang (в заголовках та в HTML),
+        // що спричиняє помилки в SEO аудитах.
+        response.headers.delete('Link');
+
         response.headers.set('x-pathname', req.nextUrl.pathname);
         return response;
     }
 
     const response = intlMiddleware(req);
+
+    // Видаляємо заголовок 'Link', щоб уникнути дублювання hreflang з HTML метаданими.
+    response.headers.delete('Link');
+
     response.headers.set('x-pathname', req.nextUrl.pathname);
     return response;
 }
