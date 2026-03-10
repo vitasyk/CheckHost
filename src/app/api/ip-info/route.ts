@@ -37,9 +37,9 @@ export async function GET(request: NextRequest) {
 
         const data = await getMockIpInfo(ip);
 
-        // Final log for IPv6 results
+        // Final status check for IPv6 results
         if (ip.includes(':')) {
-            console.log(`[IPv6 Result] Found country: ${data.providers.ipinfo?.country || data.providers.ipapi?.country || 'Unknown'}`);
+            // IPv6 detection logic complete
         }
 
         const visitorData = { ...data, isFallback };

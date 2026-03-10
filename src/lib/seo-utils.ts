@@ -2,60 +2,60 @@ import { routing } from '@/i18n/routing';
 
 /**
  * Генерує об'єкт alternates для Next.js Metadata.
- * Створює правильні canonical URL та languages/hreflang URL для всіх підтримуваних мов.
- * 
- * @param path Шлях сторінки без локалі (наприклад, '/ping', '/about', або '/' для головної)
+ * Створює canonical URL та hreflang URL для всіх підтримуваних мов.
+ *
+ * @param path Шлях сторінки БЕЗ локалі та БЕЗ починаючого слеша (наприклад, 'ssl', 'ping', 'blog/my-post').
+ *             Для головної сторінки передайте '' або '/'.
  * @param siteUrl Базовий URL сайту (наприклад, 'https://checknode.io')
+ * @param currentLocale Поточна локаль (наприклад, 'uk', 'en')
  * @returns Об'єкт alternates для Metadata
  */
 export function generateAlternates(path: string, siteUrl: string, currentLocale?: string) {
-    // Нормалізація шляху (видалення зайвих слешів)
-    let normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    const base = siteUrl.replace(/\/$/, ''); // видалити кінцевий слеш
 
-    // Якщо поточна мова передана і вона не є мовою за замовчуванням (яка без префіксу)
-    if (currentLocale && currentLocale !== routing.defaultLocale) {
-        normalizedPath = `/${currentLocale}${normalizedPath}`;
-    }
+    // Нормалізуємо шлях сторінки (без локалі, без початкового / і без кінцевого /)
+    const cleanPath = path
+        .replace(/^\/+/, '') // прибрати початкові слеші
+        .replace(/\/+$/, ''); // прибрати кінцеві слеші
 
-    // Видаляємо кінцевий слеш, якщо це не '/'
-    const cleanPath = normalizedPath === '/' ? '' : (normalizedPath.endsWith('/') && normalizedPath.length > 1 ? normalizedPath.slice(0, -1) : normalizedPath);
+    // Шлях сторінки для URL-ів (порожній для головної сторінки)
+    const pagePath = cleanPath ? `/${cleanPath}` : '';
 
     const languages: Record<string, string> = {};
 
-    // Отримуємо базовий шлях сторінки без локалі для hreflang
-    const basePath = path.startsWith('/') ? path : `/${path}`;
-    const cleanBasePath = basePath === '/' ? '' : (basePath.endsWith('/') && basePath.length > 1 ? basePath.slice(0, -1) : basePath);
-
     routing.locales.forEach((loc) => {
-        // Форматування локалі для hreflang (наприклад, 'en' -> 'en-US', 'uk' -> 'uk-UA')
-        let hreflangCode: string = loc;
-        switch (loc) {
-            case 'en': hreflangCode = 'en-US'; break;
-            case 'uk': hreflangCode = 'uk-UA'; break;
-            case 'ru': hreflangCode = 'ru-RU'; break;
-            case 'es': hreflangCode = 'es-ES'; break;
-            case 'fr': hreflangCode = 'fr-FR'; break;
-            case 'de': hreflangCode = 'de-DE'; break;
-            case 'it': hreflangCode = 'it-IT'; break;
-            case 'nl': hreflangCode = 'nl-NL'; break;
-            case 'pl': hreflangCode = 'pl-PL'; break;
-        }
+        // Відображення коротких кодів на IETF BCP 47 (з регіоном) для hreflang
+        const hreflangMap: Record<string, string> = {
+            en: 'en-US',
+            uk: 'uk-UA',
+            ru: 'ru-RU',
+            es: 'es-ES',
+            fr: 'fr-FR',
+            de: 'de-DE',
+            it: 'it-IT',
+            nl: 'nl-NL',
+            pl: 'pl-PL',
+        };
+        const hreflangCode = hreflangMap[loc] ?? loc;
 
-        // Побудова URL для кожної локалі
-        // Згідно з налаштуваннями routing: defaultLocale 'en' не має префікса
+        // Мова за замовчуванням (en) — без префікса в URL
         const localePrefix = loc === routing.defaultLocale ? '' : `/${loc}`;
-        const url = `${siteUrl}${localePrefix}${cleanBasePath}` || `${siteUrl}/`;
+        const url = `${base}${localePrefix}${pagePath}` || `${base}/`;
 
         languages[hreflangCode] = url;
     });
 
-    // Важливо: додаємо x-default, який вказує на мову за замовчуванням (у нашому випадку англійську без префіксу)
-    languages['x-default'] = `${siteUrl}${cleanBasePath}` || `${siteUrl}/`;
+    // x-default — вказує на версію мови за замовчуванням (без префікса)
+    languages['x-default'] = `${base}${pagePath}` || `${base}/`;
+
+    // Canonical — абсолютний URL поточної локалі
+    const canonicalLocalePrefix = currentLocale && currentLocale !== routing.defaultLocale
+        ? `/${currentLocale}`
+        : '';
+    const canonical = `${base}${canonicalLocalePrefix}${pagePath}` || `${base}/`;
 
     return {
-        // Канонічний URL за замовчуванням завжди вказує на поточний шлях (який передається у generateMetadata або визначається відносно)
-        // Next.js автоматично перетворить його на абсолютний URL, якщо задано metadataBase (в layout)
-        canonical: cleanPath || '/',
+        canonical,
         languages,
     };
 }

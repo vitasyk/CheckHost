@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     return {
         title: `Contact ${siteName} Support - Get Help With Network Diagnostics`,
         description: `Need help with network diagnostics? Contact the ${siteName} support team for API assistance, bug reports, and general inquiries. We're here to help.`,
-        alternates: generateAlternates('contact', siteUrl),
+        alternates: generateAlternates('contact', siteUrl, locale),
     };
 }
 

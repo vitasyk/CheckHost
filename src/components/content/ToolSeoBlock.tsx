@@ -116,7 +116,7 @@ export function ToolSeoBlock({ toolId }: ToolSeoBlockProps) {
                         </p>
 
                         <div className="space-y-4">
-                            {Object.entries(t.raw(`${mappedId}.latencyList`)).map(([key, value]) => {
+                            {Object.entries(t.has(`${mappedId}.latencyList`) ? t.raw(`${mappedId}.latencyList`) as Record<string, string> : {}).map(([key, value]) => {
                                 const colonIndex = String(value).indexOf(':');
                                 let boldPart = String(value);
                                 let restPart = '';

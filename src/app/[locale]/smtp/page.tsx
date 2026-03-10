@@ -24,6 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
             title: t('smtpTitle'),
             description: t('smtpDesc'),
             url: `${siteUrl}/smtp`,
+            siteName: t('siteName'),
             type: 'website',
         },
         twitter: {

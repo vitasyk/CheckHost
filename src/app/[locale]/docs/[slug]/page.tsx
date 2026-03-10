@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
-import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
+import { Link, redirect } from '@/i18n/navigation';
+import { notFound } from 'next/navigation';
 import { query } from '@/lib/postgres';
 import { ChevronLeft, ChevronRight, Clock, BookOpen, List } from 'lucide-react';
 import { marked } from 'marked';
@@ -107,7 +107,7 @@ export default async function DocArticlePage({ params }: { params: Promise<{ slu
         if (result.rows.length === 0) {
             const newSlug = await findDocTranslation(slug, locale);
             if (newSlug) {
-                redirect(`/${locale}/docs/${newSlug}`);
+                redirect({ href: `/docs/${newSlug}`, locale });
             }
             notFound();
         }
@@ -141,7 +141,7 @@ export default async function DocArticlePage({ params }: { params: Promise<{ slu
                     <aside className="lg:w-64 flex-shrink-0 hidden lg:block">
                         <div className="sticky top-24 space-y-8">
                             <Link
-                                href={`/${locale}/docs`}
+                                href="/docs"
                                 className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-blue-500 transition-colors mb-8"
                             >
                                 <ChevronLeft className="w-4 h-4" />
@@ -159,7 +159,7 @@ export default async function DocArticlePage({ params }: { params: Promise<{ slu
                                             .map(a => (
                                                 <Link
                                                     key={a.slug}
-                                                    href={`/${locale}/docs/${a.slug}`}
+                                                    href={`/docs/${a.slug}`}
                                                     className={`block px-3 py-2 text-sm rounded-lg transition-colors ${a.slug === slug
                                                         ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium'
                                                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5'
@@ -204,7 +204,7 @@ export default async function DocArticlePage({ params }: { params: Promise<{ slu
                         {/* Pagination Bottom */}
                         <div className="mt-16 pt-8 border-t border-slate-200 dark:border-white/5 flex flex-col sm:flex-row justify-between gap-4">
                             <Link
-                                href={`/${locale}/docs`}
+                                href="/docs"
                                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-500 transition-colors"
                             >
                                 <ChevronLeft className="w-4 h-4" />

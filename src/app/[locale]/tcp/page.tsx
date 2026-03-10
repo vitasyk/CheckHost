@@ -13,6 +13,19 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         title: t('tcpTitle'),
         description: t('tcpDesc'),
         alternates: generateAlternates('tcp', siteUrl, locale),
+        openGraph: {
+            title: t('tcpTitle'),
+            description: t('tcpDesc'),
+            url: `${siteUrl}/tcp`,
+            siteName: t('siteName'),
+            locale: locale,
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: t('tcpTitle'),
+            description: t('tcpDesc'),
+        },
     };
 }
 

@@ -21,6 +21,7 @@
     "ipinfo": "IP Info"
   },
   "Metadata": {
+    "siteName": "CheckNode",
     "pingTitle": "Ping Online - Wereldwijde website-connectiviteit controleren",
     "pingDesc": "Test ICMP ping naar elke host of IP vanaf meerdere wereldwijde locaties. Controleer latentie en pakketverlies in realtime.",
     "httpTitle": "HTTP Controle - Bewaak website uptime en prestaties",
@@ -34,7 +35,13 @@
     "smtpTitle": "SMTP-test - Controle van mailserververbinding en beveiliging",
     "smtpDesc": "Controleer de verbinding met de SMTP-server en de reactietijd vanaf 20+ locaties. Test poorten 25, 465, 587.",
     "sslTitle": "SSL-certificaatcontrole - Valideer TLS-beveiliging & verloopdatum",
-    "sslDesc": "Controleer de geldigheid van het SSL/TLS-certificaat, the verloopdatum, de vertrouwensketen en de versleutelingssterkte vanaf meerdere wereldwijde locaties. Gratis en direct."
+    "sslDesc": "Controleer de geldigheid van het SSL/TLS-certificaat, the verloopdatum, de vertrouwensketen en de versleutelingssterkte vanaf meerdere wereldwijde locaties. Gratis en direct.",
+    "mtrTitle": "MTR Traceroute - Wereldwijde netwerkpadanalyse",
+    "mtrDesc": "Voer wereldwijde MTR-traceroute-tests uit. Identificeer netwerkknelpunten, pakketverlies en latentie bij elke hop vanaf 20+ locaties.",
+    "tcpTitle": "TCP-poortcontrole - Wereldwijde servicebeschikbaarheidstest",
+    "tcpDesc": "Test de TCP-poortverbinding vanaf meerdere wereldwijde locaties. Verifieer firewallregels en servicebeschikbaarheid voor elke poort.",
+    "udpTitle": "UDP-poortcontrole - Wereldwijde netwerkbereikbaarheidstest",
+    "udpDesc": "Controleer de UDP-poortbereikbaarheid vanaf 20+ wereldwijde locaties. Verifieer direct DNS-, VPN- en andere UDP-gebaseerde services."
   },
   "Share": {
     "snapshot": "Momentopname",

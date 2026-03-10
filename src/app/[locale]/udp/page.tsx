@@ -13,6 +13,19 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         title: t('udpTitle'),
         description: t('udpDesc'),
         alternates: generateAlternates('udp', siteUrl, locale),
+        openGraph: {
+            title: t('udpTitle'),
+            description: t('udpDesc'),
+            url: `${siteUrl}/udp`,
+            siteName: t('siteName'),
+            locale: locale,
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: t('udpTitle'),
+            description: t('udpDesc'),
+        },
     };
 }
 

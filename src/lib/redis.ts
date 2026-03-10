@@ -25,13 +25,11 @@ class UniversalRedis {
                 token: upstashToken,
             });
             this.isUpstash = true;
-            console.log('[Redis] Initialized Upstash REST Client');
         } else if (localUrl) {
             this.client = new Redis(localUrl);
             this.isUpstash = false;
-            console.log('[Redis] Initialized Local TCP Client (ioredis)');
         } else {
-            console.warn('[Redis] No configuration found. UniversalRedis is disabled.');
+            // Redis disabled (placeholder or missing config)
         }
     }
 

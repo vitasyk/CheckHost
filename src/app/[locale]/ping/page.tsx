@@ -21,6 +21,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
             locale: locale,
             type: 'website',
         },
+        twitter: {
+            card: 'summary_large_image',
+            title: t('pingTitle'),
+            description: t('pingDesc'),
+        },
     };
 }
 

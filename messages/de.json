@@ -21,6 +21,7 @@
     "ipinfo": "IP-Info"
   },
   "Metadata": {
+    "siteName": "CheckNode",
     "pingTitle": "Ping Online - Website-Konnektivität weltweit prüfen",
     "pingDesc": "Testen Sie ICMP-Pings zu jedem Host oder IP von mehreren globalen Standorten aus. Überprüfen Sie Latenz und Paketverlust in Echtzeit.",
     "httpTitle": "HTTP-Prüfung - Website-Verfügbarkeit & Leistung überwachen",
@@ -34,7 +35,13 @@
     "smtpTitle": "SMTP-Test - Prüfung der Mailserver-Verbindung und Sicherheit",
     "smtpDesc": "Überprüfen Sie die Verbindung zum SMTP-Server und die Antwortzeit von über 20 Standorten. Testen Sie die Ports 25, 465, 587 und prüfen Sie die E-Mail-Verfügbarkeit weltweit.",
     "sslTitle": "SSL-Zertifikat-Prüfung - TLS-Sicherheit & Ablaufdatum validieren",
-    "sslDesc": "Überprüfen Sie die Gültigkeit des SSL/TLS-Zertifikats, das Ablaufdatum, die Vertrauenskette und die Verschlüsselungsstärke von mehreren globalen Standorten. Kostenlos und sofort."
+    "sslDesc": "Überprüfen Sie die Gültigkeit des SSL/TLS-Zertifikats, das Ablaufdatum, die Vertrauenskette und die Verschlüsselungsstärke von mehreren globalen Standorten. Kostenlos und sofort.",
+    "mtrTitle": "MTR Traceroute - Globale Netzwerkpfadanalyse",
+    "mtrDesc": "Führen Sie globale MTR-Traceroute-Tests durch. Identifizieren Sie Netzwerkengpässe, Paketverlust und Latenz an jedem Hop von über 20 Standorten.",
+    "tcpTitle": "TCP-Port-Prüfung - Globaler Dienstverfügbarkeitstest",
+    "tcpDesc": "Testen Sie die TCP-Port-Konnektivität von mehreren globalen Standorten aus. Überprüfen Sie Firewall-Regeln und Dienstverfügbarkeit für jeden Port.",
+    "udpTitle": "UDP-Port-Prüfung - Globaler Netzwerkerreichbarkeitstest",
+    "udpDesc": "Überprüfen Sie die UDP-Porterreichbarkeit von über 20 globalen Standorten aus. Überprüfen Sie DNS, VPN und andere UDP-basierte Dienste sofort."
   },
   "Share": {
     "snapshot": "Snapshot",

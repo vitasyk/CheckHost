@@ -21,6 +21,7 @@
     "ipinfo": "Info de IP"
   },
   "Metadata": {
+    "siteName": "CheckNode",
     "pingTitle": "Ping Online - Comprobar conectividad global",
     "pingDesc": "Pruebe el ping ICMP a cualquier host o IP desde múltiples ubicaciones globales. Verifique la latencia y la pérdida de paquetes en tiempo real.",
     "httpTitle": "Prueba HTTP - Monitorear tiempo de actividad y rendimiento",
@@ -34,7 +35,13 @@
     "smtpTitle": "Prueba SMTP - Verificación de conexión y seguridad del servidor de correo",
     "smtpDesc": "Verifique la conexión con el servidor SMTP y el tiempo de respuesta desde más de 20 ubicaciones. Pruebe los puertos 25, 465, 587.",
     "sslTitle": "Prueba de certificado SSL - Validar seguridad TLS y fecha de vencimiento",
-    "sslDesc": "Verifique la validez del certificado SSL/TLS, la fecha de vencimiento, la cadena de confianza y la fuerza del cifrado desde múltiples ubicaciones globales. Gratis e instantáneo."
+    "sslDesc": "Verifique la validez del certificado SSL/TLS, la fecha de vencimiento, la cadena de confianza y la fuerza del cifrado desde múltiples ubicaciones globales. Gratis e instantáneo.",
+    "mtrTitle": "Traceroute MTR - Análisis global de rutas de red",
+    "mtrDesc": "Realice pruebas globales de traceroute MTR. Identifique cuellos de botella en la red, pérdida de paquetes y latencia en cada salto desde más de 20 ubicaciones.",
+    "tcpTitle": "Comprobador de puertos TCP - Prueba de disponibilidad de servicio global",
+    "tcpDesc": "Pruebe la conectividad de puertos TCP desde múltiples ubicaciones globales. Verifique las reglas del firewall y la disponibilidad del servicio para cualquier puerto.",
+    "udpTitle": "Comprobador de puertos UDP - Prueba de accesibilidad de red global",
+    "udpDesc": "Verifique la accesibilidad de puertos UDP desde más de 20 ubicaciones globales. Verifique DNS, VPN y otros servicios basados en UDP al instante."
   },
   "Share": {
     "snapshot": "Instantánea",

@@ -12,7 +12,20 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     return {
         title: t('httpTitle'),
         description: t('httpDesc'),
-        alternates: generateAlternates('http', siteUrl),
+        alternates: generateAlternates('http', siteUrl, locale),
+        openGraph: {
+            title: t('httpTitle'),
+            description: t('httpDesc'),
+            url: `${siteUrl}/http`,
+            siteName: t('siteName'),
+            locale: locale,
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: t('httpTitle'),
+            description: t('httpDesc'),
+        },
     };
 }
 

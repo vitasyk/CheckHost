@@ -21,6 +21,7 @@
     "ipinfo": "IP Info"
   },
   "Metadata": {
+    "siteName": "CheckNode",
     "pingTitle": "Ping Online - Check Website Connectivity Worldwide",
     "pingDesc": "Test ICMP ping to any host or IP from multiple global locations. Check latency and packet loss in real-time.",
     "httpTitle": "HTTP Check - Monitor Website Uptime & Performance",
@@ -34,7 +35,13 @@
     "smtpTitle": "SMTP Test - Check Mail Server Connection & Security",
     "smtpDesc": "Verify SMTP server connectivity and response from 20+ locations. Test ports 25, 465, 587 and check mail server availability worldwide.",
     "sslTitle": "SSL Certificate Checker - Validate TLS Security & Expiry",
-    "sslDesc": "Check SSL/TLS certificate validity, expiry date, chain of trust and cipher strength from multiple global locations. Free and instant."
+    "sslDesc": "Check SSL/TLS certificate validity, expiry date, chain of trust and cipher strength from multiple global locations. Free and instant.",
+    "mtrTitle": "MTR Traceroute - Global Network Path Analysis",
+    "mtrDesc": "Perform global MTR traceroute tests. Identify network bottlenecks, packet loss, and latency across every hop from 20+ locations.",
+    "tcpTitle": "TCP Port Checker - Global Service Availability Test",
+    "tcpDesc": "Test TCP port connectivity from multiple global locations. Verify firewall rules and service availability for any port.",
+    "udpTitle": "UDP Port Checker - Global Network Reachability Test",
+    "udpDesc": "Check UDP port reachability from 20+ global locations. Verify DNS, VPN, and other UDP-based services instantly."
   },
   "Share": {
     "snapshot": "Snapshot",

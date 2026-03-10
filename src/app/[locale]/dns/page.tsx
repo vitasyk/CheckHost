@@ -12,8 +12,20 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     return {
         title: t('dnsTitle'),
         description: t('dnsDesc'),
-        alternates: generateAlternates('dns', siteUrl),
-        openGraph: {},
+        alternates: generateAlternates('dns', siteUrl, locale),
+        openGraph: {
+            title: t('dnsTitle'),
+            description: t('dnsDesc'),
+            url: `${siteUrl}/dns`,
+            siteName: t('siteName'),
+            locale: locale,
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: t('dnsTitle'),
+            description: t('dnsDesc'),
+        },
     };
 }
 

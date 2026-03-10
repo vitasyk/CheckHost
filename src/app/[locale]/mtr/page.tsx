@@ -13,6 +13,19 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         title: t('mtrTitle'),
         description: t('mtrDesc'),
         alternates: generateAlternates('mtr', siteUrl, locale),
+        openGraph: {
+            title: t('mtrTitle'),
+            description: t('mtrDesc'),
+            url: `${siteUrl}/mtr`,
+            siteName: t('siteName'),
+            locale: locale,
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: t('mtrTitle'),
+            description: t('mtrDesc'),
+        },
     };
 }
 

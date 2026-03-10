@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
         authors: [{ name: `${siteName} Team` }],
         creator: siteName,
         metadataBase: new URL(siteUrl),
-        alternates: generateAlternates('/', siteUrl),
+        alternates: generateAlternates('/', siteUrl, locale),
         manifest: '/manifest.json',
         appleWebApp: {
             capable: true,

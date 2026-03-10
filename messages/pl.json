@@ -21,6 +21,7 @@
     "ipinfo": "Informacje IP"
   },
   "Metadata": {
+    "siteName": "CheckNode",
     "pingTitle": "Ping Online - Sprawdź łączność witryny na całym świecie",
     "pingDesc": "Testuj ping ICMP do dowolnego hosta lub adresu IP z wielu globalnych lokalizacji. Sprawdzaj opóźnienia i utratę pakietów w czasie rzeczywistym.",
     "httpTitle": "Test HTTP - Monitoruj czas działania i wydajność witryny",
@@ -34,7 +35,13 @@
     "smtpTitle": "Test SMTP - Sprawdzanie połączenia i bezpieczeństwa serwera pocztowego",
     "smtpDesc": "Sprawdź połączenie z serwerem SMTP i czas reakcji z ponad 20 lokalizacji. Przetestuj porty 25, 465, 587.",
     "sslTitle": "Sprawdzanie certyfikatu SSL - Walidacja bezpieczeństwa TLS i wygaśnięcia",
-    "sslDesc": "Sprawdź ważność certyfikatu SSL/TLS, datę wygaśnięcia, łańcuch zaufania i siłę szyfrowania z wielu globalnych lokalizacji. Bezpłatnie i natychmiast."
+    "sslDesc": "Sprawdź ważność certyfikatu SSL/TLS, datę wygaśnięcia, łańcuch zaufania i siłę szyfrowania z wielu globalnych lokalizacji. Bezpłatnie i natychmiast.",
+    "mtrTitle": "MTR Traceroute - Globalna analiza ścieżki sieciowej",
+    "mtrDesc": "Przeprowadzaj globalne testy MTR traceroute. Identyfikuj wąskie gardła sieci, utratę pakietów i opóźnienia na każdym przeskoku z ponad 20 lokalizacji.",
+    "tcpTitle": "Sprawdzanie portów TCP - Globalny test dostępności usług",
+    "tcpDesc": "Testuj łączność portów TCP z wielu globalnych lokalizacji. Weryfikuj reguły zapory ogniowej i dostępność usług dla dowolnego portu.",
+    "udpTitle": "Sprawdzanie portów UDP - Globalny test osiągalności sieci",
+    "udpDesc": "Sprawdzaj osiągalność portów UDP z ponad 20 globalnych lokalizacji. Błyskawicznie weryfikuj usługi DNS, VPN i inne usługi oparte na UDP."
   },
   "Share": {
     "snapshot": "Migawka",

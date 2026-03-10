@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { query } from '@/lib/postgres';
 import { Card } from '@/components/ui/card';
 import { BookOpen, ChevronRight } from 'lucide-react';
@@ -81,7 +81,7 @@ export default async function DocsPage({ params }: { params: Promise<{ locale: s
                                         .map(article => (
                                             <Link
                                                 key={article.id}
-                                                href={`/${locale}/docs/${article.slug}`}
+                                                href={`/docs/${article.slug}`}
                                                 className="block transition-transform hover:-translate-y-1"
                                             >
                                                 <Card className="p-5 border-slate-200 dark:border-white/5 bg-white dark:bg-white/5 hover:border-blue-500/50 dark:hover:border-blue-500/50 transition-colors shadow-sm hover:shadow-md group">

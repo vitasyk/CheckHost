@@ -24,7 +24,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
     // Try to get translated tool name from Metadata namespace if possible, otherwise fallback
     const toolKey = tool.toLowerCase();
-    const toolName = t.raw(`${toolKey}Title`)?.split(' - ')[0]?.split(' | ')[0] || checkNames[toolKey] || tool.toUpperCase();
+    const titleKey = `${toolKey}Title` as any;
+    const toolName = t.has(titleKey)
+        ? t.raw(titleKey)?.split(' - ')[0]?.split(' | ')[0]
+        : (checkNames[toolKey] || tool.toUpperCase());
 
     return {
         title: `${toolName} for ${host} | ${process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode'}`,
@@ -53,7 +56,10 @@ export default async function ReportPage({ params }: { params: Promise<{ locale:
     }
     const t = await getTranslations({ locale, namespace: 'Metadata' });
     const toolKey = tool.toLowerCase();
-    const toolName = t.raw(`${toolKey}Title`)?.split(' - ')[0]?.split(' | ')[0] || checkNames[toolKey] || tool.toUpperCase();
+    const titleKey = `${toolKey}Title` as any;
+    const toolName = t.has(titleKey)
+        ? t.raw(titleKey)?.split(' - ')[0]?.split(' | ')[0]
+        : (checkNames[toolKey] || tool.toUpperCase());
 
     return (
         <div className="flex flex-col min-h-full">

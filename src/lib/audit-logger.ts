@@ -44,7 +44,7 @@ export async function logAdminAction({
         }
 
         if (process.env.NODE_ENV === 'development') {
-            console.log(`[AuditLog] ${adminEmail} performed ${action} on ${entityType}:${entityId}`);
+            // Audit logging
         }
     } catch (error) {
         console.error('[AuditLog] Failed to log admin action:', error);

@@ -41,7 +41,7 @@ export default function NotFound() {
                         </Link>
                     </Button>
                     <Button asChild variant="outline" className="h-12 px-8 rounded-xl border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 font-bold gap-2 active:scale-95 transition-all">
-                        <Link href="/checks">
+                        <Link href="/">
                             <Search className="h-4 w-4" />
                             Start New Check
                         </Link>

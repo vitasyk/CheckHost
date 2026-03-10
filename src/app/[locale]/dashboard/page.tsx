@@ -1,12 +1,11 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
+import { getTranslations } from 'next-intl/server';
+import { Link, redirect } from '@/i18n/navigation';
 import { Card } from "@/components/ui/card";
 import { Activity, ShieldAlert, MonitorCheck, LayoutDashboard, ShieldCheck } from "lucide-react";
-import Link from "next/link";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { UserActivityFeed } from "@/components/dashboard/UserActivityFeed";
-import { getTranslations } from 'next-intl/server';
 
 export const metadata = {
     title: 'My Dashboard - Active Monitors & API Setup | CheckNode',
@@ -15,18 +14,18 @@ export const metadata = {
 
 export const dynamic = 'force-dynamic';
 
-// NextJS pages with dynamic params receive standard params object but for NextJS app router, 
-// using await getTranslations without full request context works for global strings,
-// but for locale-based, let's destructure or just use default.
-export default async function DashboardPage() {
+export default async function DashboardPage({ params }: { params: Promise<{ locale: string }> }) {
+    const { locale } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session) {
-        redirect('/auth/signin');
+        redirect({ href: '/auth/signin', locale });
+        return null;
     }
 
     if (session.user.role === 'admin') {
-        redirect('/admin');
+        redirect({ href: '/admin', locale });
+        return null;
     }
 
     const t = await getTranslations('Dashboard');
@@ -45,7 +44,7 @@ export default async function DashboardPage() {
                                 {t('userDashboard')}
                             </h1>
                             <p className="mt-2 text-slate-500 dark:text-slate-400">
-                                {t('welcomeBack', { name: session.user.name || session.user.email })}
+                                {t('welcomeBack', { name: session?.user?.name || session?.user?.email || 'User' })}
                             </p>
                         </div>
                     </div>
@@ -97,7 +96,9 @@ export default async function DashboardPage() {
                                 {t('userAccessLevelDesc')}
                             </p>
                             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">
-                                {t('role', { role: session.user.role })}
+                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400">
+                                    {t('role', { role: session?.user?.role || 'user' })}
+                                </div>
                             </div>
                         </Card>
                     </div>

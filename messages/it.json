@@ -21,6 +21,7 @@
     "ipinfo": "Info IP"
   },
   "Metadata": {
+    "siteName": "CheckNode",
     "pingTitle": "Ping Online - Controlla la connettività in tutto il mondo",
     "pingDesc": "Testa il ping ICMP verso qualsiasi host o IP da più località globali. Controlla la latenza e la perdita di pacchetti in tempo reale.",
     "httpTitle": "Controllo HTTP - Monitora uptime e prestazioni",
@@ -34,7 +35,13 @@
     "smtpTitle": "Test SMTP - Verifica della connessione e della sicurezza del server mail",
     "smtpDesc": "Controlla la connessione al server SMTP e il tempo di risposta da oltre 20 località. Testa le porte 25, 465, 587.",
     "sslTitle": "Controllo certificato SSL - Convalida sicurezza TLS e scadenza",
-    "sslDesc": "Verifica la validità del certificato SSL/TLS, la data di scadenza, la catena di fiducia e la forza della crittografia da più località globali. Gratuito e istantaneo."
+    "sslDesc": "Verifica la validità del certificato SSL/TLS, la data di scadenza, la catena di fiducia e la forza della crittografia da più località globali. Gratuito e istantaneo.",
+    "mtrTitle": "MTR Traceroute - Analisi globale del percorso di rete",
+    "mtrDesc": "Esegui test MTR traceroute globali. Identifica colli di bottiglia della rete, perdita di pacchetti e latenza in ogni singolo hop da oltre 20 località.",
+    "tcpTitle": "Controllo porte TCP - Test globale della disponibilità del servizio",
+    "tcpDesc": "Testa la connettività delle porte TCP da più località globali. Verifica le regole del firewall e la disponibilità del servizio per qualsiasi porta.",
+    "udpTitle": "Controllo porte UDP - Test globale della raggiungibilità di rete",
+    "udpDesc": "Controlla la raggiungibilità delle porte UDP da oltre 20 località globali. Verifica istantaneamente i servizi DNS, VPN e altri servizi basati su UDP."
   },
   "Share": {
     "snapshot": "Istantanea",

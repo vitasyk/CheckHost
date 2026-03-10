@@ -6,17 +6,30 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { MapPin, Globe, Server, Network, Info } from 'lucide-react';
 import MapWrapper from '@/components/ip-info/MapWrapper';
 import { IpInfoContent } from '@/components/content/IpInfoContent';
+import { generateAlternates } from '@/lib/seo-utils';
 import { setRequestLocale } from 'next-intl/server';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io';
     const t = await getTranslations({ locale, namespace: 'Metadata' });
 
     return {
         title: t('ipinfoTitle'),
         description: t('ipinfoDesc'),
-        alternates: {
-            canonical: '/ip-info',
+        alternates: generateAlternates('ip-info', siteUrl, locale),
+        openGraph: {
+            title: t('ipinfoTitle'),
+            description: t('ipinfoDesc'),
+            url: `${siteUrl}/ip-info`,
+            siteName: t('siteName'),
+            locale: locale,
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: t('ipinfoTitle'),
+            description: t('ipinfoDesc'),
         },
     };
 }

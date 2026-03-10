@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
+import { Link, redirect } from '@/i18n/navigation';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import pool, { isPostgresConfigured } from '@/lib/postgres';
 import { getServerSession } from 'next-auth';
@@ -162,7 +163,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return {
         title: post.title,
         description: post.excerpt,
-        alternates: generateAlternates(`blog/${post.slug}`, process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io'),
+        alternates: generateAlternates(`blog/${post.slug}`, process.env.NEXT_PUBLIC_SITE_URL || 'https://checknode.io', locale),
         openGraph: {
             title: post.title,
             description: post.excerpt,
@@ -189,7 +190,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         // SMART REDIRECT: If post not found, maybe user switched language and the slug changed?
         const newSlug = await findTranslation(slug, locale, !!session);
         if (newSlug) {
-            redirect(`/${locale}/blog/${newSlug}`);
+            redirect({ href: `/blog/${newSlug}`, locale });
         }
         notFound();
     }

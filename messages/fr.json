@@ -21,6 +21,7 @@
     "ipinfo": "Infos IP"
   },
   "Metadata": {
+    "siteName": "CheckNode",
     "pingTitle": "Ping en ligne - Vérifier la connectivité mondiale",
     "pingDesc": "Testez le ping ICMP vers n'importe quel hôte ou IP depuis plusieurs emplacements mondiaux. Vérifiez la latence et la perte de paquets en temps réel.",
     "httpTitle": "Test HTTP - Surveiller la disponibilité et les performances",
@@ -34,7 +35,13 @@
     "smtpTitle": "Test SMTP - Vérification de connexion et de sécurité du serveur mail",
     "smtpDesc": "Vérifiez la connexion au serveur SMTP et le temps de réponse depuis plus de 20 localisations. Testez les ports 25, 465, 587.",
     "sslTitle": "Vérificateur de certificat SSL - Valider la sécurité TLS et l'expiration",
-    "sslDesc": "Vérifiez la validité du certificat SSL/TLS, la date d'expiration, la chaîne de confiance et la force du chiffrement depuis plusieurs emplacements mondiaux. Gratuit et instantané."
+    "sslDesc": "Vérifiez la validité du certificat SSL/TLS, la date d'expiration, la chaîne de confiance et la force du chiffrement depuis plusieurs emplacements mondiaux. Gratuit et instantané.",
+    "mtrTitle": "MTR Traceroute - Analyse globale du chemin réseau",
+    "mtrDesc": "Effectuez des tests MTR traceroute globaux. Identifiez les goulots d'étranglement du réseau, la perte de paquets et la latence à chaque saut depuis plus de 20 emplacements.",
+    "tcpTitle": "Vérificateur de port TCP - Test de disponibilité de service global",
+    "tcpDesc": "Testez la connectivité des ports TCP depuis plusieurs emplacements mondiaux. Vérifiez les règles du pare-feu et la disponibilité du service pour n'importe quel port.",
+    "udpTitle": "Vérificateur de port UDP - Test de joignabilité réseau global",
+    "udpDesc": "Vérifiez la joignabilité des ports UDP depuis plus de 20 emplacements mondiaux. Vérifiez instantanément les services DNS, VPN et autres services basés sur UDP."
   },
   "Share": {
     "snapshot": "Instantané",

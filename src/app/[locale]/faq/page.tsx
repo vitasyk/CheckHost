@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     return {
         title: `${t('title')} - Help & Support Center | CheckNode`,
         description: t('subtitle'),
-        alternates: generateAlternates('faq', siteUrl),
+        alternates: generateAlternates('faq', siteUrl, locale),
         openGraph: {
             title: `${t('title')} - Help & Support Center | CheckNode`,
             description: t('subtitle'),

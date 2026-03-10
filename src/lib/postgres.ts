@@ -11,7 +11,7 @@ function createPool() {
     const isDev = process.env.NODE_ENV === 'development';
 
     if (isDev) {
-        console.log('[Postgres] Initializing new connection pool...');
+        // No verbose logging
     }
 
     const newPool = new Pool({
@@ -35,9 +35,6 @@ const normalizedConnString = connectionString?.trim();
 
 if (!globalForPg.pgPool || globalForPg.pgPoolConnectionString !== normalizedConnString) {
     if (globalForPg.pgPool) {
-        if (process.env.NODE_ENV === 'development') {
-            console.log('[Postgres] Connection string changed or module reloaded, ending old pool...');
-        }
         globalForPg.pgPool.end().catch(err => console.error('[Postgres] Error ending old pool:', err));
     }
     globalForPg.pgPool = createPool();

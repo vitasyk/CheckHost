@@ -20,7 +20,6 @@ export async function GET() {
         };
 
         if (!adsenseConfig) {
-            console.log('[AdSense] No configuration found, returning defaults');
             return NextResponse.json({
                 client_id: "",
                 enabled: false,
