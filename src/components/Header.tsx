@@ -202,7 +202,7 @@ function MobileUnifiedNav() {
                                             </DialogPrimitive.Close>
                                         ) : (
                                             <DialogPrimitive.Close asChild>
-                                                <Link href="/auth/signin" className="w-full">
+                                                <Link href="/auth/signin" rel="nofollow" className="w-full">
                                                     <Button className="w-full justify-start items-center gap-3 px-3 h-12 rounded-[1.2rem] bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all duration-200">
                                                         <div className="h-8 w-8 shrink-0 rounded-lg flex items-center justify-center bg-white/20">
                                                             <LogIn className="h-4 w-4" />
@@ -366,7 +366,7 @@ export function Header() {
                                     className="h-9 px-4 gap-2 text-xs font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 border-none transition-all duration-200 cursor-pointer"
                                     aria-label="Sign in to your account"
                                 >
-                                    <Link href="/auth/signin" className="flex items-center gap-1.5">
+                                    <Link href="/auth/signin" rel="nofollow" className="flex items-center gap-1.5">
                                         <LogIn className="h-3.5 w-3.5" />
                                         <span className="hidden sm:inline">Sign In</span>
                                     </Link>
