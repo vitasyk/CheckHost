@@ -95,6 +95,7 @@ export async function GET(request: Request) {
     }
 
     // 2. Deduplicate concurrent requests
+    const startTimestamp = Date.now();
     try {
         const responseData = await memoryCache.deduplicate(cacheKey, async () => {
             // Detect if input is already an IP address (IPv4 or IPv6)
@@ -115,9 +116,10 @@ export async function GET(request: Request) {
                     ip: cleanDomain,
                     records,
                     timestamp: Date.now(),
+                    status: 'success' as const,
+                    error: undefined
                 };
 
-                await memoryCache.set(cacheKey, data, 600);
                 return data;
             }
 
@@ -145,9 +147,6 @@ export async function GET(request: Request) {
             ]);
 
             // Splitting results
-            // 0: a, 1: aaaa, 2: mx, 3: ns, 4: cname, 5: txt, 6: soa, 7: dmarc
-            // 8 to 8 + dkimSelectors.length - 1: dkim results
-            // last 4: subdomains
             const mail_a = dkimResults[dkimSelectors.length] as string[] | null;
             const mail_mx = dkimResults[dkimSelectors.length + 1] as dns.MxRecord[] | null;
             const www_a = dkimResults[dkimSelectors.length + 2] as string[] | null;
@@ -183,7 +182,6 @@ export async function GET(request: Request) {
             if (ns && (ns as string[]).length > 0) {
                 (ns as string[]).forEach(n => records.push({ type: 'NS', value: n }));
             } else if (soa) {
-                // Fallback: Use primary nameserver from SOA record if direct NS lookup failed
                 const soaRec = soa as dns.SoaRecord;
                 if (soaRec.nsname) {
                     records.push({
@@ -232,57 +230,34 @@ export async function GET(request: Request) {
             });
 
             // Subdomain records
-            if (mail_a) {
-                (mail_a as string[]).forEach(ip => records.push({ type: 'A', value: ip, auxiliary: 'mail.@' }));
-            }
-            if (mail_mx) {
-                (mail_mx as dns.MxRecord[]).forEach(r => records.push({ type: 'MX', value: r.exchange, priority: r.priority, auxiliary: 'mail.@' }));
-            }
-            if (www_a) {
-                (www_a as string[]).forEach(ip => records.push({ type: 'A', value: ip, auxiliary: 'www.@' }));
-            }
-            if (www_cname) {
-                (www_cname as string[]).forEach(cn => records.push({ type: 'CNAME', value: cn, auxiliary: 'www.@' }));
-            }
+            if (mail_a) (mail_a as string[]).forEach(ip => records.push({ type: 'A', value: ip, auxiliary: 'mail.@' }));
+            if (mail_mx) (mail_mx as dns.MxRecord[]).forEach(r => records.push({ type: 'MX', value: r.exchange, priority: r.priority, auxiliary: 'mail.@' }));
+            if (www_a) (www_a as string[]).forEach(ip => records.push({ type: 'A', value: ip, auxiliary: 'www.@' }));
+            if (www_cname) (www_cname as string[]).forEach(cn => records.push({ type: 'CNAME', value: cn, auxiliary: 'www.@' }));
 
-            // Secondary parallel block for dependent lookups (PTR and MX A records)
+            // Secondary parallel block for dependent lookups
             const primaryIP = (a && (a as string[]).length > 0) ? (a as string[])[0] : ((aaaa && (aaaa as string[]).length > 0) ? (aaaa as string[])[0] : null);
-
             const secondaryPromises: Promise<any>[] = [];
 
-            // 1. PTR record for primary IP
             if (primaryIP) {
                 secondaryPromises.push(fastResolve<string[]>('reverse', primaryIP).then(ptrResults => {
-                    if (ptrResults) {
-                        ptrResults.forEach(p => records.push({ type: 'PTR', value: p, auxiliary: `for ${primaryIP}` }));
-                    }
+                    if (ptrResults) ptrResults.forEach(p => records.push({ type: 'PTR', value: p, auxiliary: `for ${primaryIP}` }));
                 }));
             }
 
-            // 2. IP records for MX servers
             if (mx && (mx as dns.MxRecord[]).length > 0) {
                 (mx as dns.MxRecord[]).forEach((mxRecord) => {
                     secondaryPromises.push(fastResolve<string[]>('resolve4', mxRecord.exchange).then(mailA => {
-                        if (mailA) {
-                            mailA.forEach(ip => records.push({
-                                type: 'A',
-                                value: ip,
-                                auxiliary: `mail server (${mxRecord.exchange})`,
-                            }));
-                        }
+                        if (mailA) mailA.forEach(ip => records.push({ type: 'A', value: ip, auxiliary: `mail server (${mxRecord.exchange})` }));
                     }));
                 });
             }
 
-            // 3. IP Info metadata
             let ipMetadata = null;
             if (primaryIP) {
-                secondaryPromises.push(safeResolve(() => getMockIpInfo(primaryIP)).then(meta => {
-                    ipMetadata = meta;
-                }));
+                secondaryPromises.push(safeResolve(() => getMockIpInfo(primaryIP)).then(meta => { ipMetadata = meta; }));
             }
 
-            // Wait for all secondary/dependent info to arrive
             await Promise.all(secondaryPromises);
 
             const data = {
@@ -295,40 +270,50 @@ export async function GET(request: Request) {
                 error: records.length === 0 ? `DNS Resolution failed: No records found for "${cleanDomain}".` : undefined
             };
 
-            // Cache successful response (TTL 600s = 10m)
-            await memoryCache.set(cacheKey, data, 600);
-
-            // Logging
-            const headerList = await headers();
-            const userIp = getRealIp(headerList) || '127.0.0.1';
-
-            const checkId = await apiLogger.logCheck({
-                check_type: 'dns-lookup',
-                target_host: cleanDomain,
-                user_ip: userIp,
-                status: data.status
-            });
-
-            await apiLogger.logApiUsage({
-                api_endpoint: '/dns-lookup',
-                check_id: checkId || undefined,
-                response_time_ms: Date.now() - data.timestamp, // timestamp was set earlier
-                status_code: 200
-            });
-
-            // Log successful search for Programmatic SEO
-            logSeoPage(cleanDomain, 'dns').catch(console.error);
-
             return data;
         });
 
+        // 3. Post-probing operations (Caching & Telemetry)
+        // These are intentionally kept outside the deduplicate lock to avoid hanging other concurrent requests
+
+        // Background set in cache (no await)
+        memoryCache.set(cacheKey, responseData, 600).catch(console.error);
+
+        // Background logging & SEO page track
+        const logPromise = (async () => {
+            try {
+                const headerList = await headers();
+                const userIp = getRealIp(headerList) || '127.0.0.1';
+
+                const checkId = await apiLogger.logCheck({
+                    check_type: 'dns-lookup',
+                    target_host: cleanDomain,
+                    user_ip: userIp,
+                    status: responseData.status
+                });
+
+                await apiLogger.logApiUsage({
+                    api_endpoint: '/dns-lookup',
+                    check_id: checkId || undefined,
+                    response_time_ms: Date.now() - startTimestamp,
+                    status_code: 200
+                });
+
+                if (responseData.status === 'success') {
+                    logSeoPage(cleanDomain, 'dns').catch(console.error);
+                }
+            } catch (err) {
+                console.error('[DNS Background Log Error]', err);
+            }
+        })();
+
+        // We don't await logPromise to respond as fast as possible
         return NextResponse.json(responseData, {
             headers: { 'X-Cache': 'MISS' }
         });
     } catch (_error: any) {
         console.error('DNS Lookup error:', _error);
 
-        // Handle common DNS errors gracefully
         if (_error.code === 'ENOTFOUND' || _error.message === 'DNS Timeout') {
             return NextResponse.json({
                 domain: cleanDomain,
