@@ -4,7 +4,9 @@ import dns from 'dns';
 import { getMockIpInfo } from '@/lib/mock-data';
 import { memoryCache } from '@/lib/cache';
 import { logSeoPage } from '@/lib/seo-logger';
-import { extractHost, isIPv6 } from '@/lib/utils';
+import { extractHost, isIPv6, getRealIp } from '@/lib/utils';
+import { apiLogger } from '@/lib/api-logger';
+import { headers } from 'next/headers';
 
 // Create multiple independent resolvers for parallel probing
 const googleResolver = new dns.promises.Resolver();
@@ -288,6 +290,24 @@ export async function GET(request: Request) {
 
             // Cache successful response (TTL 600s = 10m)
             await memoryCache.set(cacheKey, data, 600);
+
+            // Logging
+            const headerList = await headers();
+            const userIp = getRealIp(headerList) || '127.0.0.1';
+
+            const checkId = await apiLogger.logCheck({
+                check_type: 'dns-lookup',
+                target_host: cleanDomain,
+                user_ip: userIp,
+                status: data.status
+            });
+
+            await apiLogger.logApiUsage({
+                api_endpoint: '/dns-lookup',
+                check_id: checkId || undefined,
+                response_time_ms: Date.now() - data.timestamp, // timestamp was set earlier
+                status_code: 200
+            });
 
             // Log successful search for Programmatic SEO
             logSeoPage(cleanDomain, 'dns').catch(console.error);

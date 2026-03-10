@@ -4,7 +4,9 @@ import * as dns from 'dns';
 import { promisify } from 'util';
 import crypto from 'crypto';
 import { logSeoPage } from '@/lib/seo-logger';
-import { extractHost, isIPv6 } from '@/lib/utils';
+import { extractHost, isIPv6, getRealIp } from '@/lib/utils';
+import { apiLogger } from '@/lib/api-logger';
+import { headers } from 'next/headers';
 
 const lookup = promisify(dns.lookup);
 
@@ -21,6 +23,24 @@ export async function GET(request: NextRequest) {
 
     try {
         const result = await checkSsl(host);
+
+        // Logging
+        const headerList = await headers();
+        const userIp = getRealIp(headerList) || '127.0.0.1';
+
+        const checkId = await apiLogger.logCheck({
+            check_type: 'ssl',
+            target_host: host,
+            user_ip: userIp,
+            status: 'success'
+        });
+
+        await apiLogger.logApiUsage({
+            api_endpoint: '/ssl-check',
+            check_id: checkId || undefined,
+            response_time_ms: 0, // Simplified for now, or use performance.now() if needed
+            status_code: 200
+        });
 
         // Log successful check for Programmatic SEO
         logSeoPage(host, 'ssl').catch(console.error);
@@ -60,6 +80,17 @@ export async function GET(request: NextRequest) {
                 status: 'failed'
             });
         }
+
+        const headerList = await headers();
+        const userIp = getRealIp(headerList) || '127.0.0.1';
+
+        await apiLogger.logCheck({
+            check_type: 'ssl',
+            target_host: host,
+            user_ip: userIp,
+            status: 'failed',
+            error_message: errorMessage
+        });
 
         return NextResponse.json({
             error: errorMessage,

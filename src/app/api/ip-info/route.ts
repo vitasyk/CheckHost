@@ -5,6 +5,8 @@ import { parseRdapData } from '@/lib/rdap-parser';
 import { memoryCache } from '@/lib/cache';
 import { logSeoPage } from '@/lib/seo-logger';
 import { getRealIp, extractHost } from '@/lib/utils';
+import { apiLogger } from '@/lib/api-logger';
+import { headers } from 'next/headers';
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
@@ -135,6 +137,25 @@ export async function GET(request: NextRequest) {
                 };
 
                 await memoryCache.set(cacheKey, successAsnData, 3600);
+
+                // Logging
+                const headerList = await headers();
+                const userIp = getRealIp(headerList) || '127.0.0.1';
+
+                const checkId = await apiLogger.logCheck({
+                    check_type: 'ip-info',
+                    target_host: host!,
+                    user_ip: userIp,
+                    status: 'success'
+                });
+
+                await apiLogger.logApiUsage({
+                    api_endpoint: '/ip-info',
+                    check_id: checkId || undefined,
+                    response_time_ms: 0,
+                    status_code: 200
+                });
+
                 logSeoPage(host!, 'ip-info').catch(console.error);
                 return successAsnData;
             }
@@ -157,6 +178,24 @@ export async function GET(request: NextRequest) {
             // Cache successful response (TTL 3600s = 1h)
             const successData = { ...data, status: 'success' };
             await memoryCache.set(cacheKey, successData, 3600);
+
+            // Logging
+            const headerList = await headers();
+            const userIp = getRealIp(headerList) || '127.0.0.1';
+
+            const checkId = await apiLogger.logCheck({
+                check_type: 'ip-info',
+                target_host: host!,
+                user_ip: userIp,
+                status: 'success'
+            });
+
+            await apiLogger.logApiUsage({
+                api_endpoint: '/ip-info',
+                check_id: checkId || undefined,
+                response_time_ms: 0,
+                status_code: 200
+            });
 
             // Log successful check for Programmatic SEO
             logSeoPage(host!, 'ip-info').catch(console.error);
