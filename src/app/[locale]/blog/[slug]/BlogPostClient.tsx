@@ -50,7 +50,9 @@ export default function BlogPostClient({ post }: { post: Post }) {
             if (!trimmed) return null;
             // If it's already HTML (starts with a tag), bypass marked
             const isHtml = /^<[a-z][\s\S]*>/i.test(trimmed);
-            return isHtml ? trimmed : (marked.parse(trimmed) as string);
+            const html = isHtml ? trimmed : (marked.parse(trimmed) as string);
+            // Замінюємо <h1> на <h2>, щоб уникнути декількох головних заголовків на сторінці
+            return html.replace(/<h1/g, '<h2').replace(/<\/h1>/g, '</h2>');
         });
     }, [post.content]);
 

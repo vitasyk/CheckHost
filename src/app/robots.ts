@@ -11,7 +11,7 @@ export default function robots(): MetadataRoute.Robots {
                 disallow: [
                     '/api/',
                     '/admin/',
-                    '/auth/',
+                    // '/auth/', // Дозволяємо індексацію для сторінок авторизації, щоб уникнути помилок блокування
                 ],
             },
         ],
