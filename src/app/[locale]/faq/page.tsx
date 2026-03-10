@@ -84,9 +84,9 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
                     <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mb-6">
                         {t('title')}
                     </h1>
-                    <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                    <h2 className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-normal">
                         {t('subtitle')}
-                    </p>
+                    </h2>
                 </div>
             </section>
 

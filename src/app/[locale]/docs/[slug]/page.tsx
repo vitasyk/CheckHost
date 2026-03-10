@@ -184,7 +184,7 @@ export default async function DocArticlePage({ params }: { params: Promise<{ slu
                     <main className="flex-1 max-w-4xl">
                         <div className="mb-8 flex items-center gap-4 text-sm text-slate-500">
                             <h2 className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-white/5 font-medium text-slate-700 dark:text-slate-300 text-sm">
-                                {t(`sections.${article.section}`) || article.section}
+                                {t('title')}: {t(`sections.${article.section}`) || article.section}
                             </h2>
                             <span className="flex items-center gap-1.5">
                                 <Clock className="w-4 h-4" />
