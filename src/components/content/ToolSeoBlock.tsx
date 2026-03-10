@@ -55,9 +55,9 @@ export function ToolSeoBlock({ toolId }: ToolSeoBlockProps) {
                     <div className={`w-6 h-6 rounded-lg bg-gradient-to-br ${style.gradient} flex items-center justify-center flex-shrink-0`}>
                         <MainIcon className="w-3.5 h-3.5 text-white" />
                     </div>
-                    <h2 className={`text-sm font-bold tracking-wide ${style.text}`}>
+                    <h1 className={`text-sm font-bold tracking-wide ${style.text}`}>
                         {t(`${mappedId}.title`)}
-                    </h2>
+                    </h1>
                 </div>
                 <div className="flex-1 h-px bg-gradient-to-l from-transparent to-slate-200 dark:to-white/[0.06]" />
             </div>
