@@ -1,6 +1,8 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { generateAlternates } from '@/lib/seo-utils';
 import { Shield } from 'lucide-react';
+import React from 'react';
+import { SafeEmail } from '@/components/common/SafeEmail';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
@@ -114,7 +116,16 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
 
                 <section>
                     <h2>{t('contactUsTitle')}</h2>
-                    <p>{t('privacyContactDesc', { email: `support@${new URL(siteUrl).hostname}` })}</p>
+                    <p>
+                        {t('privacyContactDesc', { email: 'EMAIL_PLACEHOLDER' }).split('EMAIL_PLACEHOLDER').map((part, i, arr) => (
+                            <React.Fragment key={i}>
+                                {part}
+                                {i < arr.length - 1 && (
+                                    <SafeEmail email={`support@${new URL(siteUrl).hostname}`} />
+                                )}
+                            </React.Fragment>
+                        ))}
+                    </p>
                 </section>
 
             </div>

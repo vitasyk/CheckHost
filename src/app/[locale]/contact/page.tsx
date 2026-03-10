@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { generateAlternates } from '@/lib/seo-utils';
 import { Mail, MessageSquare, Clock, Globe } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { SafeEmail } from '@/components/common/SafeEmail';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
@@ -42,9 +43,10 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                         <div>
                             <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">{t('generalSupport')}</h3>
                             <p className="text-slate-500 text-sm mb-2">{t('generalSupportDesc')}</p>
-                            <a href={`mailto:${supportEmail}`} className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline text-sm">
-                                {supportEmail}
-                            </a>
+                            <SafeEmail
+                                email={supportEmail}
+                                className="text-indigo-600 dark:text-indigo-400 font-medium text-sm"
+                            />
                         </div>
                     </div>
                 </Card>
@@ -57,9 +59,10 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                         <div>
                             <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">{t('abuseReports')}</h3>
                             <p className="text-slate-500 text-sm mb-2">{t('abuseReportsDesc')}</p>
-                            <a href={`mailto:${abuseEmail}`} className="text-rose-600 dark:text-rose-400 font-medium hover:underline text-sm">
-                                {abuseEmail}
-                            </a>
+                            <SafeEmail
+                                email={abuseEmail}
+                                className="text-rose-600 dark:text-rose-400 font-medium text-sm"
+                            />
                         </div>
                     </div>
                 </Card>
