@@ -69,7 +69,7 @@ function MobileUnifiedNav() {
         <div className="lg:hidden">
             <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
                 <DialogPrimitive.Trigger asChild>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-all active:scale-95" aria-label={t('openMenu')}>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-all active:scale-95" aria-label={t('openMenu')} suppressHydrationWarning>
                         <Menu className="h-6 w-6" />
                     </Button>
                 </DialogPrimitive.Trigger>

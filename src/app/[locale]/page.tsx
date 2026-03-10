@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { generateAlternates } from '@/lib/seo-utils';
-import { ChecksClient } from '@/components/checks/ChecksClient';
+import { ChecksClientNoSsr } from '@/components/checks/ChecksClientNoSsr';
 import { HomePageSeoBlock } from '@/components/HomePageSeoBlock';
 import { ToolSeoBlock } from '@/components/content/ToolSeoBlock';
 import { ToolFaqBlock } from '@/components/content/ToolFaqBlock';
@@ -49,7 +49,7 @@ export default async function HomePage({
 
     return (
         <div className="flex flex-col min-h-full">
-            <ChecksClient />
+            <ChecksClientNoSsr />
             {showToolSeo ? (
                 <Suspense fallback={null}>
                     <ToolSeoBlock toolId={tab} />
