@@ -25,7 +25,7 @@ const resolvers = [googleResolver, cloudflareResolver, quad9Resolver];
  * Uses Promise.any to ensure we return the first SUCCESSFUL result.
  */
 async function fastResolve<T>(method: keyof dns.promises.Resolver, domain: string): Promise<T | null> {
-    const timeoutMs = 6000; // Increased timeout for better reliability
+    const timeoutMs = 3000; // Reduced for better performance
 
     // Create an abort controller for the timeout
     const controller = new AbortController();
@@ -124,7 +124,7 @@ export async function GET(request: Request) {
             // Common DKIM selectors to probe
             const dkimSelectors = ['default', 'google', 'k1', 'mail', 'sign', 'dkim', 'cloudflare', 'mandrill', 'postmark', 'sendgrid'];
 
-            // Run all DNS lookups in parallel
+            // Run all primary DNS lookups in parallel
             const [a, aaaa, mx, ns, cname, txt, soa, dmarc, ...dkimResults] = await Promise.all([
                 fastResolve<string[]>('resolve4', cleanDomain),
                 fastResolve<string[]>('resolve6', cleanDomain),
@@ -144,14 +144,10 @@ export async function GET(request: Request) {
                 fastResolve<string[]>('resolveCname', `www.${cleanDomain}`),
             ]);
 
-            // Splitting results at the end
-            const subdomainStartIndex = dmarc !== undefined ? 8 + dkimSelectors.length : 8 + dkimSelectors.length; // simplified
-            // Wait, dmarc is at index 7. dkimResults starts at 8.
-            // Let's count properly:
+            // Splitting results
             // 0: a, 1: aaaa, 2: mx, 3: ns, 4: cname, 5: txt, 6: soa, 7: dmarc
             // 8 to 8 + dkimSelectors.length - 1: dkim results
             // last 4: subdomains
-            const subdomainOffset = 8 + dkimSelectors.length;
             const mail_a = dkimResults[dkimSelectors.length] as string[] | null;
             const mail_mx = dkimResults[dkimSelectors.length + 1] as dns.MxRecord[] | null;
             const www_a = dkimResults[dkimSelectors.length + 2] as string[] | null;
@@ -249,34 +245,45 @@ export async function GET(request: Request) {
                 (www_cname as string[]).forEach(cn => records.push({ type: 'CNAME', value: cn, auxiliary: 'www.@' }));
             }
 
-            // PTR records for the primary A record
+            // Secondary parallel block for dependent lookups (PTR and MX A records)
             const primaryIP = (a && (a as string[]).length > 0) ? (a as string[])[0] : ((aaaa && (aaaa as string[]).length > 0) ? (aaaa as string[])[0] : null);
-            if (primaryIP) {
-                const ptrResults = await fastResolve<string[]>('reverse', primaryIP);
-                if (ptrResults) {
-                    ptrResults.forEach(p => records.push({ type: 'PTR', value: p, auxiliary: `for ${primaryIP}` }));
-                }
-            }
 
-            // Enhance with IP info (ISP, Location)
-            let ipMetadata = null;
-            if (primaryIP) {
-                ipMetadata = await safeResolve(() => getMockIpInfo(primaryIP));
-            }
+            const secondaryPromises: Promise<any>[] = [];
 
-            // Also try to resolve mail A record (like quer.monster does) for primary MX records
-            if (mx && (mx as dns.MxRecord[]).length > 0) {
-                await Promise.all((mx as dns.MxRecord[]).map(async (mxRecord) => {
-                    const mailA = await fastResolve<string[]>('resolve4', mxRecord.exchange);
-                    if (mailA) {
-                        mailA.forEach(ip => records.push({
-                            type: 'A',
-                            value: ip,
-                            auxiliary: `mail server (${mxRecord.exchange})`,
-                        }));
+            // 1. PTR record for primary IP
+            if (primaryIP) {
+                secondaryPromises.push(fastResolve<string[]>('reverse', primaryIP).then(ptrResults => {
+                    if (ptrResults) {
+                        ptrResults.forEach(p => records.push({ type: 'PTR', value: p, auxiliary: `for ${primaryIP}` }));
                     }
                 }));
             }
+
+            // 2. IP records for MX servers
+            if (mx && (mx as dns.MxRecord[]).length > 0) {
+                (mx as dns.MxRecord[]).forEach((mxRecord) => {
+                    secondaryPromises.push(fastResolve<string[]>('resolve4', mxRecord.exchange).then(mailA => {
+                        if (mailA) {
+                            mailA.forEach(ip => records.push({
+                                type: 'A',
+                                value: ip,
+                                auxiliary: `mail server (${mxRecord.exchange})`,
+                            }));
+                        }
+                    }));
+                });
+            }
+
+            // 3. IP Info metadata
+            let ipMetadata = null;
+            if (primaryIP) {
+                secondaryPromises.push(safeResolve(() => getMockIpInfo(primaryIP)).then(meta => {
+                    ipMetadata = meta;
+                }));
+            }
+
+            // Wait for all secondary/dependent info to arrive
+            await Promise.all(secondaryPromises);
 
             const data = {
                 domain: cleanDomain,
