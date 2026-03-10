@@ -211,20 +211,20 @@ export default async function DocArticlePage({ params }: { params: Promise<{ slu
                         {/* Reliability & Related Tools Section (SEO Boost) */}
                         <div className="mt-16 space-y-12 border-t border-slate-200 dark:border-white/5 pt-12">
                             <section className="space-y-4">
-                                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     <BookOpen className="w-5 h-5 text-blue-500" />
                                     {t('reliabilityTitle')}
-                                </h2>
+                                </h3>
                                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">
                                     {t('reliabilityDesc')}
                                 </p>
                             </section>
 
                             <section className="space-y-6">
-                                <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                                <h4 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                                     <List className="w-5 h-5 text-blue-500" />
                                     {t('relatedTools')}
-                                </h3>
+                                </h4>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {[
                                         { id: 'ping', icon: 'zap' },
