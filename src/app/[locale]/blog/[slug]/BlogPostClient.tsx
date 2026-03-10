@@ -9,9 +9,7 @@ import {
     Share2,
     Newspaper
 } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { query } from '@/lib/postgres';
 import { Card } from '@/components/ui/card';
 import { AdSlot } from '@/components/AdSlot';
 import { marked } from 'marked';

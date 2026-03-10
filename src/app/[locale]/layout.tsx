@@ -240,11 +240,12 @@ export default async function RootLayout({
                         console.log('[PWA] beforeinstallprompt captured early');
                     });
                 ` }} />
+            </head>
+            <body className={`${inter.className} bg-slate-50 dark:bg-slate-950 min-h-screen`}>
+                {/* JSON-LD structured data — valid in body per spec, moved here to avoid interfering with Next.js head metadata injection */}
                 <JsonLd data={jsonLdData} />
                 <JsonLd data={softwareApplicationData} />
                 <JsonLd data={organizationData} />
-            </head>
-            <body className={`${inter.className} bg-slate-50 dark:bg-slate-950 min-h-screen`}>
                 <NextIntlClientProvider messages={messages} locale={locale}>
                     <PwaProvider>
                         <Providers attribute="class" defaultTheme="system" enableSystem>
