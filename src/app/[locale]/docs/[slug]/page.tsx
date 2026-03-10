@@ -27,12 +27,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         if (result.rows.length === 0) return { title: 'Not Found' };
 
         return {
-            title: `${result.rows[0].title} | Documentation | CheckNode`,
+            title: `${result.rows[0].title} | Documentation`,
             alternates: generateAlternates(`docs/${slug}`, siteUrl, locale),
         };
     } catch (e) {
         return {
-            title: 'Documentation | CheckNode',
+            title: 'Documentation',
             alternates: generateAlternates(`docs/${slug}`, siteUrl, locale),
         };
     }
