@@ -13,9 +13,10 @@ interface FaqItem {
 interface FaqAccordionProps {
     items: FaqItem[];
     title?: string;
+    headingLevel?: 'h2' | 'h3' | 'h4' | 'h5';
 }
 
-export function FaqAccordion({ items, title }: FaqAccordionProps) {
+export function FaqAccordion({ items, title, headingLevel = 'h3' }: FaqAccordionProps) {
     const [openId, setOpenId] = useState<number | string | null>(null);
 
     if (!items || items.length === 0) return null;
@@ -45,10 +46,15 @@ export function FaqAccordion({ items, title }: FaqAccordionProps) {
                                 onClick={() => setOpenId(isOpen ? null : item.id)}
                                 className="w-full flex items-center justify-between p-5 text-left focus:outline-none"
                             >
-                                <h3 className={`font-semibold text-[15px] transition-colors duration-300 ${isOpen ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200'
-                                    }`}>
-                                    {item.question}
-                                </h3>
+                                {(() => {
+                                    const Heading = headingLevel;
+                                    return (
+                                        <Heading className={`font-semibold text-[15px] transition-colors duration-300 ${isOpen ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-200'
+                                            }`}>
+                                            {item.question}
+                                        </Heading>
+                                    );
+                                })()}
                                 <div className={`p-1 rounded-full transition-all duration-300 ${isOpen ? 'bg-indigo-500 text-white rotate-180' : 'bg-slate-100 dark:bg-white/5 text-slate-400 group-hover:text-slate-500'
                                     }`}>
                                     <ChevronDown className="h-4 w-4" />

@@ -33,7 +33,7 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
     }
 
     if (snapshot.isExpired) {
-        return <ShareClient snapshot={snapshot} error="Snapshot expired" />;
+        notFound();
     }
 
     return <ShareClient snapshot={snapshot} />;

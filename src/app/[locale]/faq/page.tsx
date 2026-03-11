@@ -93,7 +93,7 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
 
             <div className="container mx-auto px-4 py-8">
                 {accordionItems.length > 0 ? (
-                    <FaqAccordion items={accordionItems} />
+                    <FaqAccordion items={accordionItems} headingLevel="h2" />
                 ) : (
                     <div className="text-center py-20 text-slate-500">
                         {t('noFaqs')}
