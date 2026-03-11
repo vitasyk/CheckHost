@@ -6,7 +6,7 @@ export function DnsContent() {
     const locale = useLocale();
     return (
         <>
-            <ToolSeoBlock toolId="dns" />
+            <ToolSeoBlock toolId="dns" titleTag="h2" />
             <ToolFaqBlock toolId="dns" locale={locale} />
         </>
     );

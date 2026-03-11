@@ -6,7 +6,7 @@ export function SslContent() {
     const locale = useLocale();
     return (
         <>
-            <ToolSeoBlock toolId="ssl" />
+            <ToolSeoBlock toolId="ssl" titleTag="h2" />
             <ToolFaqBlock toolId="ssl" locale={locale} />
         </>
     );

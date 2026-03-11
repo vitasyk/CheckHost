@@ -6,7 +6,7 @@ export function UdpContent() {
     const locale = useLocale();
     return (
         <>
-            <ToolSeoBlock toolId="udp" />
+            <ToolSeoBlock toolId="udp" titleTag="h2" />
             <ToolFaqBlock toolId="udp" locale={locale} />
         </>
     );

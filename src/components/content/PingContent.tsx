@@ -6,7 +6,7 @@ export function PingContent() {
     const locale = useLocale();
     return (
         <>
-            <ToolSeoBlock toolId="ping" />
+            <ToolSeoBlock toolId="ping" titleTag="h2" />
             <ToolFaqBlock toolId="ping" locale={locale} />
         </>
     );

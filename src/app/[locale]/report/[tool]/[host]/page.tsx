@@ -70,7 +70,7 @@ export default async function ReportPage({ params }: { params: Promise<{ locale:
             <ChecksClient initialTab={tool} initialHost={sanitizeHost} autoStart={true} />
 
             <div className="mt-8 border-t border-slate-200 dark:border-white/5 pt-8">
-                <ToolSeoBlock toolId={tool} />
+                <ToolSeoBlock toolId={tool} titleTag="h2" />
                 <ToolFaqBlock toolId={tool} locale={locale} />
             </div>
         </div>

@@ -6,7 +6,7 @@ export function HttpContent() {
     const locale = useLocale();
     return (
         <>
-            <ToolSeoBlock toolId="http" />
+            <ToolSeoBlock toolId="http" titleTag="h2" />
             <ToolFaqBlock toolId="http" locale={locale} />
         </>
     );

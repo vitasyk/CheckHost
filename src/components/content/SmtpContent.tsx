@@ -6,7 +6,7 @@ export function SmtpContent() {
     const locale = useLocale();
     return (
         <>
-            <ToolSeoBlock toolId="smtp" />
+            <ToolSeoBlock toolId="smtp" titleTag="h2" />
             <ToolFaqBlock toolId="smtp" locale={locale} />
         </>
     );

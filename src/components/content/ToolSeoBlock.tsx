@@ -7,6 +7,7 @@ import {
 
 interface ToolSeoBlockProps {
     toolId: string;
+    titleTag?: 'h1' | 'h2';
 }
 
 // Map tool IDs to specific colors and icons
@@ -21,8 +22,9 @@ const toolStyles: Record<string, { icon: React.ElementType, gradient: string, li
     'smtp': { icon: Mail, gradient: 'from-amber-400 to-orange-500', lightBg: 'bg-amber-50/50 dark:bg-amber-900/5', text: 'text-amber-600 dark:text-amber-400', border: 'border-amber-100 dark:border-amber-900/30', badgeBg: 'bg-amber-100 dark:bg-amber-500/10' }
 };
 
-export function ToolSeoBlock({ toolId }: ToolSeoBlockProps) {
+export function ToolSeoBlock({ toolId, titleTag = 'h1' }: ToolSeoBlockProps) {
     const t = useTranslations('ToolSeoContent');
+    const TitleTag = titleTag;
 
     const toolMapping: Record<string, string> = {
         'ping': 'ping',
@@ -55,9 +57,9 @@ export function ToolSeoBlock({ toolId }: ToolSeoBlockProps) {
                     <div className={`w-6 h-6 rounded-lg bg-gradient-to-br ${style.gradient} flex items-center justify-center flex-shrink-0`}>
                         <MainIcon className="w-3.5 h-3.5 text-white" />
                     </div>
-                    <h1 className={`text-sm font-bold tracking-wide ${style.text}`}>
+                    <TitleTag className={`text-sm font-bold tracking-wide ${style.text}`}>
                         {t(`${mappedId}.title`)}
-                    </h1>
+                    </TitleTag>
                 </div>
                 <div className="flex-1 h-px bg-gradient-to-l from-transparent to-slate-200 dark:to-white/[0.06]" />
 

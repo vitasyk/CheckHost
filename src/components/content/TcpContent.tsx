@@ -6,7 +6,7 @@ export function TcpContent() {
     const locale = useLocale();
     return (
         <>
-            <ToolSeoBlock toolId="tcp" />
+            <ToolSeoBlock toolId="tcp" titleTag="h2" />
             <ToolFaqBlock toolId="tcp" locale={locale} />
         </>
     );
