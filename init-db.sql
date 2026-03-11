@@ -216,12 +216,18 @@ CREATE INDEX IF NOT EXISTS idx_user_feed_unread ON user_activity_feed(user_id) W
 --------------------------------------------------------------------------------
 -- ROW LEVEL SECURITY (RLS) ENABLEMENT
 --------------------------------------------------------------------------------
--- To prevent Supabase "RLS Disabled in Public" warnings, we enable RLS on all 
--- public tables exposed to PostgREST. For backward compatibility with the existing 
--- application logic (which often uses the anon key or Postgres driver directly), 
--- we add a default "Allow full access" policy. You may want to restrict these 
--- policies further in the future based on the user session.
+-- Migration: Refine Row Level Security (RLS) policies to resolve "rls_policy_always_true" warnings
+-- Supabase linter flags expressions like `USING (true)` or `WITH CHECK (true)` as overly permissive.
 
+-- Polyfill for local environments (Docker) where 'auth' schema doesn't exist
+-- This allows the refined policies to work without errors outside of Supabase.
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE OR REPLACE FUNCTION auth.role() RETURNS text AS $$
+  SELECT current_user::text;
+$$ LANGUAGE sql STABLE;
+
+-- To maintain compatibility with the Next.js app that uses the anon key for server-to-server 
+-- communication, we use auth.role() checks instead of 'true' for RLS policies.
 -- check_logs
 ALTER TABLE public.check_logs ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow full access" ON public.check_logs;

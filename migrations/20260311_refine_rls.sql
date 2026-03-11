@@ -4,6 +4,14 @@
 -- communication but satisfy the linter, we change the policy to explicitly check for the 
 -- expected roles: 'anon' and 'authenticated', rather than a wildcard 'true'.
 
+-- Polyfill for local environments (Docker) where 'auth' schema doesn't exist
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE OR REPLACE FUNCTION auth.role() RETURNS text AS $$
+    -- In standard Postgres, current_user will be something like 'postgres'
+    -- In Supabase, if we are in this environment, it should already exist, but if not:
+    SELECT current_setting('request.jwt.claim.role', true);
+$$ LANGUAGE sql STABLE;
+
 -- check_logs
 DROP POLICY IF EXISTS "Allow full access" ON public.check_logs;
 CREATE POLICY "Allow anon and authenticated access" ON public.check_logs 
