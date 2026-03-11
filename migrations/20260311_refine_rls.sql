@@ -5,12 +5,13 @@
 -- expected roles: 'anon' and 'authenticated', rather than a wildcard 'true'.
 
 -- Polyfill for local environments (Docker) where 'auth' schema doesn't exist
-CREATE SCHEMA IF NOT EXISTS auth;
-CREATE OR REPLACE FUNCTION auth.role() RETURNS text AS $$
-    -- In standard Postgres, current_user will be something like 'postgres'
-    -- In Supabase, if we are in this environment, it should already exist, but if not:
-    SELECT current_setting('request.jwt.claim.role', true);
-$$ LANGUAGE sql STABLE;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'auth') THEN
+        CREATE SCHEMA auth;
+        CREATE FUNCTION auth.role() RETURNS text AS 'SELECT current_user::text' LANGUAGE sql STABLE;
+    END IF;
+END $$;
 
 -- check_logs
 DROP POLICY IF EXISTS "Allow full access" ON public.check_logs;

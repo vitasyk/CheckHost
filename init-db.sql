@@ -221,10 +221,13 @@ CREATE INDEX IF NOT EXISTS idx_user_feed_unread ON user_activity_feed(user_id) W
 
 -- Polyfill for local environments (Docker) where 'auth' schema doesn't exist
 -- This allows the refined policies to work without errors outside of Supabase.
-CREATE SCHEMA IF NOT EXISTS auth;
-CREATE OR REPLACE FUNCTION auth.role() RETURNS text AS $$
-  SELECT current_user::text;
-$$ LANGUAGE sql STABLE;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'auth') THEN
+        CREATE SCHEMA auth;
+        CREATE FUNCTION auth.role() RETURNS text AS 'SELECT current_user::text' LANGUAGE sql STABLE;
+    END IF;
+END $$;
 
 -- To maintain compatibility with the Next.js app that uses the anon key for server-to-server 
 -- communication, we use auth.role() checks instead of 'true' for RLS policies.
