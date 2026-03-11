@@ -6,8 +6,8 @@ export function IpInfoContent() {
     const locale = useLocale();
     return (
         <>
-            <ToolSeoBlock toolId="ipInfo" titleTag="h2" />
-            <ToolFaqBlock toolId="ipInfo" locale={locale} />
+            <ToolSeoBlock toolId="ip-info" titleTag="h2" />
+            <ToolFaqBlock toolId="ip-info" locale={locale} />
         </>
     );
 }

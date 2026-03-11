@@ -6,7 +6,7 @@ export function MtrContent() {
     const locale = useLocale();
     return (
         <>
-            <ToolSeoBlock toolId="mtr" titleTag="h2" />
+            <ToolSeoBlock toolId="mtr" titleTag="h1" />
             <ToolFaqBlock toolId="mtr" locale={locale} />
         </>
     );
