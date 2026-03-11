@@ -81,7 +81,7 @@
     "searchIp": "IP zoeken...",
     "dateTime": "Datum & tijd",
     "loading": "Activiteit laden...",
-    "noActivityFound": "Geen activiteit gevonden voor uw filters.",
+    "noActivityFound": "Pas uw filters aan om meer resultaten te zien.",
     "pageOf": "Pagina {page} van {totalPages}",
     "prev": "Vorige",
     "next": "Volgende"
@@ -641,7 +641,7 @@
     "title": "Documentatie",
     "subtitle": "Handleidingen, API-referentie en technische documentatie voor CheckNode.",
     "searchPlaceholder": "Zoek in documentatie...",
-    "noArticles": "Geen documentatie-artikelen gevonden.",
+    "noArticles": "Documentatie voor deze sectie wordt voorbereid. Kom binnenkort terug!",
     "backToDocs": "Terug naar documentatie",
     "lastUpdated": "Laatst bijgewerkt",
     "onThisPage": "Op deze pagina",
@@ -709,7 +709,7 @@
   "FAQ": {
     "title": "Veelgestelde Vragen",
     "subtitle": "Vind antwoorden op de meest gestelde vragen over onze tools.",
-    "noFaqs": "Geen FAQ gevonden.",
+    "noFaqs": "Onze FAQ-database wordt bijgewerkt. Kom binnenkort terug!",
     "extendedTitle": "Over onze kennisbank",
     "extendedP1": "CheckNode is een gespecialiseerd netwerkdiagnoseplatform dat is ontworpen voor precisie en snelheid. Onze infrastructuurmonitoringtools, waaronder Ping, HTTP-statuscontroles en DNS-propagatie-lookups, zijn gebouwd om u te helpen complexe connectiviteitsproblemen vanaf meer dan 20 wereldwijde locaties onmiddellijk te identificeren en op te lossen.",
     "extendedP2": "We onderhouden een wereldvloot van testnodes in Tier-1 datacenters van topniveau in Noord-Amerika, Europa, Azië en Zuid-Amerika. Hierdoor kunnen we een onbevooroordeeld perspectief van derden bieden op de prestaties en toegankelijkheid van uw website, waardoor u de caching van lokale ISP's en regionale routeringsanomalieën kunt omzeilen.",

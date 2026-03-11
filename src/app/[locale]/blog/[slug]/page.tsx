@@ -157,7 +157,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
     if (!post) {
         // In metadata, we don't redirect, just show not found
-        return { title: 'Post Not Found' };
+        return { title: 'Blog | CheckNode' };
     }
 
     return {

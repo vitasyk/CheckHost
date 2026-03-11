@@ -81,7 +81,7 @@
     "searchIp": "Buscar IP...",
     "dateTime": "Fecha y hora",
     "loading": "Cargando actividad...",
-    "noActivityFound": "No se encontró actividad con los filtros aplicados.",
+    "noActivityFound": "Ajuste sus filtros para ver más resultados.",
     "pageOf": "Página {page} de {totalPages}",
     "prev": "Anterior",
     "next": "Siguiente"
@@ -641,7 +641,7 @@
     "title": "Documentación",
     "subtitle": "Guías, referencia de API y documentación técnica para CheckNode.",
     "searchPlaceholder": "Buscar en la documentación...",
-    "noArticles": "No se encontraron artículos de documentación.",
+    "noArticles": "La documentación para esta sección se está preparando. ¡Vuelva pronto!",
     "backToDocs": "Volver a Documentación",
     "lastUpdated": "Última actualización",
     "onThisPage": "En esta página",
@@ -709,7 +709,7 @@
   "FAQ": {
     "title": "Preguntas Frecuentes",
     "subtitle": "Encuentra respuestas a las preguntas más comunes sobre nuestras herramientas.",
-    "noFaqs": "No se encontraron preguntas.",
+    "noFaqs": "Nuestra base de datos de preguntas frecuentes se está actualizando. ¡Vuelva pronto!",
     "extendedTitle": "Acerca de nuestra base de conocimientos",
     "extendedP1": "CheckNode es una plataforma especializada en diagnósticos de red diseñada para la precisión y la velocidad. Nuestras herramientas de monitoreo de infraestructura, que incluyen Ping, comprobaciones de estado HTTP y búsquedas de propagación DNS, están creadas para ayudarle a identificar y resolver instantáneamente problemas complejos de conectividad desde más de 20 ubicaciones globales.",
     "extendedP2": "Mantenemos una flota global de nodos de prueba en centros de datos Tier-1 de primer nivel en América del Norte, Europa, Asia y América del Sur. Esto nos permite proporcionar una perspectiva de terceros imparcial sobre el rendimiento y la accesibilidad de su sitio web, ayudándole a eludir el almacenamiento en caché de los ISP locales y las anomalías de enrutamiento regional.",

@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
     try {
         const result = await query('SELECT title FROM docs_articles WHERE slug = $1 AND published = true', [slug]);
-        if (result.rows.length === 0) return { title: 'Not Found' };
+        if (result.rows.length === 0) return { title: 'Documentation | CheckNode' };
 
         return {
             title: `${result.rows[0].title} | Documentation`,
