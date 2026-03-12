@@ -6,7 +6,7 @@ export function IpInfoContent() {
     const locale = useLocale();
     return (
         <>
-            <ToolSeoBlock toolId="ip-info" titleTag="h2" />
+            <ToolSeoBlock toolId="ip-info" titleTag="h1" />
             <ToolFaqBlock toolId="ip-info" locale={locale} />
         </>
     );

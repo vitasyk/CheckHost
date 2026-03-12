@@ -8,7 +8,7 @@ interface HttpContentProps {
 export function HttpContent({ locale }: HttpContentProps) {
     return (
         <>
-            <ToolSeoBlock toolId="http" titleTag="h2" />
+            <ToolSeoBlock toolId="http" titleTag="h1" />
             <ToolFaqBlock toolId="http" locale={locale} />
         </>
     );
