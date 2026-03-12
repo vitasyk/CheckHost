@@ -1,8 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 import { generateAlternates } from '@/lib/seo-utils';
-import DnsClient from '@/components/checks/DnsClient';
 import { DnsContent } from '@/components/content/DnsContent';
 import { setRequestLocale } from 'next-intl/server';
+import { ChecksClientNoSsr } from '@/components/checks/ChecksClientNoSsr';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
@@ -35,7 +35,7 @@ export default async function DnsPage({ params }: { params: Promise<{ locale: st
 
     return (
         <div className="flex flex-col min-h-full">
-            <DnsClient />
+            <ChecksClientNoSsr initialTab="dns" />
             <DnsContent />
         </div>
     );

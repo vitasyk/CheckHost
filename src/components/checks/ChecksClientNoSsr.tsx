@@ -9,6 +9,12 @@ const ChecksClientInner = dynamic(
     { ssr: false, loading: () => <div className="min-h-[400px]" /> }
 );
 
-export function ChecksClientNoSsr() {
-    return <ChecksClientInner />;
+interface ChecksClientProps {
+    initialHost?: string;
+    initialTab?: string;
+    autoStart?: boolean;
+}
+
+export function ChecksClientNoSsr(props: ChecksClientProps) {
+    return <ChecksClientInner {...props} />;
 }

@@ -140,13 +140,16 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
     };
 
     const [host, setHost] = useState(initialHost || searchParams.get('host') || '');
-    const [activeTab, setActiveTab] = useState<string>(initialTab || searchParams.get('tab') || "info");
+    // Map 'ip-info' (SEO DB tool name) → 'info' (internal tab name)
+    const normalizeTab = (tab: string | null | undefined) => tab === 'ip-info' ? 'info' : (tab || 'info');
+    const [activeTab, setActiveTab] = useState<string>(normalizeTab(initialTab || searchParams.get('tab')));
 
     // Sync activeTab when URL changes externally (e.g. footer links)
     useEffect(() => {
         const tabFromUrl = searchParams.get('tab');
-        if (tabFromUrl && tabFromUrl !== activeTab) {
-            setActiveTab(tabFromUrl);
+        const normalized = normalizeTab(tabFromUrl);
+        if (tabFromUrl && normalized !== activeTab) {
+            setActiveTab(normalized);
         }
     }, [searchParams]);
 
@@ -552,7 +555,7 @@ function ChecksPageContent({ initialHost, initialTab, autoStart }: { initialHost
 
                             <div className="mt-0">
                                 <TabsContent value="info">
-                                    <CheckForm type="info" host={host} maxNodes={maxNodes} onMaxNodesChange={setMaxNodes} onHostChange={setHost} onResults={() => { }} onCheckStart={() => { }} onCheckComplete={() => host.trim() && runCheck('info', host)} errorMessage={errorMessage} isLoading={activeChecks.has('info')} nodes={nodes} isReverseMtr={isReverseMtr} onReverseMtrToggle={handleReverseMtrToggle} selectedNodeIds={selectedNodeIds} showQuickLinks />
+                                    <CheckForm type="info" host={host} maxNodes={maxNodes} onMaxNodesChange={setMaxNodes} onHostChange={setHost} onResults={() => { }} onCheckStart={() => { }} onCheckComplete={() => host.trim() && runCheck('info', host)} errorMessage={errorMessage} isLoading={activeChecks.has('info')} nodes={nodes} isReverseMtr={isReverseMtr} onReverseMtrToggle={handleReverseMtrToggle} selectedNodeIds={selectedNodeIds} showQuickLinks autoStart={autoStart && (activeTab === 'info' || activeTab === 'ip-info')} />
                                     {ipInfoResult && <IpInfoResult data={ipInfoResult} onRefresh={() => runCheck('info', host, true)} isRefreshing={activeChecks.has('info')} />}
                                 </TabsContent>
 

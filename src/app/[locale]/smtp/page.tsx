@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { generateAlternates } from '@/lib/seo-utils';
-import { ChecksClient } from '@/components/checks/ChecksClient';
+import { ChecksClientNoSsr } from '@/components/checks/ChecksClientNoSsr';
 import { JsonLd } from '@/components/SEO/JsonLd';
 import { SmtpContent } from '@/components/content/SmtpContent';
 
@@ -70,7 +70,7 @@ export default async function SmtpPage({ params }: { params: Promise<{ locale: s
     return (
         <div className="flex flex-col min-h-full">
             <JsonLd data={smtpToolSchema} />
-            <ChecksClient initialTab="smtp" />
+            <ChecksClientNoSsr initialTab="smtp" />
             <SmtpContent />
         </div>
     );

@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { generateAlternates } from '@/lib/seo-utils';
 import { setRequestLocale } from 'next-intl/server';
-import { ChecksClient } from '@/components/checks/ChecksClient';
+import { ChecksClientNoSsr } from '@/components/checks/ChecksClientNoSsr';
 import { UdpContent } from '@/components/content/UdpContent';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -35,7 +35,7 @@ export default async function UdpPage({ params }: { params: Promise<{ locale: st
 
     return (
         <div className="flex flex-col min-h-full">
-            <ChecksClient initialTab="udp" />
+            <ChecksClientNoSsr initialTab="udp" />
             <UdpContent />
         </div>
     );

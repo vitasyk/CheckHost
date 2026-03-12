@@ -1,8 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 import { generateAlternates } from '@/lib/seo-utils';
-import HttpClient from '@/components/checks/HttpClient';
 import { HttpContent } from '@/components/content/HttpContent';
 import { setRequestLocale } from 'next-intl/server';
+import { ChecksClientNoSsr } from '@/components/checks/ChecksClientNoSsr';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
@@ -35,7 +35,7 @@ export default async function HttpPage({ params }: { params: Promise<{ locale: s
 
     return (
         <div className="flex flex-col min-h-full">
-            <HttpClient />
+            <ChecksClientNoSsr initialTab="http" />
             <HttpContent locale={locale} />
         </div>
     );

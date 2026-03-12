@@ -1,11 +1,9 @@
 import createIntlMiddleware from 'next-intl/middleware';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 import { routing } from './i18n/routing';
 
 const intlMiddleware = createIntlMiddleware(routing);
-
-import { getToken } from 'next-auth/jwt';
-import { NextResponse } from 'next/server';
 
 export default async function middleware(req: NextRequest) {
     const adminPathnameRegex = RegExp(
@@ -61,4 +59,3 @@ export const config = {
     // Match only internationalized pathnames
     matcher: ['/', '/(en|uk|es|de|fr|ru|nl|pl|it)/:path*', '/((?!api|_next|_vercel|.*\\..*).*)']
 };
-

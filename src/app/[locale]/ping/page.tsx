@@ -1,8 +1,8 @@
 import { getTranslations } from 'next-intl/server';
 import { generateAlternates } from '@/lib/seo-utils';
-import PingClient from '@/components/checks/PingClient';
 import { PingContent } from '@/components/content/PingContent';
 import { setRequestLocale } from 'next-intl/server';
+import { ChecksClientNoSsr } from '@/components/checks/ChecksClientNoSsr';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
     const { locale } = await params;
@@ -35,7 +35,7 @@ export default async function PingPage({ params }: { params: Promise<{ locale: s
 
     return (
         <div className="flex flex-col min-h-full">
-            <PingClient />
+            <ChecksClientNoSsr initialTab="ping" />
             <PingContent />
         </div>
     );

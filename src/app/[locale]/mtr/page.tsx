@@ -1,7 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 import { generateAlternates } from '@/lib/seo-utils';
 import { setRequestLocale } from 'next-intl/server';
-import { ChecksClient } from '@/components/checks/ChecksClient';
+import { ChecksClientNoSsr } from '@/components/checks/ChecksClientNoSsr';
 import { MtrContent } from '@/components/content/MtrContent';
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -35,7 +35,7 @@ export default async function MtrPage({ params }: { params: Promise<{ locale: st
 
     return (
         <div className="flex flex-col min-h-full">
-            <ChecksClient initialTab="mtr" />
+            <ChecksClientNoSsr initialTab="mtr" />
             <MtrContent />
         </div>
     );
