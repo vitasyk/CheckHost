@@ -37,7 +37,7 @@ export function AdminSidebar() {
     ];
 
     return (
-        <aside className="hidden lg:flex lg:flex-col lg:w-64 shrink-0 space-y-2">
+        <aside className="hidden lg:flex lg:flex-col lg:w-64 shrink-0 space-y-2 sticky top-6 self-start max-h-[calc(100vh-3rem)] overflow-y-auto scrollbar-none">
             {/* Back to site */}
             <Link href="/">
                 <Button

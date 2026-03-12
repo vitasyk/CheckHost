@@ -64,8 +64,8 @@ export async function GET(req: Request) {
             { slug: 'faq-ping-2', locale: 'uk', title: 'Як інтерпретувати результати?', section: 'faq', content: 'До 50мс — чудово. Понад 150мс — помітна затримка. Втрата пакетів — ознака проблем мережі.', order: 2 },
 
             // --- HTTP ---
-            { slug: 'faq-http-1', locale: 'en', title: 'What is an HTTP status check?', section: 'faq', content: 'It performs a real GET/HEAD request to verify the response code (200 OK, 404, 500) and headers.', order: 1 },
-            { slug: 'faq-http-1', locale: 'uk', title: 'Що таке перевірка статусу HTTP?', section: 'faq', content: 'Це виконання реального GET/HEAD запиту для перевірки коду відповіді (200, 404, 500) та заголовків.', order: 1 },
+            { slug: 'faq-http-1', locale: 'en', title: 'What is an HTTP status check?', section: 'faq', content: 'It performs a real GET/HEAD request to verify the response code (200 OK, 404 Not Found, 500) and headers.', order: 1 },
+            { slug: 'faq-http-1', locale: 'uk', title: 'Що таке перевірка статусу HTTP?', section: 'faq', content: 'Це виконання реального GET/HEAD запиту для перевірки коду відповіді (200 OK, 404 Not Found, 500) та заголовків.', order: 1 },
 
             // --- DNS ---
             { slug: 'faq-dns-1', locale: 'en', title: 'What is a DNS lookup?', section: 'faq', content: 'It translates domain names to IP addresses. Our tool verifies propagation of A, MX, CNAME records.', order: 1 },
