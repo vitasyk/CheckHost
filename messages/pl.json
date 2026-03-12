@@ -49,7 +49,15 @@
     "capturedOn": "Przechwycono",
     "runLiveCheck": "Sprawdź ponownie",
     "installApp": "Zainstaluj aplikację",
-    "monitorHost": "Monitoruj hosta"
+    "monitorHost": "Monitoruj hosta",
+    "linkExpired": "Link wygasł",
+    "linkNotFound": "Link nie znaleziony",
+    "linkUnavailable": "Link niedostępny",
+    "expiredDesc": "Ten udostępniony wynik osiągnął limit przechowywania i nie jest już dostępny do publicznego wglądu.",
+    "notFoundDesc": "Nie mogliśmy znaleźć migawki wyniku, której szukasz. Mogła zostać usunięta przez właściciela.",
+    "startNewCheck": "Rozpocznij nowy test",
+    "checkProvidedBy": "Test dostarczony przez ",
+    "freeDiagnostics": " • Bezpłatna globalna diagnostyka sieci"
   },
   "Dashboard": {
     "userDashboard": "Panel użytkownika",

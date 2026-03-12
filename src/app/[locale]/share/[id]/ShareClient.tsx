@@ -47,13 +47,13 @@ export function ShareClient({ snapshot, error }: ShareClientProps) {
 
                     <div className="space-y-3">
                         <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
-                            {isExpired ? 'Link Expired' : isNotFound ? 'Link Not Found' : 'Link Unavailable'}
+                            {isExpired ? t('linkExpired') : isNotFound ? t('linkNotFound') : t('linkUnavailable')}
                         </h1>
                         <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
                             {isExpired
-                                ? "This shared result has reached its retention limit and is no longer available for public viewing."
+                                ? t('expiredDesc')
                                 : isNotFound
-                                    ? "We couldn't find the result snapshot you're looking for. It may have been deleted by the owner."
+                                    ? t('notFoundDesc')
                                     : error}
                         </p>
                     </div>
@@ -63,12 +63,12 @@ export function ShareClient({ snapshot, error }: ShareClientProps) {
                             href="/"
                             className="inline-flex items-center justify-center h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
                         >
-                            Start New Check
+                            {t('startNewCheck')}
                         </Link>
                     </div>
 
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                        {process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode'} • Diagnostic Service
+                        {process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode'}{t('freeDiagnostics')}
                     </p>
                 </div>
             </div>
@@ -88,17 +88,17 @@ export function ShareClient({ snapshot, error }: ShareClientProps) {
                 <div className="space-y-4 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                         <Badge variant="outline" className="bg-indigo-500/10 text-indigo-500 border-indigo-500/20 uppercase text-[10px] font-bold tracking-widest px-2 py-0.5">
-                            Snapshot: {snapshot.check_type}
+                            {t('snapshot')}: {snapshot.check_type}
                         </Badge>
                         {snapshot.expires_at && (
                             <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px] font-bold px-2 py-0.5">
                                 <Clock className="h-3 w-3 mr-1" />
-                                Expires: {new Date(snapshot.expires_at).toLocaleDateString()}
+                                {t('expires')}: {new Date(snapshot.expires_at).toLocaleDateString()}
                             </Badge>
                         )}
                         <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-auto lg:ml-0">
                             <Calendar className="h-3 w-3" />
-                            <span>Captured On: {new Date(snapshot.created_at).toLocaleString()}</span>
+                            <span>{t('capturedOn')}: {new Date(snapshot.created_at).toLocaleString()}</span>
                         </div>
                     </div>
 
@@ -113,7 +113,7 @@ export function ShareClient({ snapshot, error }: ShareClientProps) {
                         className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-all shadow-lg shadow-indigo-500/25 active:scale-95 group/btn"
                     >
                         <Play className="h-4 w-4 fill-current transition-transform group-hover/btn:scale-110" />
-                        Run Live Check
+                        {t('runLiveCheck')}
                         <ChevronRight className="h-4 w-4 opacity-50 group-hover/btn:translate-x-0.5 transition-transform" />
                     </Link>
 
@@ -163,7 +163,7 @@ export function ShareClient({ snapshot, error }: ShareClientProps) {
 
             <div className="text-center pt-8">
                 <p className="text-xs text-slate-400">
-                    Check provided by <span className="font-bold text-indigo-500">{process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode'}</span> • Free global network diagnostics
+                    {t('checkProvidedBy')}<span className="font-bold text-indigo-500">{process.env.NEXT_PUBLIC_SITE_NAME || 'CheckNode'}</span>{t('freeDiagnostics')}
                 </p>
             </div>
         </div>

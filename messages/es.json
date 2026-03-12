@@ -49,7 +49,15 @@
     "capturedOn": "Capturado el",
     "runLiveCheck": "Volver a comprobar",
     "installApp": "Instalar aplicación",
-    "monitorHost": "Monitorear host"
+    "monitorHost": "Monitorear host",
+    "linkExpired": "Enlace caducado",
+    "linkNotFound": "Enlace no encontrado",
+    "linkUnavailable": "Enlace no disponible",
+    "expiredDesc": "Este resultado compartido ha alcanzado su límite de retención y ya no está disponible para visualización pública.",
+    "notFoundDesc": "No pudimos encontrar la instantánea de resultado que buscas. Es posible que haya sido eliminada por el propietario.",
+    "startNewCheck": "Iniciar nueva comprobación",
+    "checkProvidedBy": "Comprobación proporcionada por ",
+    "freeDiagnostics": " • Diagnóstico de red global gratuito"
   },
   "Dashboard": {
     "userDashboard": "Panel de usuario",

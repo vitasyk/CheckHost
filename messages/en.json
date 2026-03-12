@@ -49,7 +49,15 @@
     "capturedOn": "Captured On",
     "runLiveCheck": "Check Again",
     "installApp": "Install App",
-    "monitorHost": "Monitor Host"
+    "monitorHost": "Monitor Host",
+    "linkExpired": "Link Expired",
+    "linkNotFound": "Link Not Found",
+    "linkUnavailable": "Link Unavailable",
+    "expiredDesc": "This shared result has reached its retention limit and is no longer available for public viewing.",
+    "notFoundDesc": "We couldn't find the result snapshot you're looking for. It may have been deleted by the owner.",
+    "startNewCheck": "Start New Check",
+    "checkProvidedBy": "Check provided by ",
+    "freeDiagnostics": " • Free global network diagnostics"
   },
   "Dashboard": {
     "userDashboard": "User Dashboard",

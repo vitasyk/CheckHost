@@ -49,7 +49,15 @@
     "capturedOn": "Vastgelegd op",
     "runLiveCheck": "Opnieuw controleren",
     "installApp": "App installeren",
-    "monitorHost": "Host monitoren"
+    "monitorHost": "Host monitoren",
+    "linkExpired": "Link verlopen",
+    "linkNotFound": "Link niet gevonden",
+    "linkUnavailable": "Link niet beschikbaar",
+    "expiredDesc": "Dit gedeelde resultaat heeft zijn bewaarlimiet bereikt en is niet langer beschikbaar voor openbare weergave.",
+    "notFoundDesc": "We konden de gezochte resultaat-momentopname niet vinden. Deze is mogelijk verwijderd door de eigenaar.",
+    "startNewCheck": "Start nieuwe controle",
+    "checkProvidedBy": "Controle uitgevoerd door ",
+    "freeDiagnostics": " • Gratis wereldwijde netwerkdiagnostiek"
   },
   "Dashboard": {
     "userDashboard": "Gebruikersdashboard",

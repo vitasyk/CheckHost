@@ -44,12 +44,20 @@
     "udpDesc": "Überprüfen Sie die UDP-Porterreichbarkeit von über 20 globalen Standorten aus. Überprüfen Sie DNS, VPN und andere UDP-basierte Dienste sofort."
   },
   "Share": {
-    "snapshot": "Snapshot",
+    "snapshot": "Schnappschuss",
     "expires": "Läuft ab",
-    "capturedOn": "Aufgezeichnet am",
+    "capturedOn": "Erfasst am",
     "runLiveCheck": "Erneut prüfen",
     "installApp": "App installieren",
-    "monitorHost": "Host überwachen"
+    "monitorHost": "Host überwachen",
+    "linkExpired": "Link abgelaufen",
+    "linkNotFound": "Link nicht gefunden",
+    "linkUnavailable": "Link nicht verfügbar",
+    "expiredDesc": "Dieses freigegebene Ergebnis hat sein Speicherlimit erreicht und ist für die öffentliche Anzeige nicht mehr verfügbar.",
+    "notFoundDesc": "Wir konnten den gesuchten Ergebnisschnappschuss nicht finden. Möglicherweise wurde er vom Eigentümer gelöscht.",
+    "startNewCheck": "Neue Prüfung starten",
+    "checkProvidedBy": "Prüfung bereitgestellt von ",
+    "freeDiagnostics": " • Kostenlose globale Netzwerkdiagnose"
   },
   "Dashboard": {
     "userDashboard": "Benutzer-Dashboard",

@@ -49,7 +49,15 @@
     "capturedOn": "Capturé le",
     "runLiveCheck": "Re-vérifier",
     "installApp": "Installer l'application",
-    "monitorHost": "Surveiller l'hôte"
+    "monitorHost": "Surveiller l'hôte",
+    "linkExpired": "Lien expiré",
+    "linkNotFound": "Lien introuvable",
+    "linkUnavailable": "Lien indisponible",
+    "expiredDesc": "Ce résultat partagé a atteint sa limite de rétention et n'est plus disponible pour le visionnage public.",
+    "notFoundDesc": "Nous n'avons pas pu trouver l'instantané de résultat que vous recherchez. Il se peut qu'il ait été supprimé par le propriétaire.",
+    "startNewCheck": "Démarrer une nouvelle vérification",
+    "checkProvidedBy": "Vérification fournie par ",
+    "freeDiagnostics": " • Diagnostics réseau mondiaux gratuits"
   },
   "Dashboard": {
     "userDashboard": "Tableau de bord utilisateur",
