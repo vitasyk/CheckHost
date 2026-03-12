@@ -2,8 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /api/
-Disallow: /auth/
-
 # Блокування ШІ-ботів
 User-agent: GPTBot
 Disallow: /
