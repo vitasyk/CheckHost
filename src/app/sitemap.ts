@@ -88,17 +88,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Dynamic SEO tools pages across all locales
     let seoPages: any[] = [];
+    const maxSeoUrls = 45000;
+    const limitPerPage = Math.floor(maxSeoUrls / locales.length);
+
     try {
         if (isSupabaseConfigured) {
             const { data } = await supabase
                 .from('seo_pages')
                 .select('host, tool, last_checked')
                 .order('check_count', { ascending: false })
-                .limit(5000); // 5000 * 9 = 45k total, keeps us under 50k limit
+                .limit(limitPerPage);
             if (data) seoPages = data;
         } else if (isPostgresConfigured) {
             const result = await pool.query(
-                "SELECT host, tool, last_checked FROM seo_pages ORDER BY check_count DESC LIMIT 5000"
+                `SELECT host, tool, last_checked FROM seo_pages ORDER BY check_count DESC LIMIT ${limitPerPage}`
             );
             seoPages = result.rows;
         }

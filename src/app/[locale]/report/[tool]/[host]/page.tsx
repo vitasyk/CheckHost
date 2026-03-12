@@ -13,9 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     return {
         title: `${decodedHost} - ${tool.toUpperCase()} Check Report | CheckNode`,
         description: `Detailed ${tool.toUpperCase()} diagnostic report for ${decodedHost} from 20+ global locations.`,
-        alternates: {
-            canonical: `${siteUrl}/report/${tool}/${host}`,
-        },
+        alternates: generateAlternates(`report/${tool}/${encodeURIComponent(decodedHost)}`, siteUrl, locale),
     };
 }
 
