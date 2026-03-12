@@ -1,9 +1,11 @@
-import { useLocale } from 'next-intl';
 import { ToolSeoBlock } from './ToolSeoBlock';
 import { ToolFaqBlock } from './ToolFaqBlock';
 
-export function HttpContent() {
-    const locale = useLocale();
+interface HttpContentProps {
+    locale: string;
+}
+
+export function HttpContent({ locale }: HttpContentProps) {
     return (
         <>
             <ToolSeoBlock toolId="http" titleTag="h2" />

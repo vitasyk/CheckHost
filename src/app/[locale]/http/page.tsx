@@ -36,7 +36,7 @@ export default async function HttpPage({ params }: { params: Promise<{ locale: s
     return (
         <div className="flex flex-col min-h-full">
             <HttpClient />
-            <HttpContent />
+            <HttpContent locale={locale} />
         </div>
     );
 }
