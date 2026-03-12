@@ -8,7 +8,7 @@
 import type { IpInfoLiteResponse } from './ipinfo-api';
 import { getIpInfoConfig } from './ipinfo-config';
 import * as maxmind from 'maxmind';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 
 let cityReader: maxmind.Reader<maxmind.CityResponse> | null = null;
 let asnReader: maxmind.Reader<maxmind.AsnResponse> | null = null;
@@ -24,12 +24,14 @@ export async function initializeLocalDb(): Promise<void> {
 
     try {
         if (existsSync(paths.city)) {
-            cityReader = await maxmind.open<maxmind.CityResponse>(paths.city);
+            const buffer = readFileSync(paths.city);
+            cityReader = new maxmind.Reader<maxmind.CityResponse>(buffer);
         }
         if (existsSync(paths.asn)) {
-            asnReader = await maxmind.open<maxmind.AsnResponse>(paths.asn);
+            const buffer = readFileSync(paths.asn);
+            asnReader = new maxmind.Reader<maxmind.AsnResponse>(buffer);
         }
-        console.log('Local MMDB databases initialized');
+        console.log('Local MMDB databases initialized from buffers');
     } catch (err) {
         console.error('Failed to initialize local MMDB:', err);
     }
@@ -39,11 +41,22 @@ export async function initializeLocalDb(): Promise<void> {
  * Look up IP information from local database
  */
 export async function lookupLocalIpInfo(ip: string): Promise<IpInfoLiteResponse | null> {
+    if (!ip || typeof ip !== 'string') {
+        console.warn('Local MMDB lookup: Invalid IP string provided');
+        return null;
+    }
+
     if (!cityReader && !asnReader) {
         await initializeLocalDb();
     }
 
     if (!cityReader && !asnReader) return null;
+
+    // Validate IP format for maxmind library to avoid RangeError
+    if (!maxmind.validate(ip)) {
+        console.warn(`Local MMDB lookup: IP "${ip}" is not valid according to maxmind`);
+        return null;
+    }
 
     try {
         const cityData = cityReader?.get(ip);
@@ -68,7 +81,7 @@ export async function lookupLocalIpInfo(ip: string): Promise<IpInfoLiteResponse 
             accuracy_radius: cityData?.location?.accuracy_radius,
         };
     } catch (err) {
-        console.error('Local MMDB lookup error:', err);
+        console.error(`Local MMDB lookup error for IP "${ip}":`, err);
         return null;
     }
 }
