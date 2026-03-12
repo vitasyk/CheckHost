@@ -53,6 +53,9 @@ export async function GET(req: Request) {
             EXCEPTION WHEN OTHERS THEN 
                 NULL; 
             END $$;
+
+            -- 4. Sync sequence to avoid "duplicate key" on ID
+            SELECT setval('docs_articles_id_seq', COALESCE((SELECT MAX(id) FROM docs_articles), 0) + 1, false);
         `);
 
         // 2. Comprehensive FAQ Content Data
