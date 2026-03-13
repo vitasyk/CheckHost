@@ -13,10 +13,11 @@ interface FaqItem {
 interface FaqAccordionProps {
     items: FaqItem[];
     title?: string;
+    titleTag?: 'h2' | 'h3' | 'h4' | 'h5';
     headingLevel?: 'h2' | 'h3' | 'h4' | 'h5';
 }
 
-export function FaqAccordion({ items, title, headingLevel = 'h3' }: FaqAccordionProps) {
+export function FaqAccordion({ items, title, titleTag = 'h2', headingLevel = 'h3' }: FaqAccordionProps) {
     const [openId, setOpenId] = useState<number | string | null>(null);
 
     if (!items || items.length === 0) return null;
@@ -28,7 +29,9 @@ export function FaqAccordion({ items, title, headingLevel = 'h3' }: FaqAccordion
                     <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500">
                         <HelpCircle className="h-5 w-5" />
                     </div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{title}</h2>
+                    {React.createElement(titleTag, {
+                        className: "text-2xl font-bold text-slate-900 dark:text-white"
+                    }, title)}
                 </div>
             )}
             <div className="space-y-3">

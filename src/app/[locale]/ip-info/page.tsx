@@ -36,11 +36,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 
 
-export default async function IpInfoPage({ params, searchParams }: { params: Promise<{ locale: string }>, searchParams: Promise<{ query?: string }> }) {
+export default async function IpInfoPage({ params, searchParams }: { params: Promise<{ locale: string }>, searchParams: Promise<{ host?: string, query?: string }> }) {
     const { locale } = await params;
     setRequestLocale(locale);
     const resolvedSearchParams = await searchParams;
-    const host = resolvedSearchParams.query || '8.8.8.8';
+    const host = resolvedSearchParams.host || resolvedSearchParams.query || '8.8.8.8';
     const data = await getMockIpInfo(host);
     const { providers } = data;
     const primary = providers.maxmind || providers.ipinfo;

@@ -40,7 +40,7 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
                 </section>
 
                 <section>
-                    <h2>{t('termsServiceDesc')}</h2>
+                    <h3>{t('termsServiceDesc')}</h3>
                     <p>{t('serviceDescText', { siteName })}</p>
                     <ul>
                         <li>{t('serviceFeature1')}</li>
@@ -51,7 +51,7 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
                 </section>
 
                 <section>
-                    <h2>{t('acceptableUseTitle')}</h2>
+                    <h3>{t('acceptableUseTitle')}</h3>
                     <p>{t('acceptableUseDesc')}</p>
                     <ul>
                         <li>{t('prohibited1')}</li>
@@ -62,37 +62,37 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
                 </section>
 
                 <section>
-                    <h2>{t('disclaimerTitle')}</h2>
+                    <h3>{t('disclaimerTitle')}</h3>
                     <p>{t('disclaimerDesc', { siteName })}</p>
                 </section>
 
                 <section>
-                    <h2>{t('limitationLiabilityTitle')}</h2>
+                    <h3>{t('limitationLiabilityTitle')}</h3>
                     <p>{t('limitationLiabilityDesc', { siteName })}</p>
                 </section>
 
                 <section>
-                    <h2>{t('intellectualPropertyTitle')}</h2>
+                    <h3>{t('intellectualPropertyTitle')}</h3>
                     <p>{t('intellectualPropertyDesc', { siteName })}</p>
                 </section>
 
                 <section>
-                    <h2>{t('terminationTitle')}</h2>
+                    <h3>{t('terminationTitle')}</h3>
                     <p>{t('terminationDesc', { siteName })}</p>
                 </section>
 
                 <section>
-                    <h2>{t('governingLawTitle')}</h2>
+                    <h3>{t('governingLawTitle')}</h3>
                     <p>{t('governingLawDesc')}</p>
                 </section>
 
                 <section>
-                    <h2>{t('changesTitle')}</h2>
+                    <h3>{t('changesTitle')}</h3>
                     <p>{t('changesDesc', { siteName })}</p>
                 </section>
 
                 <section>
-                    <h2>{t('contactUsTitle')}</h2>
+                    <h3>{t('contactUsTitle')}</h3>
                     <p>
                         {t('termsContactDesc', { email: 'EMAIL_PLACEHOLDER' }).split('EMAIL_PLACEHOLDER').map((part, i, arr) => (
                             <React.Fragment key={i}>

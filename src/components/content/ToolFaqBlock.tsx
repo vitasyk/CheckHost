@@ -66,6 +66,7 @@ export async function ToolFaqBlock({ toolId, locale }: ToolFaqBlockProps) {
             <FaqAccordion
                 items={accordionItems}
                 title={t('title')}
+                titleTag="h3"
             />
         </section>
     );

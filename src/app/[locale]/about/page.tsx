@@ -101,10 +101,9 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                 </div>
             </section>
 
-            {/* Global Network Infrastructure */}
             <section className="max-w-[1440px] mx-auto px-4 sm:px-8 py-24">
                 <div className="text-center mb-16 max-w-3xl mx-auto">
-                    <h2 className="text-3xl md:text-5xl font-bold mb-6 text-slate-900 dark:text-white">{t('infraTitle')}</h2>
+                    <h3 className="text-3xl md:text-5xl font-bold mb-6 text-slate-900 dark:text-white">{t('infraTitle')}</h3>
                     <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
                         {t('infraSubtitle')}
                     </p>
@@ -200,7 +199,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
 
             {/* Final CTA */}
             <section className="max-w-4xl mx-auto px-4 sm:px-8 py-20 text-center">
-                <h2 className="text-3xl font-bold mb-6 text-slate-900 dark:text-white">{t('ctaTitle')}</h2>
+                <h3 className="text-3xl font-bold mb-6 text-slate-900 dark:text-white">{t('ctaTitle')}</h3>
                 <Link href="/">
                     <Button size="lg" className="h-14 px-8 text-base bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-600/25">
                         {t('ctaButton')}

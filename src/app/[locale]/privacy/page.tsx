@@ -48,15 +48,15 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
                 </section>
 
                 <section>
-                    <h2>{t('informationWeCollectTitle')}</h2>
-                    <h3>{t('automaticallyCollectedTitle')}</h3>
+                    <h3>{t('informationWeCollectTitle')}</h3>
+                    <h4>{t('automaticallyCollectedTitle')}</h4>
                     <ul>
                         <li>{t('autoCollect1')}</li>
                         <li>{t('autoCollect2')}</li>
                         <li>{t('autoCollect3')}</li>
                         <li>{t('autoCollect4')}</li>
                     </ul>
-                    <h3>{t('providedByYouTitle')}</h3>
+                    <h4>{t('providedByYouTitle')}</h4>
                     <ul>
                         <li>{t('userProvided1')}</li>
                         <li>{t('userProvided2')}</li>
@@ -64,7 +64,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
                 </section>
 
                 <section>
-                    <h2>{t('cookiesTitle')}</h2>
+                    <h3>{t('cookiesTitle')}</h3>
                     <p>{t('cookiesDesc')}</p>
                     <ul>
                         <li><strong>{t('cookieEssential')}:</strong> {t('cookieEssentialDesc')}</li>
@@ -75,7 +75,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
                 </section>
 
                 <section>
-                    <h2>{t('howWeUseTitle')}</h2>
+                    <h3>{t('howWeUseTitle')}</h3>
                     <ul>
                         <li>{t('howWeUse1')}</li>
                         <li>{t('howWeUse2')}</li>
@@ -85,7 +85,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
                 </section>
 
                 <section>
-                    <h2>{t('thirdPartyTitle')}</h2>
+                    <h3>{t('thirdPartyTitle')}</h3>
                     <ul>
                         <li><strong>Infrastructure:</strong> {t('thirdPartyAdsense')}</li>
                         <li><strong>Infrastructure:</strong> {t('thirdPartyCloudflare')}</li>
@@ -94,12 +94,12 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
                 </section>
 
                 <section>
-                    <h2>{t('dataRetentionTitle')}</h2>
+                    <h3>{t('dataRetentionTitle')}</h3>
                     <p>{t('dataRetentionDesc')}</p>
                 </section>
 
                 <section>
-                    <h2>{t('yourRightsTitle')}</h2>
+                    <h3>{t('yourRightsTitle')}</h3>
                     <p>{t('yourRightsDesc')}</p>
                     <ul>
                         <li>{t('right1')}</li>
@@ -110,12 +110,12 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
                 </section>
 
                 <section>
-                    <h2>{t('childrenTitle')}</h2>
+                    <h3>{t('childrenTitle')}</h3>
                     <p>{t('childrenDesc')}</p>
                 </section>
 
                 <section>
-                    <h2>{t('contactUsTitle')}</h2>
+                    <h3>{t('contactUsTitle')}</h3>
                     <p>
                         {t('privacyContactDesc', { email: 'EMAIL_PLACEHOLDER' }).split('EMAIL_PLACEHOLDER').map((part, i, arr) => (
                             <React.Fragment key={i}>
