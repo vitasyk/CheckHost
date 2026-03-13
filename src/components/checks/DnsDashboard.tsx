@@ -329,14 +329,13 @@ export function DnsDashboard({ result, nodeCity: _nodeCity, filterType = 'all', 
         : data.records.filter(r => r.type.toUpperCase() === filterType.toUpperCase());
 
 
-
     // Group records by category
-    const aRecords = records.filter(r => r.type === 'A');
-    const aaaaRecords = records.filter(r => r.type === 'AAAA');
-    const cnameRecords = records.filter(r => r.type === 'CNAME');
-    const mxRecords = records.filter(r => r.type === 'MX');
-    const nsRecords = records.filter(r => r.type === 'NS');
-    const soaRecords = records.filter(r => r.type === 'SOA');
+    const aRecords = records.filter(r => r.type.toUpperCase() === 'A');
+    const aaaaRecords = records.filter(r => r.type.toUpperCase() === 'AAAA');
+    const cnameRecords = records.filter(r => r.type.toUpperCase() === 'CNAME');
+    const mxRecords = records.filter(r => r.type.toUpperCase() === 'MX');
+    const nsRecords = records.filter(r => r.type.toUpperCase() === 'NS');
+    const soaRecords = records.filter(r => r.type.toUpperCase() === 'SOA');
 
     // Split TXT records into categories
     const spfRecords = records.filter(r => r.type === 'TXT' && r.value.includes('v=spf1'));

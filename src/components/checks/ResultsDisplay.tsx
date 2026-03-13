@@ -508,14 +508,35 @@ export function ResultsDisplay({
             // Standard DNS results (Simple List)
             if (checkType === 'dns' && typeof firstResult === 'object' && firstResult !== null) {
                 const records: string[] = [];
-                // Prioritize common records
-                if (firstResult.A) firstResult.A.forEach((r: any) => records.push(`A: ${r}`));
-                if (firstResult.AAAA) firstResult.AAAA.forEach((r: any) => records.push(`AAAA: ${r}`));
-                if (firstResult.MX) firstResult.MX.forEach((r: any) => records.push(`MX: ${Array.isArray(r) ? r[1] : r}`));
-                if (firstResult.CNAME) firstResult.CNAME.forEach((r: any) => records.push(`CNAME: ${r}`));
-                if (firstResult.NS) firstResult.NS.forEach((r: any) => records.push(`NS: ${r}`));
-                if (firstResult.TXT) firstResult.TXT.forEach((r: any) => records.push(`TXT: ${r}`));
-                if (firstResult.PTR) firstResult.PTR.forEach((r: any) => records.push(`PTR: ${r}`));
+                // Map all keys to uppercase for robust lookup
+                const normalizedResult: Record<string, any> = {};
+                Object.entries(firstResult).forEach(([k, v]) => {
+                    normalizedResult[k.toUpperCase()] = v;
+                });
+
+                // Helper to safely add records regardless of single value or array
+                const addFormatted = (type: string, val: any) => {
+                    if (!val) return;
+                    if (Array.isArray(val)) {
+                        val.forEach(v => {
+                            if (type === 'MX') {
+                                records.push(`MX: ${Array.isArray(v) ? v[1] : v}`);
+                            } else {
+                                records.push(`${type}: ${v}`);
+                            }
+                        });
+                    } else {
+                        records.push(`${type}: ${val}`);
+                    }
+                };
+
+                addFormatted('A', normalizedResult.A);
+                addFormatted('AAAA', normalizedResult.AAAA);
+                addFormatted('MX', normalizedResult.MX);
+                addFormatted('CNAME', normalizedResult.CNAME);
+                addFormatted('NS', normalizedResult.NS);
+                addFormatted('TXT', normalizedResult.TXT);
+                addFormatted('PTR', normalizedResult.PTR);
 
                 if (records.length === 0) return <span className="text-muted-foreground italic">No records</span>;
 

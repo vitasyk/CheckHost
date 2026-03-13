@@ -129,21 +129,42 @@ export async function GET(request: Request) {
             const dkimSelectors = ['default', 'google', 'k1', 'mail', 'sign', 'dkim', 'cloudflare', 'mandrill', 'postmark', 'sendgrid'];
             const p1Start = Date.now();
 
+            // Helper to trim trailing dot from DNS results
+            const trimDot = (val: string) => val ? (val.endsWith('.') ? val.slice(0, -1) : val) : val;
+
+            const isSubdomain = cleanDomain.split('.').length > 2;
+            const subName = cleanDomain.split('.')[0];
+            const baseDomain = cleanDomain.split('.').slice(1).join('.');
+
             // Run all primary DNS lookups in parallel
             const [a, aaaa, mx, ns, cname, txt, soa, dmarc, ...dkimResults] = await Promise.all([
                 fastResolve<string[]>('resolve4', cleanDomain),
                 fastResolve<string[]>('resolve6', cleanDomain),
                 fastResolve<dns.MxRecord[]>('resolveMx', cleanDomain),
                 fastResolve<string[]>('resolveNs', cleanDomain),
-                fastResolve<string[]>('resolveCname', cleanDomain),
+                fastResolve<string[]>('resolveCname', cleanDomain).then(async (res) => {
+                    // Fallback to resolveAny if resolveCname fails, as some DNS servers
+                    // respond with A records only for specialized CNAME queries but include CNAME in ANY
+                    if (!res || res.length === 0) {
+                        const anyResults = await fastResolve<dns.AnyRecord[]>('resolveAny', cleanDomain);
+                        if (anyResults) {
+                            const cnamesFromAny = anyResults
+                                .filter((r): r is dns.AnyCnameRecord => r.type === 'CNAME')
+                                .map(r => r.value);
+                            if (cnamesFromAny.length > 0) return cnamesFromAny;
+                        }
+                    }
+                    return res;
+                }),
                 fastResolve<string[][]>('resolveTxt', cleanDomain),
                 fastResolve<dns.SoaRecord>('resolveSoa', cleanDomain),
                 fastResolve<string[][]>('resolveTxt', `_dmarc.${cleanDomain}`),
                 ...dkimSelectors.map(selector => fastResolve<string[][]>('resolveTxt', `${selector}._domainkey.${cleanDomain}`)),
-                fastResolve<string[]>('resolve4', `mail.${cleanDomain}`),
-                fastResolve<dns.MxRecord[]>('resolveMx', `mail.${cleanDomain}`),
-                fastResolve<string[]>('resolve4', `www.${cleanDomain}`),
-                fastResolve<string[]>('resolveCname', `www.${cleanDomain}`),
+                // If it's a subdomain like mail.domain.com, we don't want mail.mail.domain.com
+                isSubdomain ? Promise.resolve(null) : fastResolve<string[]>('resolve4', `mail.${cleanDomain}`),
+                isSubdomain ? Promise.resolve(null) : fastResolve<dns.MxRecord[]>('resolveMx', `mail.${cleanDomain}`),
+                isSubdomain ? Promise.resolve(null) : fastResolve<string[]>('resolve4', `www.${cleanDomain}`),
+                isSubdomain ? Promise.resolve(null) : fastResolve<string[]>('resolveCname', `www.${cleanDomain}`),
             ]);
 
             primaryDuration = Date.now() - p1Start;
@@ -155,27 +176,27 @@ export async function GET(request: Request) {
 
             if (a) (a as string[]).forEach(ip => records.push({ type: 'A', value: ip }));
             if (aaaa) (aaaa as string[]).forEach(ip => records.push({ type: 'AAAA', value: ip }));
-            if (cname) (cname as string[]).forEach(cn => records.push({ type: 'CNAME', value: cn }));
+            if (cname) (cname as string[]).forEach(cn => records.push({ type: 'CNAME', value: trimDot(cn) }));
 
             if (mx) {
                 const mxRecs = mx as dns.MxRecord[];
                 mxRecs.sort((a, b) => a.priority - b.priority);
-                mxRecs.forEach(r => records.push({ type: 'MX', value: r.exchange, priority: r.priority }));
+                mxRecs.forEach(r => records.push({ type: 'MX', value: trimDot(r.exchange), priority: r.priority }));
             }
 
             if (ns && (ns as string[]).length > 0) {
-                (ns as string[]).forEach(n => records.push({ type: 'NS', value: n }));
+                (ns as string[]).forEach(n => records.push({ type: 'NS', value: trimDot(n) }));
             } else if (soa) {
                 const soaRec = soa as dns.SoaRecord;
-                if (soaRec.nsname) records.push({ type: 'NS', value: soaRec.nsname, auxiliary: 'from SOA (fallback)' });
+                if (soaRec.nsname) records.push({ type: 'NS', value: trimDot(soaRec.nsname), auxiliary: 'from SOA (fallback)' });
             }
 
             if (soa) {
                 const soaRec = soa as dns.SoaRecord;
                 records.push({
                     type: 'SOA',
-                    value: soaRec.hostmaster,
-                    auxiliary: `mname=${soaRec.nsname}; serial=${soaRec.serial}; refresh=${soaRec.refresh}; retry=${soaRec.retry}; expire=${soaRec.expire}; minttl=${soaRec.minttl}`,
+                    value: trimDot(soaRec.hostmaster),
+                    auxiliary: `mname=${trimDot(soaRec.nsname)}; serial=${soaRec.serial}; refresh=${soaRec.refresh}; retry=${soaRec.retry}; expire=${soaRec.expire}; minttl=${soaRec.minttl}`,
                 });
             }
 
@@ -197,9 +218,9 @@ export async function GET(request: Request) {
             });
 
             if (mail_a) (mail_a as string[]).forEach(ip => records.push({ type: 'A', value: ip, auxiliary: 'mail.@' }));
-            if (mail_mx) (mail_mx as dns.MxRecord[]).forEach(r => records.push({ type: 'MX', value: r.exchange, priority: r.priority, auxiliary: 'mail.@' }));
+            if (mail_mx) (mail_mx as dns.MxRecord[]).forEach(r => records.push({ type: 'MX', value: trimDot(r.exchange), priority: r.priority, auxiliary: 'mail.@' }));
             if (www_a) (www_a as string[]).forEach(ip => records.push({ type: 'A', value: ip, auxiliary: 'www.@' }));
-            if (www_cname) (www_cname as string[]).forEach(cn => records.push({ type: 'CNAME', value: cn, auxiliary: 'www.@' }));
+            if (www_cname) (www_cname as string[]).forEach(cn => records.push({ type: 'CNAME', value: trimDot(cn), auxiliary: 'www.@' }));
 
             const primaryIP = (a && (a as string[]).length > 0) ? (a as string[])[0] : ((aaaa && (aaaa as string[]).length > 0) ? (aaaa as string[])[0] : null);
             const secondaryPromises: Promise<any>[] = [];
@@ -207,14 +228,14 @@ export async function GET(request: Request) {
 
             if (primaryIP) {
                 secondaryPromises.push(fastResolve<string[]>('reverse', primaryIP).then(ptrResults => {
-                    if (ptrResults) ptrResults.forEach(p => records.push({ type: 'PTR', value: p, auxiliary: `for ${primaryIP}` }));
+                    if (ptrResults) ptrResults.forEach(p => records.push({ type: 'PTR', value: trimDot(p), auxiliary: `for ${primaryIP}` }));
                 }));
             }
 
             if (mx && (mx as dns.MxRecord[]).length > 0) {
                 (mx as dns.MxRecord[]).forEach((mxRecord) => {
                     secondaryPromises.push(fastResolve<string[]>('resolve4', mxRecord.exchange).then(mailA => {
-                        if (mailA) mailA.forEach(ip => records.push({ type: 'A', value: ip, auxiliary: `mail server (${mxRecord.exchange})` }));
+                        if (mailA) mailA.forEach(ip => records.push({ type: 'A', value: ip, auxiliary: `mail server (${trimDot(mxRecord.exchange)})` }));
                     }));
                 });
             }
